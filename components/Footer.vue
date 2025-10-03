@@ -6,13 +6,13 @@
           <p class="footer-hero__title">Temukan Kami di:</p>
           <nav class="footer-hero__socials" aria-label="Sosial Media">
             <a href="https://facebook.com" target="_blank" rel="noopener" class="soc" aria-label="Facebook">
-              <img src="/Icons/Facebook.svg" alt="" />
+              <img src="/Icons/Facebook.svg" alt="https://www.facebook.com/PHRIOnline" />
             </a>
             <a href="https://x.com" target="_blank" rel="noopener" class="soc" aria-label="X">
-              <img src="/Icons/X.svg" alt="" />
+              <img src="/Icons/X.svg" alt="https://x.com/PHRIOnline" />
             </a>
             <a href="https://instagram.com" target="_blank" rel="noopener" class="soc" aria-label="Instagram">
-              <img src="/Icons/Instagram.svg" alt="" />
+              <img src="/Icons/Instagram.svg" alt="https://www.instagram.com/phrionline/" />
             </a>
             <a href="https://youtube.com" target="_blank" rel="noopener" class="soc" aria-label="YouTube">
               <img src="/Icons/Youtube.svg" alt="" />
@@ -181,7 +181,7 @@ function scrollTop() {
   color: #F79F24;
   font-weight: 500;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 18px;
   line-height: 18px;
   transition: color .15s, text-decoration-color .15s;
 }

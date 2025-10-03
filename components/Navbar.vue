@@ -1,7 +1,6 @@
 <template>
   <header class="navbar">
     <div class="navbar__inner">
-      <!-- LEFT: Logo + Brand -->
       <div class="navbar__left">
         <NuxtLink to="/" class="navbar__logoWrap">
           <img src="/Icons/Logo.svg" alt="PHRI Logo" class="navbar__logo" />
@@ -9,18 +8,16 @@
         </NuxtLink>
       </div>
 
-      <!-- CENTER: Menu (desktop) -->
       <nav class="navbar__menu">
-        <NuxtLink :class="['navbar__link', isActive('/') && 'active']" to="/shop">Beranda</NuxtLink>
+        <NuxtLink :class="['navbar__link', isExact('/shop') && 'active']" to="/shop">Beranda</NuxtLink>
         <NuxtLink :class="['navbar__link', isActive('/about') && 'active']" to="/about">Tentang Kami</NuxtLink>
-        <NuxtLink :class="['navbar__link', isActive('/contact') && 'active']" to="/contact">Kontak</NuxtLink>
-        <NuxtLink :class="['navbar__link', isActive('/help') && 'active']" to="/help">Bantuan</NuxtLink>
+        <NuxtLink :class="['navbar__link', isActive('/shop/contact') && 'active']" to="/shop/contact">Kontak</NuxtLink>
+        <NuxtLink :class="['navbar__link', isActive('/shop/help') && 'active']" to="/shop/help">Bantuan</NuxtLink>
       </nav>
 
-      <!-- RIGHT: Cart + Language + Hamburger -->
       <div class="navbar__right">
-        <NuxtLink to="/cart" class="navbar__cart" aria-label="Cart">
-          <img src="/Icons/Cart.svg" alt="" />
+        <NuxtLink to="/shop/cart" class="navbar__cart" aria-label="Cart">
+          <img src="/Icons/Cart.svg" alt="Cart" />
           <span v-if="cartCount > 0" class="badge">{{ cartCount }}</span>
         </NuxtLink>
 
@@ -28,47 +25,41 @@
           @click="toggleLang" @keydown.enter.prevent="toggleLang" @keydown.space.prevent="toggleLang"
           @blur="langOpen = false">
           <span class="lang__code">{{ currentLabel }}</span>
-          <svg class="lang__caret" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <svg class="lang__caret" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M7 9l5 6 5-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
               stroke-linejoin="round" />
           </svg>
-
           <ul v-if="langOpen" class="lang__menu" role="menu">
             <li class="lang__item" role="menuitem" @click.stop="setLocale('id')">ID</li>
             <li class="lang__item" role="menuitem" @click.stop="setLocale('en')">EN</li>
           </ul>
         </div>
 
-        <!-- HAMBURGER (mobile) -->
         <button class="hamburger" @click="mobileOpen = true" aria-label="Menu">
           <span></span><span></span><span></span>
         </button>
       </div>
     </div>
 
-    <!-- MOBILE MENU FULLSCREEN -->
     <transition name="fade">
       <div v-if="mobileOpen" class="mm__backdrop" @click="mobileOpen = false"></div>
     </transition>
-
     <transition name="slide">
       <aside v-if="mobileOpen" class="mm">
         <div class="mm__head">
           <NuxtLink to="/" class="mm__brand" @click="mobileOpen = false">
-            <img src="/Icons/Logo.svg" alt="" />
-            <span>PHRI</span>
+            <img src="/Icons/Logo.svg" alt="" /><span>PHRI</span>
           </NuxtLink>
           <button class="mm__close" @click="mobileOpen = false" aria-label="Tutup">✕</button>
         </div>
         <nav class="mm__nav">
           <NuxtLink class="mm__link" to="/shop" @click="mobileOpen = false">Beranda</NuxtLink>
           <NuxtLink class="mm__link" to="/about" @click="mobileOpen = false">Tentang Kami</NuxtLink>
-          <NuxtLink class="mm__link" to="/contact" @click="mobileOpen = false">Kontak</NuxtLink>
-          <NuxtLink class="mm__link" to="/help" @click="mobileOpen = false">Bantuan</NuxtLink>
+          <NuxtLink class="mm__link" to="/shop/contact" @click="mobileOpen = false">Kontak</NuxtLink>
+          <NuxtLink class="mm__link" to="/shop/help" @click="mobileOpen = false">Bantuan</NuxtLink>
         </nav>
-        <NuxtLink to="/cart" class="mm__cart" @click="mobileOpen = false">
-          <img src="/Icons/Cart.svg" alt="" />
-          <span>Keranjang</span>
+        <NuxtLink to="/shop/cart" class="mm__cart" @click="mobileOpen = false">
+          <img src="/Icons/Cart.svg" alt="" /><span>Keranjang</span>
           <em v-if="cartCount > 0" class="mm__badge">{{ cartCount }}</em>
         </NuxtLink>
       </aside>
@@ -79,18 +70,19 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
+import { useCart } from '@/composables/useCart'
 
-const cartCount = ref(2)
+const { items } = useCart()
+
+const cartCount = computed(() => items.value.reduce((sum, it) => sum + it.qty, 0))
+
 const localeRef = ref<'id' | 'en'>('id')
 const langOpen = ref(false)
 const mobileOpen = ref(false)
 const currentLabel = computed(() => String(localeRef.value || 'id').toUpperCase())
 
 function toggleLang() { langOpen.value = !langOpen.value }
-function setLocale(code: 'id' | 'en') {
-  localeRef.value = code
-  langOpen.value = false
-}
+function setLocale(code: 'id' | 'en') { localeRef.value = code; langOpen.value = false }
 
 function onDocClick(e: MouseEvent) {
   const el = document.querySelector('.lang')
@@ -100,19 +92,15 @@ onMounted(() => document.addEventListener('click', onDocClick))
 onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
 
 const route = useRoute()
-const isActive = (path: string) => {
-  if (path === '/') {
-    return route.path === '/' || route.path.startsWith('/shop')
-  }
-  return route.path === path
-}
+const isExact = (path: string) => route.path === path
+const isActive = (path: string) => route.path === path || route.path.startsWith(path + '/')
 </script>
+
 <style scoped>
 .navbar {
   background: #fff;
   border-bottom: 1px solid #E5E5E5;
 }
-
 
 .navbar__inner {
   display: flex;
@@ -124,11 +112,6 @@ const isActive = (path: string) => {
   margin: 0 auto;
   padding: 20px 24px;
   box-sizing: border-box;
-}
-
-
-.navbar__left {
-  margin-left: 0;
 }
 
 .navbar__logoWrap {
@@ -153,7 +136,6 @@ const isActive = (path: string) => {
   letter-spacing: -.005px;
 }
 
-
 .navbar__menu {
   display: none;
   gap: 32px;
@@ -172,17 +154,16 @@ const isActive = (path: string) => {
   color: #F79F24;
 }
 
-.navbar__link.active {
+.navbar__link.active,
+.navbar__link.active:hover {
   background: #F79F24;
   color: #fff;
 }
-
 
 .navbar__right {
   display: flex;
   align-items: center;
   gap: 20px;
-  margin-right: 0;
 }
 
 .navbar__cart {
@@ -212,7 +193,6 @@ const isActive = (path: string) => {
   border-radius: 999px;
   text-align: center;
 }
-
 
 .lang {
   position: relative;
@@ -268,7 +248,6 @@ const isActive = (path: string) => {
   background: #FFF3E3;
 }
 
-
 .hamburger {
   display: none;
   border: none;
@@ -285,7 +264,6 @@ const isActive = (path: string) => {
   height: 100%;
   background: url('/Icons/List.svg') center/contain no-repeat;
 }
-
 
 .mm__backdrop {
   position: fixed;
@@ -377,7 +355,6 @@ const isActive = (path: string) => {
   line-height: 20px;
 }
 
-
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity .2s;
@@ -399,32 +376,6 @@ const isActive = (path: string) => {
   opacity: 0;
 }
 
-
-@media (min-width:1440px) {
-  .navbar__inner {
-    padding: 22px 28px;
-  }
-}
-
-
-@media (min-width:1280px) and (max-width:1439px) {
-  .navbar__inner {
-    max-width: 1200px;
-  }
-}
-
-
-@media (min-width:1025px) and (max-width:1279px) {
-  .navbar__inner {
-    max-width: 1080px;
-  }
-
-  .navbar__menu {
-    gap: 24px;
-  }
-}
-
-
 @media (min-width:900px) {
   .navbar__menu {
     display: flex;
@@ -438,44 +389,16 @@ const isActive = (path: string) => {
   .lang {
     display: inline-flex;
   }
-
-  .navbar__logo {
-    width: 40px;
-    height: 40px;
-  }
-
-  .navbar__brand {
-    display: inline;
-    font-size: 24px;
-    line-height: 32px;
-  }
 }
 
-
-@media (min-width:600px) and (max-width:899px) {
+@media (max-width:899px) {
   .navbar__inner {
     padding: 14px 20px;
     gap: 16px;
   }
 
-  .navbar__logo {
-    width: 32px;
-    height: 32px;
-  }
-
-  .navbar__brand {
-    display: inline;
-    font-size: 20px;
-    line-height: 26px;
-  }
-
   .navbar__menu {
     display: none !important;
-  }
-
-  .navbar__cart,
-  .lang {
-    display: inline-flex;
   }
 
   .hamburger {
@@ -491,12 +414,7 @@ const isActive = (path: string) => {
     height: 26px;
     background-size: 26px 26px;
   }
-
-  .mm {
-    padding: 20px;
-  }
 }
-
 
 @media (max-width:599px) {
   .navbar__inner {
@@ -514,14 +432,12 @@ const isActive = (path: string) => {
     display: none !important;
   }
 
-
   .hamburger {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 44px;
     height: 44px;
-    padding: 0;
     margin-right: 8px;
   }
 
@@ -529,67 +445,6 @@ const isActive = (path: string) => {
     width: 28px;
     height: 28px;
     background-size: 28px 28px;
-
-  }
-
-  .navbar__logo {
-    width: 28px;
-    height: 28px;
-  }
-
-  .mm {
-    padding: 16px;
-  }
-
-  .mm__brand img {
-    width: 24px;
-    height: 24px;
-  }
-
-  .mm__link {
-    font-size: 14px;
-  }
-
-  .mm__nav {
-    gap: 16px;
-  }
-
-  .mm__cart {
-    margin-top: 12px;
-    align-self: stretch;
-    width: 100%;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, .10);
-  }
-}
-
-@media (max-width:360px) {
-  .navbar__inner {
-    padding: 10px 12px;
-  }
-
-  .hamburger {
-    width: 44px;
-    height: 44px;
-  }
-
-  .hamburger::before {
-    width: 30px;
-    height: 30px;
-    background-size: 30px 30px;
-  }
-
-
-  .navbar__logo {
-    width: 26px;
-    height: 26px;
-  }
-
-  .mm {
-    padding: 14px;
-  }
-
-  .mm__link {
-    font-size: 13.5px;
   }
 }
 </style>
