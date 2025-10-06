@@ -391,7 +391,7 @@ async function submit() {
 .sec-title {
     margin: 30px 0 0;
     font: 600 20px/28px var(--ff);
-    color: #000
+    color: #0000
 }
 
 .sec-link {
