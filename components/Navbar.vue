@@ -10,7 +10,7 @@
 
       <nav class="navbar__menu">
         <NuxtLink :class="['navbar__link', isExact('/shop') && 'active']" to="/shop">Beranda</NuxtLink>
-        <NuxtLink :class="['navbar__link', isActive('/about') && 'active']" to="/about">Tentang Kami</NuxtLink>
+        <NuxtLink :class="['navbar__link', isActive('/') && 'active']" to="/">Tentang Kami</NuxtLink>
         <NuxtLink :class="['navbar__link', isActive('/shop/contact') && 'active']" to="/shop/contact">Kontak</NuxtLink>
         <NuxtLink :class="['navbar__link', isActive('/shop/help') && 'active']" to="/shop/help">Bantuan</NuxtLink>
       </nav>
@@ -21,9 +21,9 @@
           <span v-if="cartCount > 0" class="badge">{{ cartCount }}</span>
         </NuxtLink>
 
-        <div class="lang" :class="{ 'is-open': langOpen }" tabindex="0" role="button" :aria-expanded="String(langOpen)"
-          @click="toggleLang" @keydown.enter.prevent="toggleLang" @keydown.space.prevent="toggleLang"
-          @blur="langOpen = false">
+        <div v-if="showLang" class="lang" :class="{ 'is-open': langOpen }" tabindex="0" role="button"
+          :aria-expanded="String(langOpen)" @click="toggleLang" @keydown.enter.prevent="toggleLang"
+          @keydown.space.prevent="toggleLang" @blur="langOpen = false">
           <span class="lang__code">{{ currentLabel }}</span>
           <svg class="lang__caret" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M7 9l5 6 5-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -54,7 +54,7 @@
         </div>
         <nav class="mm__nav">
           <NuxtLink class="mm__link" to="/shop" @click="mobileOpen = false">Beranda</NuxtLink>
-          <NuxtLink class="mm__link" to="/about" @click="mobileOpen = false">Tentang Kami</NuxtLink>
+          <NuxtLink class="mm__link" to="/" @click="mobileOpen = false">Tentang Kami</NuxtLink>
           <NuxtLink class="mm__link" to="/shop/contact" @click="mobileOpen = false">Kontak</NuxtLink>
           <NuxtLink class="mm__link" to="/shop/help" @click="mobileOpen = false">Bantuan</NuxtLink>
         </nav>
@@ -90,6 +90,16 @@ function onDocClick(e: MouseEvent) {
 }
 onMounted(() => document.addEventListener('click', onDocClick))
 onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
+
+const showLang = false
+
+onMounted(() => {
+  if (showLang) document.addEventListener('click', onDocClick)
+})
+onBeforeUnmount(() => {
+  if (showLang) document.removeEventListener('click', onDocClick)
+})
+
 
 const route = useRoute()
 const isExact = (path: string) => route.path === path

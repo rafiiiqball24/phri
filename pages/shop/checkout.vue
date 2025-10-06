@@ -23,7 +23,7 @@
                 <template v-else>
                     <header class="sec-head">
                         <h2 class="sec-title">Dikirim Ke</h2>
-                        <button type="button" class="sec-link">Baca dulu informasi pengirimannya yuk!</button>
+                        <NuxtLink to="/shop/Help" class="sec-link">Baca dulu informasi pengirimannya yuk!</NuxtLink>
                     </header>
 
                     <div class="field">
@@ -121,10 +121,10 @@
                     ...displayedItems.map(it => ({ name: `${it.qty}× ${it.name}`, price: it.price * it.qty })),
                     ...(paymentFee > 0 ? [{ name: 'Payment Fee', price: paymentFee }] : [])
                 ]" total-label="Total Pembayaran" :total="grandTotalWithFee" :links="[
-                    { label: 'Butuh Bantuan?', to: '/help' },
-                    { label: 'Hubungi Kami', to: '/contact', underline: true },
-                    { label: 'Informasi Pengiriman', to: '/shipping', underline: true }
-                ]">
+            { label: 'Butuh Bantuan?', to: '/shop/Help' },
+            { label: 'Hubungi Kami', to: '/shop/contact', underline: true },
+            { label: 'Informasi Pengiriman', to: '/shop/Help', underline: true }
+        ]">
                     <template #extra>
                         <div style="margin-top: 4px">
                             <MiniCartItem v-for="it in displayedItems" :key="it.id" :image="it.image" :name="it.name"
@@ -133,6 +133,20 @@
                     </template>
                 </SummaryBox>
             </aside>
+        </div>
+
+        <div v-if="success.open" class="modal">
+            <div class="modal__overlay" @click="closeSuccess"></div>
+            <div class="modal__card" role="dialog" aria-modal="true" aria-label="Order Berhasil">
+                <div class="modal__icon">✔</div>
+                <h3 class="modal__title">Order Berhasil</h3>
+                <p class="modal__desc">
+                    Terima kasih, pesananmu sudah kami terima<span v-if="success.orderCode"> (#{{ success.orderCode
+                        }})</span>.
+                    Silakan cek email untuk instruksi pembayaran dan detail pengiriman.
+                </p>
+                <button class="btn btn--primary btn--block modal__btn" @click="closeSuccess">Oke</button>
+            </div>
         </div>
     </section>
 </template>
@@ -321,6 +335,13 @@ async function pushCartSnapshot(session_id: string) {
     }
 }
 
+const success = ref<{ open: boolean; orderCode?: string | null }>({ open: false, orderCode: null })
+
+function closeSuccess() {
+    success.value.open = false
+    router.push('/')
+}
+
 async function submit() {
     showErr.value = true
     serverErrors.value = {}
@@ -342,12 +363,14 @@ async function submit() {
         }
         const { data, error } = await ApiService.post('/order', payload, { headers })
         if (error.value) throw error.value
-        alert('Order berhasil dibuat!')
+        const root = (data.value as any)?.data || data.value
+        const code = root?.order?.code || root?.order_code || root?.code || null
+        success.value.orderCode = code ? String(code) : null
+        success.value.open = true
     } catch (e: any) {
         const msg = e?.message || 'Gagal membuat order'
         const errs = e?.errors || e?.data?.errors || e?.response?.errors || (e?.data && typeof e.data === 'object' ? e.data.errors : undefined) || {}
         serverErrors.value = errs
-        console.error('[ORDER] detail =>', errs)
         alert(`${msg}\n\n${JSON.stringify(errs, null, 2)}`)
     } finally {
         sending.value = false
@@ -487,6 +510,61 @@ async function submit() {
     width: 100%;
     height: 88px;
     border-radius: 12px
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: grid;
+    place-items: center;
+    padding: 16px
+}
+
+.modal__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, .35);
+    backdrop-filter: blur(2px)
+}
+
+.modal__card {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .12);
+    text-align: center
+}
+
+.modal__icon {
+    width: 56px;
+    height: 56px;
+    margin: 4px auto 12px;
+    border-radius: 50%;
+    background: #e7f7ef;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    color: #0a7f41
+}
+
+.modal__title {
+    margin: 0 0 8px;
+    font: 700 20px/28px var(--ff);
+    color: #0a0a0a
+}
+
+.modal__desc {
+    margin: 0 0 16px;
+    font: 400 14px/22px var(--ff);
+    color: #4a4a4a
+}
+
+.modal__btn {
+    margin-top: 6px
 }
 
 @media (max-width:1024px) {

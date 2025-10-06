@@ -1,5 +1,5 @@
 <template>
-    <section class="container">
+    <section class="page container">
         <Breadcrumb :items="[
             { label: 'Beranda', to: '/' },
             { label: 'Detail Produk', to: '/shop/detail-product' },
@@ -64,10 +64,7 @@
 
             <SummaryBox v-if="!dbg.loading" title="Ringkasan Pembelian" :count-label="`${displayedItems.length} Item`"
                 :lines="[
-                    ...displayedItems.map(it => ({
-                        name: `${it.qty}× ${it.name}`,
-                        price: it.price * it.qty
-                    })),
+                    ...displayedItems.map(it => ({ name: `${it.qty}× ${it.name}`, price: it.price * it.qty })),
                     ...(paymentFee > 0 ? [{ name: 'Payment Fee', price: paymentFee }] : [])
                 ]" total-label="Estimasi Pembayaran" :total="grandTotal" cta="Buat Pesanan" @cta="goCheckout" :links="[
                     { label: 'Butuh Bantuan?', to: '/help' },
@@ -118,17 +115,13 @@ function toggleLoading() { dbg.value.loading = !dbg.value.loading }
 function toggleEmpty() { dbg.value.empty = !dbg.value.empty }
 
 const { items, total, updateQty, remove } = useCart()
-const displayedItems = computed<CartItem[]>(() =>
-    (dbg.value.empty ? [] : (items.value as unknown as CartItem[]))
-)
+const displayedItems = computed<CartItem[]>(() => (dbg.value.empty ? [] : (items.value as unknown as CartItem[])))
 
 const config = useRuntimeConfig()
 const apiKey = (config.public.xApiKey || config.public.apiKey || '') as string
 const headers = apiKey ? { 'x-api-key': apiKey, Accept: 'application/json' } : { Accept: 'application/json' }
 
-const assetBase =
-    (config.public.assetBase as string) ||
-    (config.public.baseURL as string)?.replace(/\/api\/?$/, '') || ''
+const assetBase = (config.public.assetBase as string) || (config.public.baseURL as string)?.replace(/\/api\/?$/, '') || ''
 const asset = (p?: string) => !p ? '' : (p.startsWith('http') ? p : `${assetBase}/${p.replace(/^\/+/, '')}`)
 
 function getSession(): string | null { try { return localStorage.getItem('phri_session_id') } catch { return null } }
@@ -208,7 +201,7 @@ async function fetchRecommendations() {
         const cartIds = new Set((items.value as any[]).map(it => String(it.id)))
         const cleaned = arr.filter(p => !cartIds.has(String(p.id)))
         rec.value = cleaned.slice(0, 4).map(mapToCard)
-    } catch (e) { }
+    } catch { }
 }
 
 onMounted(() => {
@@ -221,16 +214,23 @@ watch(items, () => { fetchRecommendations() }, { deep: true })
 </script>
 
 <style scoped>
+.page {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 300px;
+}
+
 .dbg {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 0 4px
+    padding: 8px 0 4px;
 }
 
 .dbg__title {
     font: 600 12px/18px var(--ff);
-    color: #757575
+    color: #757575;
 }
 
 .dbg__btn {
@@ -239,13 +239,13 @@ watch(items, () => { fetchRecommendations() }, { deep: true })
     border: 1px solid #EDEDED;
     background: #fff;
     cursor: pointer;
-    font: 500 12px/18px var(--ff)
+    font: 500 12px/18px var(--ff);
 }
 
 .dbg__btn.on {
     border-color: #FFD6A6;
     background: #FFF7EA;
-    color: #B96A00
+    color: #B96A00;
 }
 
 .cols {
@@ -253,13 +253,13 @@ watch(items, () => { fetchRecommendations() }, { deep: true })
     grid-template-columns: 1fr 392px;
     gap: 28px;
     align-items: start;
-    margin-top: 12px
+    margin-top: 12px;
 }
 
 .list {
     display: flex;
     flex-direction: column;
-    gap: 12px
+    gap: 12px;
 }
 
 .row {
@@ -269,7 +269,7 @@ watch(items, () => { fetchRecommendations() }, { deep: true })
     padding: 12px;
     border: 1px solid var(--border);
     border-radius: 12px;
-    background: #fff
+    background: #fff;
 }
 
 .row__thumb {
@@ -278,7 +278,7 @@ watch(items, () => { fetchRecommendations() }, { deep: true })
     border-radius: 8px;
     overflow: hidden;
     background: #f2f2f2;
-    margin: 0
+    margin: 0;
 }
 
 .row__thumb img {
@@ -286,25 +286,25 @@ watch(items, () => { fetchRecommendations() }, { deep: true })
     height: 100%;
     object-fit: contain;
     background: #fff;
-    display: block
+    display: block;
 }
 
 .row__main {
     display: flex;
     flex-direction: column;
-    gap: 10px
+    gap: 10px;
 }
 
 .row__head {
     display: flex;
     align-items: center;
-    justify-content: space-between
+    justify-content: space-between;
 }
 
 .row__name {
     margin: 0;
     font: 600 16px/24px var(--ff);
-    color: var(--text)
+    color: var(--text);
 }
 
 .row__remove {
@@ -312,35 +312,35 @@ watch(items, () => { fetchRecommendations() }, { deep: true })
     border: 0;
     cursor: pointer;
     font: 500 12px/18px var(--ff);
-    color: var(--text)
+    color: var(--text);
 }
 
 .row__meta {
     display: flex;
     gap: 16px;
     font: 500 14px/22px var(--ff);
-    color: var(--text)
+    color: var(--text);
 }
 
 .row__meta b {
     font-weight: 400;
-    color: #757575
+    color: #757575;
 }
 
 .row__foot {
     display: flex;
     align-items: center;
-    justify-content: space-between
+    justify-content: space-between;
 }
 
 .row__price {
     margin-top: 20px;
     font: 700 16px/24px var(--ff);
-    color: var(--text)
+    color: var(--text);
 }
 
 .btn.btn--primary {
-    text-decoration: none
+    text-decoration: none;
 }
 
 .empty {
@@ -349,31 +349,31 @@ watch(items, () => { fetchRecommendations() }, { deep: true })
     align-items: center;
     text-align: center;
     padding: 40px 0 48px;
-    gap: 10px
+    gap: 10px;
 }
 
 .empty__img {
     width: 200px;
-    height: 200px
+    height: 200px;
 }
 
 .empty__title {
     margin: 6px 0 0;
     font: 700 18px/26px var(--ff);
-    color: var(--text)
+    color: var(--text);
 }
 
 .empty__text {
     margin: 0 0 6px;
     font: 400 14px/22px var(--ff);
-    color: #757575
+    color: #757575;
 }
 
 .skel {
     background: linear-gradient(270deg, rgba(219, 219, 219, .05) 0%, #DBDBDB 50%, rgba(219, 219, 219, .05) 100%);
     background-size: 200% 100%;
     animation: shimmer 1.2s infinite linear;
-    border-radius: 8px
+    border-radius: 8px;
 }
 
 @keyframes shimmer {
@@ -458,12 +458,12 @@ watch(items, () => { fetchRecommendations() }, { deep: true })
     grid-template-columns: repeat(4, 1fr);
     gap: 20px;
     width: 100%;
-    margin-top: 24px
+    margin-top: 24px;
 }
 
 .rec-skeleton .card {
     height: 320px;
-    border-radius: 16px
+    border-radius: 16px;
 }
 
 @media (max-width:1024px) {
@@ -490,7 +490,7 @@ watch(items, () => { fetchRecommendations() }, { deep: true })
     .row {
         grid-template-columns: 88px 1fr;
         gap: 12px;
-        padding: 10px
+        padding: 10px;
     }
 
     .row__thumb {
