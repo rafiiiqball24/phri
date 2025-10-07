@@ -9,7 +9,7 @@ export default defineNuxtConfig({
 
   postcss: {
     plugins: {
-      tailwindcss: {},
+      '@tailwindcss/postcss': {},
       autoprefixer: {}
     }
   },
@@ -24,9 +24,8 @@ export default defineNuxtConfig({
     }
   },
 
-  // Hilangkan warning Nitro soal compatibilityDate
   nitro: {
-    compatibilityDate: '2025-10-06'
+    compatibilityDate: '2025-10-07'
   },
 
   app: {
@@ -34,16 +33,12 @@ export default defineNuxtConfig({
       htmlAttrs: { lang: 'id' },
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         {
           rel: 'stylesheet',
           href: 'https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700&display=swap'
         },
-
-        // Favicon PHRI.ico di folder /public
-        { rel: 'icon', type: 'image/x-icon', href: '/PHRI.ico' },
-        // (opsional) untuk iOS home screen, kalau ada PNG 180x180 di /public
-        // { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' }
+        { rel: 'icon', type: 'image/x-icon', href: '/PHRI.ico' }
       ]
     }
   }
