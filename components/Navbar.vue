@@ -10,7 +10,8 @@
 
       <nav class="navbar__menu">
         <NuxtLink :class="['navbar__link', isExact('/shop') && 'active']" to="/shop">Beranda</NuxtLink>
-        <NuxtLink :class="['navbar__link', isActive('/') && 'active']" to="/">Tentang Kami</NuxtLink>
+        <NuxtLink :class="['navbar__link', isActive('/shop/aboutus') && 'active']" to="/shop/aboutus">Tentang Kami
+        </NuxtLink>
         <NuxtLink :class="['navbar__link', isActive('/shop/contact') && 'active']" to="/shop/contact">Kontak</NuxtLink>
         <NuxtLink :class="['navbar__link', isActive('/shop/help') && 'active']" to="/shop/help">Bantuan</NuxtLink>
       </nav>
@@ -54,7 +55,7 @@
         </div>
         <nav class="mm__nav">
           <NuxtLink class="mm__link" to="/shop" @click="mobileOpen = false">Beranda</NuxtLink>
-          <NuxtLink class="mm__link" to="/" @click="mobileOpen = false">Tentang Kami</NuxtLink>
+          <NuxtLink class="mm__link" to="/shop/aboutus" @click="mobileOpen = false">Tentang Kami</NuxtLink>
           <NuxtLink class="mm__link" to="/shop/contact" @click="mobileOpen = false">Kontak</NuxtLink>
           <NuxtLink class="mm__link" to="/shop/help" @click="mobileOpen = false">Bantuan</NuxtLink>
         </nav>

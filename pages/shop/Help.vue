@@ -114,7 +114,11 @@
                     <p class="cta__text">Hubungi tim kami melalui live chat atau email, dan kami akan dengan senang hati
                         membantu.</p>
                 </div>
-                <button type="button" class="btn btn--primary">Hubungi Kami</button>
+                <button type="button" class="btn btn--primary" @click="$router.push('/shop/contact')">
+                    Hubungi Kami
+                </button>
+
+
             </div>
         </section>
     </section>
