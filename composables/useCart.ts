@@ -9,6 +9,7 @@ export type CartItem = {
   image: string
   price: number
   qty: number
+  stock?: number
   color?: string
   size?: string
   cartId?: string          // <-- id cart dari server (untuk DELETE/PATCH)
@@ -118,14 +119,16 @@ export function useCart() {
   */
   async function addItem(p: {
     id: string; name: string; image: string; price: number;
-    qty?: number; size?: string; color?: string
+    qty?: number; size?: string; color?: string; stock?: number
   }) {
     const key = makeKey(p.id, p.size, p.color)
     const exist = items.value.find(it => it.key === key)
 
     const addQty = Math.max(1, p.qty ?? 1)
     if (exist) {
-      exist.qty += addQty
+      if (typeof p.stock === 'number') exist.stock = p.stock
+      const maxStock = typeof exist.stock === 'number' ? exist.stock : Infinity
+      exist.qty = Math.min(maxStock, exist.qty + addQty)
       await updateQty(key, exist.qty) // sekalian sync
       return
     }
@@ -137,7 +140,8 @@ export function useCart() {
       name: p.name,
       image: p.image,
       price: Number(p.price || 0),
-      qty: addQty,
+      qty: Math.min(typeof p.stock === 'number' ? p.stock : Infinity, addQty),
+      stock: typeof p.stock === 'number' ? p.stock : undefined,
       size: p.size,
       color: p.color
     })
@@ -168,12 +172,21 @@ export function useCart() {
   async function updateQty(key: string, qty: number) {
     const it = items.value.find(i => i.key === key)
     if (!it) return
-    it.qty = Math.max(1, qty) // update lokal dulu
+    if (typeof (it as any).stock !== 'number') {
+      try {
+        const { data } = await ApiService.query(`/product/${it.id}`, { headers })
+        const root = (data.value as any)?.data?.product || (data.value as any)?.data || (data.value as any)
+        const s = Number(root?.quantity ?? 0)
+        if (Number.isFinite(s)) (it as any).stock = s
+      } catch {}
+    }
+    let newQty = Math.max(0, Number(qty) || 0)
+    if (typeof it.stock === 'number') newQty = Math.min(it.stock, newQty)
+    it.qty = newQty
 
     const sid = getSession()
     if (!sid) return
 
-    // pastikan punya cartId
     if (!it.cartId) await fetchServerCart()
 
     try {
@@ -232,8 +245,28 @@ export function useCart() {
 
   function clear() { items.value = [] }
 
+  async function clearAll() {
+    // kosongkan lokal lebih dulu agar UI langsung update
+    items.value = []
+    if (process.client) {
+      try { localStorage.removeItem('phri_cart_v1') } catch {}
+    }
+
+    const sid = getSession()
+    if (!sid) return
+    try {
+      const { data } = await ApiService.query('/cart', { params: { session_id: sid }, headers })
+      const carts: ServerCartItem[] = ((data.value as any)?.data?.carts) || []
+      await Promise.allSettled(
+        carts.map(c => ApiService.delete(`/cart/${c.id}`, undefined, { headers }))
+      )
+    } catch (e) {
+      console.error('Clear all cart (server) gagal:', e)
+    }
+  }
+
   // sinkron awal (client)
   if (process.client) fetchServerCart()
 
-  return { items, count, total, addItem, updateQty, remove, clear, fetchServerCart }
+  return { items, count, total, addItem, updateQty, remove, clear, clearAll, fetchServerCart }
 }

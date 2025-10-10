@@ -54,8 +54,9 @@
                                 @click="toggleShipping(i)">
                                 <span class="accordion__q">{{ q.q }}</span>
                                 <svg class="accordion__chev" viewBox="0 0 24 24" aria-hidden>
-                                    <path d="M6 9l6 6 6-6" :stroke="openedShipping === i ? '#F79F24' : '#9AA0A6'"
-                                        stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                                    <path d="M6 9l6 6 6-6" stroke="#0A0A0A" stroke-width="1.6" fill="none"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+
                                 </svg>
                             </button>
                             <div class="accordion__panel" v-show="openedShipping === i">
@@ -89,8 +90,9 @@
                                 @click="togglePrivacy(i)">
                                 <span class="accordion__q">{{ q.q }}</span>
                                 <svg class="accordion__chev" viewBox="0 0 24 24" aria-hidden>
-                                    <path d="M6 9l6 6 6-6" :stroke="openedPrivacy === i ? '#F79F24' : '#9AA0A6'"
-                                        stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                                    <path d="M6 9l6 6 6-6" stroke="#0A0A0A" stroke-width="1.6" fill="none"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+
                                 </svg>
                             </button>
                             <div class="accordion__panel" v-show="openedPrivacy === i">
@@ -114,7 +116,7 @@
                     <p class="cta__text">Hubungi tim kami melalui live chat atau email, dan kami akan dengan senang hati
                         membantu.</p>
                 </div>
-                <button type="button" class="btn btn--primary" @click="$router.push('/shop/contact')">
+                <button type="button" class="btn btn--primary" @click="$router.push('/contact')">
                     Hubungi Kami
                 </button>
 
@@ -126,6 +128,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+
+useHead({
+    title: 'Help'
+})
 
 type RawFaq = { id: string; type: string; question: string; answer: string }
 type FaqResponse = { code: number; message: string; data: { faqs: RawFaq[] } }
@@ -378,15 +384,29 @@ onMounted(loadAll)
     list-style: none;
     margin: 0;
     padding: 0;
-    border: 1px solid #EFEFEF;
-    border-radius: 12px;
-    overflow: hidden;
     background: #fff;
     width: 100%;
 }
 
-.accordion__item+.accordion__item {
-    border-top: 1px solid #EFEFEF;
+.accordion__item {
+    background: #fff;
+    border-top: 1px solid #F3F4F6;
+    position: relative;
+}
+
+.accordion__item+.accordion__item::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -18px;
+    right: 0;
+    height: 1px;
+    background: #F3F4F6;
+
+}
+
+.accordion__item:first-child {
+    border-top: none;
 }
 
 .accordion__button {
@@ -395,7 +415,7 @@ onMounted(loadAll)
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 16px 22px;
+    padding: 18px 0;
     background: #fff;
     border: none;
     cursor: pointer;
@@ -403,20 +423,26 @@ onMounted(loadAll)
     font-size: 15px;
     font-weight: 600;
     line-height: 1.55;
+    transition: background 0.2s ease;
 }
 
 .accordion__button:hover {
-    background: #FFFDF9;
+    background: #fffaf3;
 }
 
 .accordion__q {
     flex: 1;
+    color: #0A0A0A;
+    font-family: Urbanist, sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
 }
 
 .accordion__chev {
     width: 18px;
     height: 18px;
-    transition: transform .2s ease;
+    transition: transform 0.25s ease;
 }
 
 [aria-expanded="true"] .accordion__chev {
@@ -424,16 +450,22 @@ onMounted(loadAll)
 }
 
 .accordion__panel {
-    padding: 0 22px 16px;
+    padding: 12px 0 18px;
     background: #fff;
+    border-top: 1px solid #E5E7EB;
+    margin-left: -18px;
+    padding-left: 18px;
 }
 
+
 .accordion__a {
-    margin: 6px 0 0;
-    font-size: 13.6px;
-    line-height: 1.85;
-    color: #9AA0A6;
+    margin-top: 6px;
+    font-size: 14px;
+    line-height: 1.75;
+    color: #757575;
 }
+
+
 
 .cta {
     display: flex;

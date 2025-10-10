@@ -2,7 +2,7 @@
     <section class="page container">
         <Breadcrumb :items="[
             { label: 'Beranda', to: '/' },
-            { label: 'Detail Produk', to: '/shop/detail-product' },
+            { label: 'Detail Produk', to: '/detail-product' },
             { label: 'Keranjang' }
         ]" />
 
@@ -20,7 +20,7 @@
             <img src="/Icons/EmptyState.svg" alt="" class="empty__img" />
             <h3 class="empty__title">Keranjangmu masih kosong</h3>
             <p class="empty__text">Yuk mulai belanja dan temukan produk terbaik dari PHRI.</p>
-            <NuxtLink to="/shop" class="btn btn--primary">Belanja Sekarang</NuxtLink>
+            <NuxtLink to="/" class="btn btn--primary">Belanja Sekarang</NuxtLink>
         </div>
 
         <div v-else class="cols">
@@ -56,7 +56,11 @@
                         </div>
                         <div class="row__foot">
                             <div class="row__price">Rp{{ formatIDR(it.price) }}</div>
-                            <StepperQty :model-value="it.qty" :min="1" @update:model-value="v => onQtyChange(i, v)" />
+                            <div class="qty">
+                                <button class="qbtn" @click="decQty(i)" :disabled="it.qty <= 0">-</button>
+                                <span class="qval">{{ it.qty }}</span>
+                                <button class="qbtn" @click="incQty(i)" :disabled="isMax(i)">+</button>
+                            </div>
                         </div>
                     </div>
                 </article>
@@ -69,7 +73,7 @@
                 ]" total-label="Estimasi Pembayaran" :total="grandTotal" cta="Buat Pesanan" @cta="goCheckout" :links="[
                     { label: 'Butuh Bantuan?', to: '/help' },
                     { label: 'Hubungi Kami', to: '/contact', underline: true },
-                    { label: 'Informasi Pengiriman', to: '/shipping', underline: true }
+                    { label: 'Informasi Pengiriman', to: '/help', underline: true }
                 ]" />
         </div>
 
@@ -85,6 +89,8 @@ import ApiService from '@/core/services/ApiService'
 import { useCurrency } from '@/composables/useCurrency'
 import { useCart } from '@/composables/useCart'
 
+useHead({ title: 'Cart' })
+
 type CartItem = {
     key: string
     id: string | number
@@ -92,9 +98,9 @@ type CartItem = {
     image: string
     price: number
     qty: number
+    stock?: number
     color?: string
     size?: string
-    cartId?: string
 }
 
 type VariantOpt = { id: string; name: string }
@@ -142,16 +148,35 @@ async function fetchCartFee() {
 function onQtyChange(i: number, v: number) {
     const it = displayedItems.value[i]
     if (!it) return
-    // @ts-ignore
-    updateQty(it.key, v)
+    const max = (it as any).stock ?? Infinity
+    const vv = Math.max(0, Math.min(Number(v) || 0, max))
+        ; (updateQty as any)(it.key, vv)
     const raw = items.value as unknown as CartItem[]
     const target = raw.find(r => r.key === it.key)
-    if (target) target.qty = v
+    if (target) target.qty = vv
+}
+
+function incQty(i: number) {
+    const it = displayedItems.value[i]
+    if (!it) return
+    onQtyChange(i, (it.qty || 0) + 1)
+}
+function decQty(i: number) {
+    const it = displayedItems.value[i]
+    if (!it) return
+    onQtyChange(i, (it.qty || 0) - 1)
+}
+
+function isMax(i: number) {
+    const it = displayedItems.value[i]
+    if (!it) return false
+    const s = (it as any).stock
+    const max = (typeof s === 'number' && s > 0) ? s : Infinity
+    return (it.qty || 0) >= max
 }
 
 async function onRemove(it: CartItem) {
-    // @ts-ignore
-    await remove(it.key)
+    ; (remove as any)(it.key)
     fetchCartFee()
 }
 
@@ -163,7 +188,7 @@ function ensureSession() {
 }
 function goCheckout() {
     ensureSession()
-    router.push('/shop/checkout')
+    router.push('/checkout')
 }
 
 const rec = ref<Array<{ to: any; name: string; image: string; price: number; tags: string[]; soldOut: boolean }>>([])
@@ -184,9 +209,9 @@ function normalizeImages(p: ProductApi): string[] {
 function mapToCard(p: ProductApi) {
     const tags = (p.variants?.find(v => v.name?.toLowerCase() === 'warna')?.options || []).map(o => o.name).slice(0, 4)
     return {
-        to: { path: '/shop/detail-product', query: { id: p.id } },
+        to: { path: '/detail-product', query: { id: p.id } },
         name: p.name,
-        image: normalizeImages(p)[0] || asset(p.thumbnail) || '/Images/placeholder.png',
+        image: normalizeImages(p)[0] || asset(p.thumbnail) || '',
         price: Number(p.price ?? 0),
         tags,
         soldOut: Number(p.quantity ?? 0) <= 0
@@ -208,9 +233,38 @@ onMounted(() => {
     ensureSession()
     fetchCartFee()
     fetchRecommendations()
+    syncCartStocks()
 })
 
-watch(items, () => { fetchRecommendations() }, { deep: true })
+watch(items, () => { fetchRecommendations(); syncCartStocks() }, { deep: true })
+
+async function syncCartStocks() {
+    try {
+        const arr = (items.value as unknown as CartItem[])
+        if (!Array.isArray(arr) || arr.length === 0) return
+        const uniqueIds = Array.from(new Set(arr.map(it => String(it.id))))
+        const results = await Promise.allSettled(uniqueIds.map(async id => {
+            const { data, error } = await ApiService.query(`/product/${id}`, { headers })
+            if (error.value) throw error.value
+            const root = (data.value as any)?.data?.product || (data.value as any)?.data || (data.value as any)
+            const stock = Number(root?.quantity ?? 0)
+            return { id, stock }
+        }))
+        const stockMap = new Map<string, number>()
+        for (const r of results) if (r.status === 'fulfilled') stockMap.set(r.value.id, r.value.stock)
+
+        for (const it of arr) {
+            const s = stockMap.get(String(it.id))
+            const cur = (it as any).stock
+            if (typeof s === 'number' && (typeof cur !== 'number' || (cur <= 0 && s > 0))) (it as any).stock = s
+            const max = (it as any).stock ?? Infinity
+            if (typeof it.qty === 'number' && it.qty > max) {
+                ; (updateQty as any)(it.key, max)
+                it.qty = max
+            }
+        }
+    } catch { }
+}
 </script>
 
 <style scoped>
@@ -339,6 +393,34 @@ watch(items, () => { fetchRecommendations() }, { deep: true })
     color: var(--text);
 }
 
+.qty {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.qbtn {
+    width: 32px;
+    height: 32px;
+    border: 0;
+    background: #fafafa;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.qbtn:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+.qval {
+    min-width: 24px;
+    text-align: center;
+    font: 600 14px/1 var(--ff);
+}
+
 .btn.btn--primary {
     text-decoration: none;
 }
@@ -393,33 +475,33 @@ watch(items, () => { fetchRecommendations() }, { deep: true })
 
 .recs--compact :deep(.card) {
     padding: 10px;
-    border-radius: 12px;
+    border-radius: 12px
 }
 
 .recs--compact :deep(.card__thumb) {
-    height: 240px;
+    height: 240px
 }
 
 .recs--compact :deep(.card__name) {
     font-size: 14px;
-    line-height: 20px;
+    line-height: 20px
 }
 
 .recs--compact :deep(.card__price) {
     font-size: 14px;
-    line-height: 20px;
+    line-height: 20px
 }
 
 .recs--compact :deep(.card-link) {
-    display: block;
+    display: block
 }
 
 .recs--compact :deep(.card) {
-    max-width: 100%;
+    max-width: 100%
 }
 
 .rec-skeleton .card {
-    height: 220px;
+    height: 220px
 }
 
 .skel--line {

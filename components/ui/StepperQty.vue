@@ -1,9 +1,10 @@
 <template>
     <div class="stepper" role="group" aria-label="Kuantitas">
-        <button type="button" class="btn" @click="dec" :disabled="internal <= min">−</button>
-        <input class="inp" :value="internal" inputmode="numeric" @input="onInput" @blur="syncEmit"
+        <button type="button" class="btn" @click="dec" :disabled="internal <= min">-</button>
+        <input class="inp" :value="internal" :readonly="!editable" :aria-readonly="String(!editable)"
+            :tabindex="editable ? 0 : -1" inputmode="numeric" @keydown="onKeydown" @input="onInput" @blur="syncEmit"
             aria-label="Jumlah" />
-        <button type="button" class="btn" @click="inc">+</button>
+        <button type="button" class="btn" @click="inc" :disabled="internal >= max">+</button>
     </div>
 </template>
 
@@ -13,27 +14,47 @@ import { computed } from 'vue'
 const props = defineProps<{
     modelValue: number
     min?: number
+    max?: number
+    editable?: boolean
 }>()
 
 const emit = defineEmits<{
     (e: 'update:modelValue', v: number): void
 }>()
 
-const min = computed(() => props.min ?? 1)
+const min = computed(() => (props.min ?? 0))
+const max = computed(() => {
+    const m = Number(props.max)
+    return Number.isFinite(m) && m > 0 ? m : Infinity
+})
+const editable = computed(() => props.editable !== false)
 const internal = computed({
     get: () => Number(props.modelValue ?? min.value),
-    set: (v: number) => emit('update:modelValue', Math.max(min.value, Number(v) || min.value)),
+    set: (v: number) => {
+        const n = Number.isFinite(Number(v)) ? Number(v) : min.value
+        const clamped = Math.max(min.value, Math.min(max.value, n))
+        emit('update:modelValue', clamped)
+    },
 })
 
-function inc() { internal.value = internal.value + 1 }
+function inc() { internal.value = Math.min(max.value, internal.value + 1) }
 function dec() { internal.value = Math.max(min.value, internal.value - 1) }
 
 function onInput(e: Event) {
+    if (!editable.value) return
     const v = (e.target as HTMLInputElement).value
-    const n = Math.max(min.value, parseInt(v.replace(/\D/g, ''), 10) || min.value)
-    internal.value = n
+    const parsed = parseInt(v.replace(/\D/g, ''), 10)
+    const n = Number.isFinite(parsed) ? parsed : min.value
+    internal.value = Math.max(min.value, Math.min(max.value, n))
 }
 function syncEmit() { emit('update:modelValue', internal.value) }
+
+function onKeydown(e: KeyboardEvent) {
+    if (!editable.value) {
+        e.preventDefault()
+        e.stopPropagation()
+    }
+}
 </script>
 
 <style scoped>
@@ -41,8 +62,6 @@ function syncEmit() { emit('update:modelValue', internal.value) }
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    border: 1px solid var(--border, #e5e5e5);
-    border-radius: 8px;
     padding: 4px
 }
 
@@ -50,7 +69,6 @@ function syncEmit() { emit('update:modelValue', internal.value) }
     width: 32px;
     height: 32px;
     border: 0;
-    background: #fafafa;
     cursor: pointer;
     border-radius: 6px
 }

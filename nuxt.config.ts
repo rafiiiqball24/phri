@@ -31,6 +31,12 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: { lang: 'id' },
+      // >>> Tambahan penting untuk title
+      title: 'PHRI SHOP',
+      titleTemplate: '%s | PHRI SHOP',
+      meta: [
+        { name: 'description', content: 'PHRI Shop - Marketplace resmi PHRI' }
+      ],
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },

@@ -26,11 +26,11 @@
                             <span class="badge__text">Highly Recommend</span>
                         </div>
                         <figcaption class="pager">{{ current + 1 }} / {{ total }}</figcaption>
-                        <div class="navgroup" :class="{ 'navgroup--disabled': !hasMulti }">
-                            <button class="navbtn" :disabled="!hasMulti" aria-label="Sebelumnya" @click="prevImg">
+                        <div v-if="hasMulti" class="navgroup">
+                            <button class="navbtn" aria-label="Sebelumnya" @click="prevImg">
                                 <img src="/Icons/CaretLeft.svg" alt="" />
                             </button>
-                            <button class="navbtn navbtn--right" :disabled="!hasMulti" aria-label="Berikutnya"
+                            <button class="navbtn navbtn--right" aria-label="Berikutnya"
                                 @click="nextImg">
                                 <img src="/Icons/CaretRight.svg" alt="" />
                             </button>
@@ -110,7 +110,7 @@
                     <div class="block">
                         <div class="block__head"><span class="block__label">Jumlah</span></div>
                         <div class="optgrid" style="grid-template-columns: 1fr;">
-                            <input class="input" type="number" min="1" v-model.number="qty" />
+                            <input class="input" type="number" min="1" :max="product.stock" v-model.number="qty" />
                         </div>
                     </div>
 
@@ -159,6 +159,10 @@ import { useCurrency } from '@/composables/useCurrency'
 import { useCart } from '@/composables/useCart'
 const { formatIDR } = useCurrency()
 
+useHead({
+    title: 'Detail Product'
+})
+
 type VariantOpt = { id: string; name: string }
 type Variant = { name: string; options: VariantOpt[] }
 type ProductApi = {
@@ -198,7 +202,7 @@ const product = ref<{
     sizes: { name: string; available: boolean }[];
     colors: { name: string; available: boolean }[];
 }>({
-    name: '—', price: 0, stock: 0, image: '/Images/placeholder.png', images: [], sizes: [], colors: []
+    name: '—', price: 0, stock: 0, image: '/', images: [], sizes: [], colors: []
 })
 
 const rec = ref<Array<{ to: any; name: string; image: string; price: number; tags: string[]; soldOut: boolean }>>([])
@@ -235,7 +239,7 @@ function mapProduct(p: ProductApi) {
     const images = normalizeImages(p)
     product.value = {
         id: p.id, name: p.name, price: Number(p.price ?? 0), stock: Number(p.quantity ?? 0),
-        image: images[0] || asset(p.thumbnail) || '/Images/placeholder.png',
+        image: images[0] || asset(p.thumbnail) || '',
         images, description: p.description, category: p.product_category?.name, sizes, colors
     }
     current.value = 0
@@ -253,7 +257,7 @@ async function fetchDetailById(id: string) {
     const found = arr.find(p => p.id === id)
     if (found) {
         rec.value = arr.filter(p => p.id !== id).slice(0, 4).map(p => ({
-            to: { path: '/shop/detail-product', query: { id: p.id } },
+            to: { path: '/detail-product', query: { id: p.id } },
             name: p.name, image: asset(p.thumbnail), price: p.price,
             tags: (p.variants?.find(v => v.name?.toLowerCase() === 'warna')?.options || []).map(o => o.name).slice(0, 4),
             soldOut: Number(p.quantity ?? 0) <= 0
@@ -301,10 +305,11 @@ async function onAddToCart() {
         image: product.value.images[current.value] || product.value.image,
         price: product.value.price,
         qty: qty.value,
+        stock: product.value.stock,
         size: selectedSize.value || undefined,
         color: selectedColor.value || undefined,
     })
-    router.push('/shop/cart')
+    router.push('/cart')
 }
 
 onServerPrefetch(fetchPage)
@@ -480,26 +485,21 @@ function toggleStock() { product.value.stock = product.value.stock === 0 ? 12 : 
 }
 
 .navbtn {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
     background: transparent;
-    border: 1px solid rgba(0, 0, 0, .25);
+    border: 1px solid rgba(255, 255, 255, .9);
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer
+    cursor: pointer;
+    box-shadow: 0 0 0 1px rgba(0,0,0,.06);
 }
 
 .navbtn--right {
-    background: #EDEDED;
-    border: 1px solid #C2C2C2
-}
-
-.navgroup--disabled .navbtn {
-    opacity: .4;
-    cursor: not-allowed;
-    pointer-events: none
+    background: #fff;
+    border: 1px solid #E6E6E6;
 }
 
 .desc {

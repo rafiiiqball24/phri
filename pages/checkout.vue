@@ -2,8 +2,8 @@
     <section class="container">
         <Breadcrumb :items="[
             { label: 'Beranda', to: '/' },
-            { label: 'Detail Produk', to: '/shop/detail-product' },
-            { label: 'Keranjang', to: '/shop/cart' },
+            { label: 'Detail Produk', to: '/detail-product' },
+            { label: 'Keranjang', to: '/cart' },
             { label: 'Pemesanan' }
         ]" />
 
@@ -23,7 +23,7 @@
                 <template v-else>
                     <header class="sec-head">
                         <h2 class="sec-title">Dikirim Ke</h2>
-                        <NuxtLink to="/shop/Help" class="sec-link">Baca dulu informasi pengirimannya yuk!</NuxtLink>
+                        <NuxtLink to="/Help" class="sec-link">Baca dulu informasi pengirimannya yuk!</NuxtLink>
                     </header>
 
                     <div class="field">
@@ -121,10 +121,10 @@
                     ...displayedItems.map(it => ({ name: `${it.qty}× ${it.name}`, price: it.price * it.qty })),
                     ...(paymentFee > 0 ? [{ name: 'Payment Fee', price: paymentFee }] : [])
                 ]" total-label="Total Pembayaran" :total="grandTotalWithFee" :links="[
-            { label: 'Butuh Bantuan?', to: '/shop/Help' },
-            { label: 'Hubungi Kami', to: '/shop/contact', underline: true },
-            { label: 'Informasi Pengiriman', to: '/shop/Help', underline: true }
-        ]">
+                    { label: 'Butuh Bantuan?', to: '/Help' },
+                    { label: 'Hubungi Kami', to: '/contact', underline: true },
+                    { label: 'Informasi Pengiriman', to: '/Help', underline: true }
+                ]">
                     <template #extra>
                         <div style="margin-top: 4px">
                             <MiniCartItem v-for="it in displayedItems" :key="it.id" :image="it.image" :name="it.name"
@@ -142,7 +142,7 @@
                 <h3 class="modal__title">Order Berhasil</h3>
                 <p class="modal__desc">
                     Terima kasih, pesananmu sudah kami terima<span v-if="success.orderCode"> (#{{ success.orderCode
-                        }})</span>.
+                    }})</span>.
                     Silakan cek email untuk instruksi pembayaran dan detail pengiriman.
                 </p>
                 <button class="btn btn--primary btn--block modal__btn" @click="closeSuccess">Oke</button>
@@ -157,11 +157,15 @@ import ApiService from '@/core/services/ApiService'
 import { useRouter } from 'vue-router'
 import { useCart } from '@/composables/useCart'
 
+useHead({
+    title: 'Checkout'
+})
+
 type Opt = { value: string; label: string }
 type ProvinceItem = { id: string; name: string; external_id?: number | null }
 
 const router = useRouter()
-const { items, total } = useCart()
+const { items, total, clearAll } = useCart()
 const displayedItems = computed(() => items.value)
 
 const showDebug = false
@@ -366,6 +370,8 @@ async function submit() {
         const root = (data.value as any)?.data || data.value
         const code = root?.order?.code || root?.order_code || root?.code || null
         success.value.orderCode = code ? String(code) : null
+        // bersihkan cart setelah berhasil membuat order
+        await clearAll()
         success.value.open = true
     } catch (e: any) {
         const msg = e?.message || 'Gagal membuat order'

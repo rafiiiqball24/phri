@@ -9,15 +9,15 @@
       </div>
 
       <nav class="navbar__menu">
-        <NuxtLink :class="['navbar__link', isExact('/shop') && 'active']" to="/shop">Beranda</NuxtLink>
-        <NuxtLink :class="['navbar__link', isActive('/shop/aboutus') && 'active']" to="/shop/aboutus">Tentang Kami
+        <NuxtLink :class="['navbar__link', isExact('/') && 'active']" to="/">Beranda</NuxtLink>
+        <NuxtLink :class="['navbar__link', isActive('/aboutus') && 'active']" to="/aboutus">Tentang Kami
         </NuxtLink>
-        <NuxtLink :class="['navbar__link', isActive('/shop/contact') && 'active']" to="/shop/contact">Kontak</NuxtLink>
-        <NuxtLink :class="['navbar__link', isActive('/shop/help') && 'active']" to="/shop/help">Bantuan</NuxtLink>
+        <NuxtLink :class="['navbar__link', isActive('/contact') && 'active']" to="/contact">Kontak</NuxtLink>
+        <NuxtLink :class="['navbar__link', isActive('/help') && 'active']" to="/help">Bantuan</NuxtLink>
       </nav>
 
       <div class="navbar__right">
-        <NuxtLink to="/shop/cart" class="navbar__cart" aria-label="Cart">
+        <NuxtLink to="/cart" class="navbar__cart" aria-label="Cart">
           <img src="/Icons/Cart.svg" alt="Cart" />
           <span v-if="cartCount > 0" class="badge">{{ cartCount }}</span>
         </NuxtLink>
@@ -54,12 +54,12 @@
           <button class="mm__close" @click="mobileOpen = false" aria-label="Tutup">✕</button>
         </div>
         <nav class="mm__nav">
-          <NuxtLink class="mm__link" to="/shop" @click="mobileOpen = false">Beranda</NuxtLink>
-          <NuxtLink class="mm__link" to="/shop/aboutus" @click="mobileOpen = false">Tentang Kami</NuxtLink>
-          <NuxtLink class="mm__link" to="/shop/contact" @click="mobileOpen = false">Kontak</NuxtLink>
-          <NuxtLink class="mm__link" to="/shop/help" @click="mobileOpen = false">Bantuan</NuxtLink>
+          <NuxtLink class="mm__link" to="/" @click="mobileOpen = false">Beranda</NuxtLink>
+          <NuxtLink class="mm__link" to="/aboutus" @click="mobileOpen = false">Tentang Kami</NuxtLink>
+          <NuxtLink class="mm__link" to="/contact" @click="mobileOpen = false">Kontak</NuxtLink>
+          <NuxtLink class="mm__link" to="/help" @click="mobileOpen = false">Bantuan</NuxtLink>
         </nav>
-        <NuxtLink to="/shop/cart" class="mm__cart" @click="mobileOpen = false">
+        <NuxtLink to="S/cart" class="mm__cart" @click="mobileOpen = false">
           <img src="/Icons/Cart.svg" alt="" /><span>Keranjang</span>
           <em v-if="cartCount > 0" class="mm__badge">{{ cartCount }}</em>
         </NuxtLink>
@@ -119,7 +119,7 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
   justify-content: space-between;
   gap: 20px;
   width: 100%;
-  max-width: 1440px;
+  max-width: 1120px;
   margin: 0 auto;
   padding: 20px 24px;
   box-sizing: border-box;

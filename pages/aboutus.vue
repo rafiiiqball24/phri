@@ -144,6 +144,9 @@
 
 <script setup lang="ts">
 const toTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
+useHead({
+    title: 'About Us'
+})
 </script>
 
 <style scoped>

@@ -107,6 +107,10 @@ const errors = reactive<Record<string, string>>({})
 const submitting = ref(false)
 const alert = reactive<{ type: '' | 'success' | 'error'; text: string }>({ type: '', text: '' })
 
+useHead({
+    title: 'Contact'
+})
+
 function clearErrors() {
     Object.keys(errors).forEach(k => delete errors[k])
 }
