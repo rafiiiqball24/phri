@@ -419,56 +419,73 @@ body {
 }
 
 .intro__title {
-    font-size: 18px;
-    font-weight: 700;
-    margin: 0 0 12px
+    color: var(--Text-color-text-neutral-primary, #0A0A0A);
+
+    font-family: var(--Font-Family-Text-Body, Urbanist);
+    font-size: var(--Font-Size-M, 20px);
+    font-style: normal;
+    font-weight: var(--Weight-weight-700, 700);
+    line-height: var(--Font-Line-Height-M, 28px);
+    letter-spacing: -0.003px;
 }
 
 .intro__desc {
-    color: var(--sub);
-    line-height: 1.75;
-    margin: 0 0 14px
+    color: var(--Text-color-text-neutral-secondary, #757575);
+    font-family: var(--Font-Family-Text-Body, Urbanist);
+    font-size: var(--Font-Size-SM, 16px);
+    font-style: normal;
+    font-weight: var(--Weight-weight-400, 400);
+    line-height: var(--Font-Line-Height-SM, 24px);
 }
 
-.intro__badges {
-    display: flex;
-    gap: 14px;
-    margin-top: 18px;
-    flex-wrap: wrap
-}
-
-.badge {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: #F3F4F6;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 8px 12px
-}
-
-.badge__ico {
-    width: 18px;
-    height: 18px
-}
-
-.badge__text {
-    font-size: 14px
-}
+    .intro__badges {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 36px;
+        margin-top: 18px;
+        justify-items: center;
+        align-items: start;
+    }
+    
+    .badge {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        background: transparent;
+        border-radius: 0;
+        padding: 0;
+    }
+    
+    .badge__ico {
+        width: 20px;
+        height: 20px;
+        padding: 10px; /* creates 40px tile */
+        background: #F3F4F6;
+        border-radius: 10px;
+        display: block;
+    }
+    
+    .badge__text {
+        font-size: 14px;
+        color: #0A0A0A;
+        text-align: center;
+    }
 
 .card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    box-shadow: 0 6px 20px rgba(10, 10, 10, .04)
+    border-radius: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
 }
+
 
 .card img {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 16px
+    border-radius: 0;
 }
 
 .vm {
@@ -515,8 +532,8 @@ body {
     height: 40px;
     display: grid;
     place-items: center;
-    border-radius: 10px;
-    background: #FFF7ED
+    border-radius: var(--Border-Radius-border-radius-full, 9999px);
+    background: var(--black-black-50020, rgba(158, 158, 158, 0.20));
 }
 
 .vm__icon img {
@@ -574,8 +591,8 @@ body {
 .val {
     padding: 18px;
     border-radius: 16px;
-    border: 1px solid var(--line);
-    background: #fff
+    border-radius: 14px;
+    border: 2px solid rgba(0, 0, 0, 0.10);
 }
 
 .val__ico {

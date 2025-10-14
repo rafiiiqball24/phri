@@ -19,15 +19,13 @@
                         stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
             </div>
-            <div class="callout__content">
-                <h3 class="callout__title">Temukan Jawabanmu!</h3>
-                <p class="callout__text">
-                    Temukan pekerjaan impian Anda dengan mudah di PHRI Karir! Cukup masukkan kata kunci seperti posisi
-                    atau lokasi di kolom pencarian, lalu manfaatkan filter untuk menyesuaikan hasil sesuai kebutuhan.
-                    Aktifkan notifikasi agar tidak ketinggalan peluang terbaru, dan simpan favorit untuk diakses nanti.
-                    Jangan lupa lengkapi profil dan unggah CV terbaru agar recruiter dapat menemukan Anda lebih mudah.
-                </p>
-            </div>
+            <h3 class="callout__title">Temukan Jawabanmu!</h3>
+            <p class="callout__text">
+                Temukan pekerjaan impian Anda dengan mudah di PHRI Karir! Cukup masukkan kata kunci seperti posisi
+                atau lokasi di kolom pencarian, lalu manfaatkan filter untuk menyesuaikan hasil sesuai kebutuhan.
+                Aktifkan notifikasi agar tidak ketinggalan peluang terbaru, dan simpan favorit untuk diakses nanti.
+                Jangan lupa lengkapi profil dan unggah CV terbaru agar recruiter dapat menemukan Anda lebih mudah.
+            </p>
         </aside>
 
         <section v-if="loading" class="faq">
@@ -304,11 +302,13 @@ onMounted(loadAll)
 .callout {
     display: grid;
     grid-template-columns: 56px 1fr;
-    gap: 16px;
+    grid-auto-rows: auto;
+    gap: 12px;
+    align-items: start;
     border-radius: 12px;
-    border: 0.6px solid var(--brand);
-    background: #FDFAED;
-    padding: 16px 18px;
+    border: 1px solid var(--soft-line);
+    background: var(--soft);
+    padding: 12px 16px;
     margin: 22px auto 36px;
     max-width: calc(var(--max) - 200px);
 }
@@ -318,10 +318,10 @@ onMounted(loadAll)
     height: 56px;
     display: grid;
     place-items: center;
-    margin-top: -12px;
+    margin-top: 0;
     border: 1px solid var(--soft-line);
     border-radius: 12px;
-    color: var(--brand);
+    color: #0A0A0A;
 }
 
 .callout__icon .i {
@@ -330,22 +330,26 @@ onMounted(loadAll)
 }
 
 .callout__title {
+    grid-column: 2;
+    grid-row: 1;
     color: #0A0A0A;
-    text-align: justify;
+    text-align: left;
     font-family: Urbanist, sans-serif;
-    font-size: 20px;
+    font-size: 14px;
     font-weight: 600;
-    line-height: 28px;
-    margin: -5px 0 6px;
+    line-height: 20px;
+    margin: 2px 0 6px;
 }
 
 .callout__text {
+    grid-column: 1 / -1;
+    grid-row: 2;
     color: #0A0A0A;
     text-align: justify;
     font-family: Urbanist, sans-serif;
-    font-size: 16px;
+    font-size: 12px;
     font-weight: 400;
-    line-height: 24px;
+    line-height: 18px;
     margin: 0;
 }
 
