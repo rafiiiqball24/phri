@@ -8,15 +8,15 @@
                         PHRI Shop
                         <span class="hero__underline"></span>
                     </h1>
-                    <p class="hero__subtitle">
-                        Building a Beneficial Ecosystem Together
-                    </p>
+                    <p class="hero__subtitle">Building a Beneficial Ecosystem Together</p>
                 </div>
             </div>
+
             <figure class="hero__right">
                 <img src="/images/shop/aboutus.webp" alt="Etalase PHRI Shop" />
             </figure>
         </header>
+
 
         <section class="intro container">
             <div class="intro__copy">
@@ -176,95 +176,228 @@ body {
 
 
 .hero {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    width: 100vw;
     height: 100vh;
+    margin: 0;
+    padding: 0;
     overflow: hidden;
-    gap: 0;
-    /* <-- pastikan tidak ada jarak */
+    align-items: stretch;
 }
-
 
 .hero__left {
     position: relative;
-    background: url("/images/shop/aboutus3.webp") center/cover no-repeat;
-    height: 100%;
+    flex: 1 1 50%;
     display: flex;
     align-items: center;
     justify-content: flex-start;
+    background: url("/images/shop/aboutus3.webp") center/cover no-repeat;
+    min-height: 420px;
 }
 
 .hero__overlay {
     color: #fff;
-    padding-left: 5rem;
-    max-width: 500px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+    max-width: 760px;
+    padding-inline: 5rem 2rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, .25);
 }
 
 .hero__meta {
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 0.75rem;
-    opacity: 0.9;
+    color: var(--Text-color-text-white-primary, #FFF);
+    font-family: var(--Font-Family-Text-Body, Urbanist);
+    font-size: var(--Font-Size-S, 14px);
+    font-style: normal;
+    font-weight: var(--Weight-weight-400, 400);
+    line-height: var(--Font-Line-Height-S, 22px);
 }
 
 .hero__title {
-    font-size: 3rem;
-    font-weight: 600;
-    margin: 0 0 1rem;
-    position: relative;
+    color: #FFF;
+    font-family: var(--Font-Family-Text-Tittle, Urbanist);
+    font-size: var(--Font-Size-3XL, 64px);
+    font-style: normal;
+    font-weight: var(--Weight-weight-400, 400);
+    line-height: var(--Font-Line-Height-3XL, 64px);
+    letter-spacing: -0.015px;
 }
 
 .hero__underline {
     display: block;
-    width: 60px;
-    height: 3px;
-    background: #fff;
-    border-radius: 2px;
+    width: 80px;
+    height: 4px;
     margin-top: 10px;
+    border-radius: 999px;
+    background: #E9EBEF;
+    opacity: .9;
 }
 
 .hero__subtitle {
-    font-size: 1.25rem;
+    color: #FFF;
+    font-family: Urbanist, system-ui, sans-serif;
+    font-size: 48px;
     font-weight: 400;
-    line-height: 1.6;
-    max-width: 380px;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    margin-top: 32px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, .25);
+
+    max-width: 20ch;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
 }
 
+
+
 .hero__right {
-    height: 100%;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    /* center vertikal */
-    justify-content: center;
-    /* center horizontal */
-    background: #fff;
-    /* ganti sesuai tema jika perlu */
+    flex: 1 1 50%;
+    position: relative;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+.hero__right,
+.about figure {
+    margin: 0;
 }
 
 .hero__right img {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    /* <-- tidak akan crop */
+    object-fit: cover;
     object-position: center;
     display: block;
+
+}
+
+
+@media (max-width: 1200px) {
+    .hero__overlay {
+        padding-inline: 3rem;
+    }
+
+    .hero__title {
+        font-size: 56px;
+        line-height: 60px;
+    }
+
+    .hero__subtitle {
+        font-size: 36px;
+        line-height: 44px;
+    }
 }
 
 @media (max-width: 1024px) {
     .hero {
-        grid-template-columns: 1fr;
+        flex-direction: column;
         height: auto;
     }
 
-    .hero__left img,
-    .hero__right img {
+    .hero__left {
+        min-height: 420px;
+    }
+
+    .hero__right {
         height: 420px;
+    }
+
+    .hero__overlay {
+        padding-inline: 2rem;
+    }
+
+    .hero__title {
+        font-size: 40px;
+        line-height: 46px;
+    }
+
+    .hero__subtitle {
+        font-size: 20px;
+        line-height: 28px;
     }
 }
 
+@media (max-width: 640px) {
+    .hero__left {
+        min-height: 360px;
+    }
+
+    .hero__right {
+        height: 360px;
+    }
+
+    .hero__title {
+        font-size: 32px;
+        line-height: 38px;
+    }
+
+    .hero__subtitle {
+        font-size: 18px;
+        line-height: 24px;
+    }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+    .hero__right img {
+        transform: none !important;
+    }
+}
+
+@media (max-width: 1024px) {
+    .hero {
+        flex-direction: column;
+        height: auto;
+        overflow: visible;
+    }
+
+    .hero__left {
+        min-height: 420px;
+    }
+
+    .hero__right {
+        position: relative;
+        min-height: clamp(320px, 48vh, 480px);
+        overflow: hidden;
+        flex: 0 0 auto;
+    }
+
+    .hero__overlay {
+        padding-inline: 2rem;
+    }
+
+    .hero__title {
+        font-size: 40px;
+        line-height: 46px;
+    }
+
+    .hero__subtitle {
+        font-size: 20px;
+        line-height: 28px;
+    }
+}
+
+@media (max-width: 640px) {
+    .hero__left {
+        min-height: 360px;
+    }
+
+    .hero__right {
+        min-height: 360px;
+    }
+
+    .hero__title {
+        font-size: 32px;
+        line-height: 38px;
+    }
+
+    .hero__subtitle {
+        font-size: 18px;
+        line-height: 24px;
+    }
+}
 
 .container {
     width: min(1100px, 92%);

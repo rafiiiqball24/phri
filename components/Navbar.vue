@@ -132,6 +132,14 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
   text-decoration: none;
 }
 
+.navbar__left {
+  margin-left: -110px;
+}
+
+.navbar__right {
+  margin-right: -90px;
+}
+
 .navbar__logo {
   width: 40px;
   height: 40px;

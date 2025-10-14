@@ -23,18 +23,18 @@
         <section v-else class="hero"
             :style="banner?.image ? { backgroundImage: 'url(' + asset(banner.image) + ')' } : undefined">
             <div class="container hero__container">
-            <div class="hero__left">
-                <h1 class="hero__title">
-                    {{ banner?.title || 'Temukan Produk Terbaik untuk Industri Perhotelan' }}
-                </h1>
-                <p class="hero__subtitle">
-                    {{
-                        banner?.sub_title ||
-                        'Belanja produk terbaik, sekaligus ikut berkontribusi dalam program berbagi untuk sesama.'
-                    }}
-                </p>
-                <NuxtLink to="/" class="hero__cta">Belanja Sekarang</NuxtLink>
-            </div>
+                <div class="hero__left">
+                    <h1 class="hero__title">
+                        {{ banner?.title || 'Temukan Produk Terbaik untuk Industri Perhotelan' }}
+                    </h1>
+                    <p class="hero__subtitle">
+                        {{
+                            banner?.sub_title ||
+                            'Belanja produk terbaik, sekaligus ikut berkontribusi dalam program berbagi untuk sesama.'
+                        }}
+                    </p>
+                    <NuxtLink to="/" class="hero__cta">Belanja Sekarang</NuxtLink>
+                </div>
             </div>
         </section>
 
@@ -161,11 +161,24 @@ watch(
     box-sizing: border-box;
 }
 
-.hero__container { display:flex; }
+.hero__container {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    height: 100%;
+}
+
+.hero__container.container {
+    margin-left: 0;
+    padding-left: 0;
+    max-width: 100%;
+}
 
 .hero__left {
-    margin-left: 0;
+    margin-left: 120px;
+
 }
+
 
 .hero__title {
     width: 614px;
