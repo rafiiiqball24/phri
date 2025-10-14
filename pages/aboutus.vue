@@ -1,9 +1,18 @@
 <template>
     <section class="about">
         <header class="hero">
-            <figure class="hero__left">
-                <img src="/images/shop/aboutus3.webp" alt="Tentang PHRI Shop" />
-            </figure>
+            <div class="hero__left">
+                <div class="hero__overlay">
+                    <p class="hero__meta">TENTANG KAMI</p>
+                    <h1 class="hero__title">
+                        PHRI Shop
+                        <span class="hero__underline"></span>
+                    </h1>
+                    <p class="hero__subtitle">
+                        Building a Beneficial Ecosystem Together
+                    </p>
+                </div>
+            </div>
             <figure class="hero__right">
                 <img src="/images/shop/aboutus.webp" alt="Etalase PHRI Shop" />
             </figure>
@@ -169,32 +178,79 @@ body {
 .hero {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    width: 100%;
     height: 100vh;
-    margin: 0;
-    padding: 0;
     overflow: hidden;
-    position: relative;
-    top: 0;
-    left: 0;
+    gap: 0;
+    /* <-- pastikan tidak ada jarak */
 }
 
-.hero__left,
-.hero__right {
+
+.hero__left {
     position: relative;
+    background: url("/images/shop/aboutus3.webp") center/cover no-repeat;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.hero__overlay {
+    color: #fff;
+    padding-left: 5rem;
+    max-width: 500px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+.hero__meta {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.75rem;
+    opacity: 0.9;
+}
+
+.hero__title {
+    font-size: 3rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+    position: relative;
+}
+
+.hero__underline {
+    display: block;
+    width: 60px;
+    height: 3px;
+    background: #fff;
+    border-radius: 2px;
+    margin-top: 10px;
+}
+
+.hero__subtitle {
+    font-size: 1.25rem;
+    font-weight: 400;
+    line-height: 1.6;
+    max-width: 380px;
+}
+
+.hero__right {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    /* center vertikal */
+    justify-content: center;
+    /* center horizontal */
+    background: #fff;
+    /* ganti sesuai tema jika perlu */
+}
+
+.hero__right img {
     width: 100%;
     height: 100%;
-}
-
-.hero__left img,
-.hero__right img {
-    width: 105%;
-    height: 105%;
-    object-fit: cover;
+    object-fit: contain;
+    /* <-- tidak akan crop */
     object-position: center;
     display: block;
-    transform: scale(1.11);
-
 }
 
 @media (max-width: 1024px) {
