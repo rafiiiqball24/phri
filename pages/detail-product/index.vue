@@ -30,8 +30,7 @@
                             <button class="navbtn" aria-label="Sebelumnya" @click="prevImg">
                                 <img src="/Icons/CaretLeft.svg" alt="" />
                             </button>
-                            <button class="navbtn navbtn--right" aria-label="Berikutnya"
-                                @click="nextImg">
+                            <button class="navbtn navbtn--right" aria-label="Berikutnya" @click="nextImg">
                                 <img src="/Icons/CaretRight.svg" alt="" />
                             </button>
                         </div>
@@ -494,7 +493,7 @@ function toggleStock() { product.value.stock = product.value.stock === 0 ? 12 : 
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 0 0 1px rgba(0,0,0,.06);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, .06);
 }
 
 .navbtn--right {

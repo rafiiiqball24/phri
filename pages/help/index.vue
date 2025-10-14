@@ -685,4 +685,18 @@ onMounted(loadAll)
         line-height: 18px;
     }
 }
+
+.faq+.faq {
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid #F3F4F6;
+}
+
+
+@media (max-width: 768px) {
+    .faq+.faq {
+        margin-top: 28px;
+        padding-top: 16px;
+    }
+}
 </style>

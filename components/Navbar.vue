@@ -10,7 +10,9 @@
 
       <nav class="navbar__menu">
         <NuxtLink :class="['navbar__link', isExact('/') && 'active']" to="/">Beranda</NuxtLink>
-        <NuxtLink :class="['navbar__link', isActive('/aboutus') && 'active']" to="/aboutus">Tentang Kami
+        <NuxtLink :class="['navbar__link', isActive('/about-us') && 'active']" to="/about-us">
+          Tentang
+          Kami
         </NuxtLink>
         <NuxtLink :class="['navbar__link', isActive('/contact') && 'active']" to="/contact">Kontak</NuxtLink>
         <NuxtLink :class="['navbar__link', isActive('/help') && 'active']" to="/help">Bantuan</NuxtLink>
@@ -111,6 +113,9 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
 .navbar {
   background: #fff;
   border-bottom: 1px solid #E5E5E5;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .navbar__inner {
