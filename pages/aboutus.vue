@@ -438,39 +438,30 @@ body {
     line-height: var(--Font-Line-Height-SM, 24px);
 }
 
-    .intro__badges {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 36px;
-        margin-top: 18px;
-        justify-items: center;
-        align-items: start;
-    }
-    
-    .badge {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-        background: transparent;
-        border-radius: 0;
-        padding: 0;
-    }
-    
-    .badge__ico {
-        width: 20px;
-        height: 20px;
-        padding: 10px; /* creates 40px tile */
-        background: #F3F4F6;
-        border-radius: 10px;
-        display: block;
-    }
-    
-    .badge__text {
-        font-size: 14px;
-        color: #0A0A0A;
-        text-align: center;
-    }
+.intro__badges {
+    display: flex;
+    gap: 14px;
+    margin-top: 18px;
+    flex-wrap: wrap
+}
+
+.badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #F3F4F6;
+    border-radius: 999px;
+    padding: 8px 12px
+}
+
+.badge__ico {
+    width: 18px;
+    height: 18px
+}
+
+.badge__text {
+    font-size: 14px
+}
 
 .card {
     border-radius: 0;

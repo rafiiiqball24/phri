@@ -342,9 +342,14 @@ async function onSubmit() {
     border: 1px solid #E6E6E6;
     border-radius: 12px;
     padding: 12px 16px;
-    font-size: 14px;
     outline: none;
     resize: none;
+    color: var(--Text-color-text-neutral-secondary, #757575);
+    font-family: var(--Font-Family-Text-Body, Urbanist);
+    font-size: var(--Font-Size-SM, 16px);
+    font-style: normal;
+    font-weight: var(--Weight-weight-400, 400);
+    line-height: var(--Font-Line-Height-SM, 24px);
 }
 
 .textarea::placeholder {

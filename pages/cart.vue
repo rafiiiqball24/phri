@@ -69,8 +69,8 @@
             <SummaryBox v-if="!dbg.loading" title="Ringkasan Pembelian" :count-label="`${displayedItems.length} Item`"
                 :lines="[
                     ...displayedItems.map(it => ({ name: `${it.qty}× ${it.name}`, price: it.price * it.qty })),
-                    ...(paymentFee > 0 ? [{ name: 'Payment Fee', price: paymentFee }] : [])
-                ]" total-label="Estimasi Pembayaran" :total="grandTotal" cta="Buat Pesanan" @cta="goCheckout" :links="[
+                    ...(paymentFeeDisplay > 0 ? [{ name: 'Payment Fee', price: paymentFeeDisplay }] : [])
+                ]" total-label="Estimasi Pembayaran" :total="grandTotalDisplay" cta="Buat Pesanan" :cta-disabled="!canOrder" @cta="goCheckout" :links="[
                     { label: 'Butuh Bantuan?', to: '/help' },
                     { label: 'Hubungi Kami', to: '/contact', underline: true },
                     { label: 'Informasi Pengiriman', to: '/help', underline: true }
@@ -133,7 +133,10 @@ const asset = (p?: string) => !p ? '' : (p.startsWith('http') ? p : `${assetBase
 function getSession(): string | null { try { return localStorage.getItem('phri_session_id') } catch { return null } }
 
 const paymentFee = ref(0)
-const grandTotal = computed(() => (dbg.value.empty ? 0 : total.value + paymentFee.value))
+const totalQty = computed(() => (displayedItems.value || []).reduce((s, it: any) => s + (Number(it?.qty) || 0), 0))
+const canOrder = computed(() => totalQty.value > 0)
+const paymentFeeDisplay = computed(() => (canOrder.value ? paymentFee.value : 0))
+const grandTotalDisplay = computed(() => (dbg.value.empty ? 0 : total.value + paymentFeeDisplay.value))
 
 async function fetchCartFee() {
     const sid = getSession()
@@ -187,6 +190,7 @@ function ensureSession() {
     } catch { }
 }
 function goCheckout() {
+    if (!canOrder.value) return
     ensureSession()
     router.push('/checkout')
 }

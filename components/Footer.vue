@@ -21,7 +21,7 @@
         </div>
 
         <!-- kanan: tombol -->
-        <button class="backtop" @click="scrollTop">
+        <button type="button" class="backtop" @click="scrollTop" aria-label="Kembali ke atas">
           <span class="backtop__icon">↑</span>
           <span class="backtop__text">Kembali ke atas</span>
         </button>
@@ -43,7 +43,29 @@
 
 <script setup lang="ts">
 function scrollTop() {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  if (typeof window === 'undefined') return
+
+
+  try {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  } catch (_) {
+
+  }
+
+
+  const doc = document as Document
+  const root = (doc.scrollingElement || doc.documentElement) as HTMLElement
+
+
+  const main = doc.querySelector('.app-main') as HTMLElement | null
+
+  if (main && main.scrollTop > 0) {
+    main.scrollTop = 0
+  }
+
+
+  root.scrollTop = 0
+  doc.body && (doc.body.scrollTop = 0)
 }
 </script>
 

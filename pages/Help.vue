@@ -269,7 +269,9 @@ onMounted(loadAll)
     --soft: #FFF7EC;
     --soft-line: #FFDDB9;
     --max: 1160px;
+    --callout-w: clamp(320px, 88vw, 640px);
 }
+
 
 .help {
     max-width: var(--max);
@@ -300,27 +302,28 @@ onMounted(loadAll)
 }
 
 .callout {
-    display: grid;
-    grid-template-columns: 56px 1fr;
-    grid-auto-rows: auto;
-    gap: 12px;
-    align-items: start;
+    max-width: var(--callout-w);
+    margin: 20px auto 34px;
+    padding: 16px 18px;
     border-radius: 12px;
-    border: 1px solid var(--soft-line);
-    background: var(--soft);
-    padding: 12px 16px;
-    margin: 22px auto 36px;
-    max-width: calc(var(--max) - 200px);
+    border: 1px solid rgba(247, 159, 36, 0.45);
+    background: #FDFAED;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+}
+
+.callout * {
+    min-width: 0;
 }
 
 .callout__icon {
-    width: 56px;
-    height: 56px;
+    margin-top: 2px;
+    aspect-ratio: 1 / 1;
+    border-radius: 10px;
     display: grid;
     place-items: center;
-    margin-top: 0;
-    border: 1px solid var(--soft-line);
-    border-radius: 12px;
     color: #0A0A0A;
 }
 
@@ -330,28 +333,31 @@ onMounted(loadAll)
 }
 
 .callout__title {
-    grid-column: 2;
-    grid-row: 1;
+    margin: 2px 0 4px;
     color: #0A0A0A;
-    text-align: left;
-    font-family: Urbanist, sans-serif;
-    font-size: 14px;
+    text-align: justify;
+    font-family: var(--Font-Family-Text-Body, Urbanist);
+    font-size: 18px;
     font-weight: 600;
-    line-height: 20px;
-    margin: 2px 0 6px;
+    line-height: 24px;
+    letter-spacing: -0.003px;
+    word-break: break-word;
+    hyphens: auto;
 }
 
 .callout__text {
     grid-column: 1 / -1;
-    grid-row: 2;
-    color: #0A0A0A;
-    text-align: justify;
-    font-family: Urbanist, sans-serif;
-    font-size: 12px;
-    font-weight: 400;
-    line-height: 18px;
     margin: 0;
+    text-align: justify;
+    color: #0A0A0A;
+    font-family: var(--Font-Family-Text-Body, Urbanist);
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 22px;
+    word-break: break-word;
+    hyphens: auto;
 }
+
 
 .faq {
     padding: 0 100px;
@@ -384,6 +390,7 @@ onMounted(loadAll)
     max-width: unset;
 }
 
+
 .accordion {
     list-style: none;
     margin: 0;
@@ -406,7 +413,6 @@ onMounted(loadAll)
     right: 0;
     height: 1px;
     background: #F3F4F6;
-
 }
 
 .accordion__item:first-child {
@@ -461,7 +467,6 @@ onMounted(loadAll)
     padding-left: 18px;
 }
 
-
 .accordion__a {
     margin-top: 6px;
     font-size: 14px;
@@ -470,29 +475,32 @@ onMounted(loadAll)
 }
 
 
-
+/* ===== CTA (Masih ada pertanyaan lain?) ===== */
 .cta {
     display: flex;
     justify-content: center;
     padding: 0 18px;
-    margin: 36px 0 48px;
+    margin: 48px 0 64px;
 }
 
 .cta__inner {
-    width: 520px;
-    max-width: 100%;
+    width: 100%;
+    max-width: 1500px;
     background: #fff;
-    border: 1px solid #ffffff;
     border-radius: 12px;
-    padding: 16px 20px;
+    padding: 20px 28px;
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.cta__copy {
+    flex: 1;
 }
 
 .cta__title {
-    margin: 0;
+    margin: 0 0 4px;
     color: #0A0A0A;
     font-family: Urbanist, sans-serif;
     font-size: 18px;
@@ -510,10 +518,10 @@ onMounted(loadAll)
 }
 
 .btn {
-    margin: 0;
+    flex-shrink: 0;
     border: none;
-    border-radius: 12px;
-    padding: 10px 16px;
+    border-radius: 10px;
+    padding: 10px 18px;
     background: #F79F24;
     color: #fff;
     font-family: Urbanist, sans-serif;
@@ -527,37 +535,21 @@ onMounted(loadAll)
     filter: brightness(.98);
 }
 
-@media (min-width: 1025px) {
+/* Responsive untuk CTA */
+@media (max-width: 768px) {
     .cta__inner {
-        width: 100%;
-        max-width: none;
-        padding: 12px 16px;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-    }
-
-    .cta__copy {
-        display: flex;
         flex-direction: column;
-        gap: 4px;
-    }
-
-    .cta__title {
-        font-size: 18px;
-        line-height: 24px;
-    }
-
-    .cta__text {
-        font-size: 13px;
-        line-height: 18px;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 16px 20px;
     }
 
     .btn {
-        align-self: center;
+        align-self: flex-start;
     }
 }
+
+
 
 .backtop {
     position: fixed;
@@ -576,6 +568,7 @@ onMounted(loadAll)
     background: #FFF2DF;
 }
 
+
 @media (max-width: 1200px) {
     .help {
         padding-left: 24px;
@@ -583,9 +576,9 @@ onMounted(loadAll)
     }
 
     .callout {
-        max-width: none;
-        margin-left: 24px;
-        margin-right: 24px;
+        max-width: min(var(--callout-w), calc(100% - 48px));
+        margin-left: auto;
+        margin-right: auto;
     }
 
     .faq {
@@ -594,6 +587,27 @@ onMounted(loadAll)
 }
 
 @media (max-width: 1024px) {
+    .callout {
+        grid-template-columns: 36px minmax(0, 1fr);
+        gap: 12px;
+        padding: 14px 16px;
+    }
+
+    .callout__icon .i {
+        width: 22px;
+        height: 22px;
+    }
+
+    .callout__title {
+        font-size: 16px;
+        line-height: 22px;
+    }
+
+    .callout__text {
+        font-size: 14px;
+        line-height: 20px;
+    }
+
     .faqGrid {
         grid-template-columns: 1fr;
         gap: 24px;
@@ -614,8 +628,31 @@ onMounted(loadAll)
     }
 
     .callout {
-        grid-template-columns: 48px 1fr;
-        margin: 18px 18px 28px;
+        max-width: 100%;
+        margin: 18px auto 28px;
+        grid-template-columns: 32px minmax(0, 1fr);
+        padding: 12px 14px;
+        gap: 10px;
+    }
+
+    .callout__icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .callout__icon .i {
+        width: 18px;
+        height: 18px;
+    }
+
+    .callout__title {
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .callout__text {
+        font-size: 12.5px;
+        line-height: 18.5px;
     }
 
     .faq {
@@ -629,6 +666,23 @@ onMounted(loadAll)
     .backtop {
         right: 18px;
         bottom: 18px;
+    }
+}
+
+@media (max-width: 360px) {
+    .callout {
+        grid-template-columns: 28px minmax(0, 1fr);
+        padding: 10px 12px;
+    }
+
+    .callout__title {
+        font-size: 13.5px;
+        line-height: 19px;
+    }
+
+    .callout__text {
+        font-size: 12px;
+        line-height: 18px;
     }
 }
 </style>

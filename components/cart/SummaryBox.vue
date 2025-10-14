@@ -17,7 +17,14 @@
             <b>Rp{{ formatIDR(total) }}</b>
         </div>
 
-        <button v-if="cta" class="btn btn--primary btn--block" @click="$emit('cta')">{{ cta }}</button>
+        <button
+            v-if="cta"
+            class="btn btn--primary btn--block"
+            :disabled="ctaDisabled"
+            @click="$emit('cta')"
+        >
+            {{ cta }}
+        </button>
 
 
         <div class="summary__extra">
@@ -44,6 +51,7 @@ defineProps<{
     totalLabel: string
     total: number
     cta?: string
+    ctaDisabled?: boolean
     links?: { label: string; to: string; underline?: boolean }[]
 }>()
 </script>
