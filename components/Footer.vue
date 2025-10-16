@@ -6,16 +6,16 @@
           <p class="footer-hero__title">Temukan Kami di:</p>
           <nav class="footer-hero__socials" aria-label="Sosial Media">
             <a href="https://facebook.com" target="_blank" rel="noopener" class="soc" aria-label="Facebook">
-              <img src="/Icons/Facebook.svg" alt="https://www.facebook.com/PHRIOnline" />
+              <img src="/img/icons/Facebook.svg" alt="https://www.facebook.com/PHRIOnline" />
             </a>
             <a href="https://x.com" target="_blank" rel="noopener" class="soc" aria-label="X">
-              <img src="/Icons/X.svg" alt="https://x.com/PHRIOnline" />
+              <img src="/img/icons/X.svg" alt="https://x.com/PHRIOnline" />
             </a>
             <a href="https://instagram.com" target="_blank" rel="noopener" class="soc" aria-label="Instagram">
-              <img src="/Icons/Instagram.svg" alt="https://www.instagram.com/phrionline/" />
+              <img src="/img/icons/Instagram.svg" alt="https://www.instagram.com/phrionline/" />
             </a>
             <a href="https://youtube.com" target="_blank" rel="noopener" class="soc" aria-label="YouTube">
-              <img src="/Icons/Youtube.svg" alt="" />
+              <img src="/img/icons/Youtube.svg" alt="" />
             </a>
           </nav>
         </div>
@@ -43,29 +43,23 @@
 
 <script setup lang="ts">
 function scrollTop() {
-  if (typeof window === 'undefined') return
-
+  if (typeof window === "undefined") return;
 
   try {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  } catch (_) {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch (_) {}
 
-  }
+  const doc = document as Document;
+  const root = (doc.scrollingElement || doc.documentElement) as HTMLElement;
 
-
-  const doc = document as Document
-  const root = (doc.scrollingElement || doc.documentElement) as HTMLElement
-
-
-  const main = doc.querySelector('.app-main') as HTMLElement | null
+  const main = doc.querySelector(".app-main") as HTMLElement | null;
 
   if (main && main.scrollTop > 0) {
-    main.scrollTop = 0
+    main.scrollTop = 0;
   }
 
-
-  root.scrollTop = 0
-  doc.body && (doc.body.scrollTop = 0)
+  root.scrollTop = 0;
+  doc.body && (doc.body.scrollTop = 0);
 }
 </script>
 
@@ -82,9 +76,8 @@ function scrollTop() {
   box-sizing: border-box;
 }
 
-
 .footer-hero {
-  background-image: url('/Images/footer.webp');
+  background-image: url("/img/footer.webp");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -111,7 +104,7 @@ function scrollTop() {
 .footer-hero__title {
   margin: 0;
   color: #fff;
-  font: 600 15px/22px 'Urbanist', sans-serif;
+  font: 600 15px/22px "Urbanist", sans-serif;
 }
 
 .footer-hero__socials {
@@ -126,11 +119,11 @@ function scrollTop() {
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  transition: transform .15s, background .15s;
+  transition: transform 0.15s, background 0.15s;
 }
 
 .soc:hover {
-  background: rgba(255, 255, 255, .15);
+  background: rgba(255, 255, 255, 0.15);
   transform: translateY(-1px);
 }
 
@@ -140,22 +133,21 @@ function scrollTop() {
   object-fit: contain;
 }
 
-
 .backtop {
   margin-left: auto;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   background: #fff;
-  color: #F79F24;
+  color: #f79f24;
   border-radius: 12px;
   padding: 10px 16px;
-  font: 600 14px 'Urbanist', sans-serif;
+  font: 600 14px "Urbanist", sans-serif;
   cursor: pointer;
   border: none;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, .12);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
   white-space: nowrap;
-  transition: background .15s, transform .15s;
+  transition: background 0.15s, transform 0.15s;
 }
 
 .backtop__icon {
@@ -167,7 +159,6 @@ function scrollTop() {
   background: #fefefe;
   transform: translateY(-1px);
 }
-
 
 .footer-legal {
   background: #f5f5f5;
@@ -182,7 +173,7 @@ function scrollTop() {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  font: 400 13px 'Urbanist', sans-serif;
+  font: 400 13px "Urbanist", sans-serif;
   color: #555;
   box-sizing: border-box;
 }
@@ -200,39 +191,33 @@ function scrollTop() {
 }
 
 .footer-legal__link {
-  color: #F79F24;
+  color: #f79f24;
   font-weight: 500;
   text-decoration: none;
   font-size: 18px;
   line-height: 18px;
-  transition: color .15s, text-decoration-color .15s;
+  transition: color 0.15s, text-decoration-color 0.15s;
 }
 
 .footer-legal__link:hover {
   text-decoration: underline;
 }
 
-
-@media (min-width:1440px) {
-
+@media (min-width: 1440px) {
   .footer-hero__inner,
   .footer-legal__inner {
     max-width: 1280px;
   }
 }
 
-
-@media (min-width:1280px) and (max-width:1439px) {
-
+@media (min-width: 1280px) and (max-width: 1439px) {
   .footer-hero__inner,
   .footer-legal__inner {
     max-width: 1200px;
   }
 }
 
-
-@media (min-width:1025px) and (max-width:1279px) {
-
+@media (min-width: 1025px) and (max-width: 1279px) {
   .footer-hero__inner,
   .footer-legal__inner {
     max-width: 1080px;
@@ -240,8 +225,7 @@ function scrollTop() {
   }
 }
 
-
-@media (max-width:1024px) {
+@media (max-width: 1024px) {
   .footer-hero {
     padding: 28px 0;
   }
@@ -260,8 +244,7 @@ function scrollTop() {
   }
 }
 
-
-@media (min-width:600px) and (max-width:899px) {
+@media (min-width: 600px) and (max-width: 899px) {
   .footer-hero__inner {
     gap: 20px;
   }
@@ -276,16 +259,14 @@ function scrollTop() {
   }
 }
 
-@media (max-width:599px) {
-
+@media (max-width: 599px) {
   .footer-hero {
     display: flex;
     padding: 20px 16px !important;
     align-items: center;
-    border-bottom: 1px solid #EDEDED;
-    background:
-      url('/Images/footer.webp') lightgray -60px -64px/130% 274% no-repeat,
-      linear-gradient(90deg, #F79F24 0%, #FABE59 100%);
+    border-bottom: 1px solid #ededed;
+    background: url("/img/footer.webp") lightgray -60px -64px/130% 274% no-repeat,
+      linear-gradient(90deg, #f79f24 0%, #fabe59 100%);
   }
 
   .footer-hero__inner {
@@ -299,8 +280,8 @@ function scrollTop() {
   }
 
   .footer-hero__title {
-    color: #FFF !important;
-    font: 600 14px/22px 'Urbanist', sans-serif !important;
+    color: #fff !important;
+    font: 600 14px/22px "Urbanist", sans-serif !important;
   }
 
   .footer-hero__socials {
@@ -323,16 +304,16 @@ function scrollTop() {
     padding: 6px 12px !important;
     gap: 4px !important;
     border-radius: 8px !important;
-    background: #FDFAED !important;
-    color: #F79F24 !important;
-    font: 500 12px/18px 'Urbanist', sans-serif !important;
-    box-shadow: 0 0 2px rgba(0, 0, 0, .12), 0 1px 2px rgba(0, 0, 0, .14) !important;
+    background: #fdfaed !important;
+    color: #f79f24 !important;
+    font: 500 12px/18px "Urbanist", sans-serif !important;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.14) !important;
   }
 
   .footer-legal {
     display: flex !important;
     padding: 10px 16px !important;
-    background: #F5F5F5 !important;
+    background: #f5f5f5 !important;
   }
 
   .footer-legal__inner {
@@ -353,21 +334,20 @@ function scrollTop() {
 
   .footer-legal__year,
   .footer-legal__rights {
-    color: #9E9E9E !important;
-    font: 400 12px/18px 'Urbanist', sans-serif !important;
+    color: #9e9e9e !important;
+    font: 400 12px/18px "Urbanist", sans-serif !important;
   }
 
   .footer-legal__link {
     margin: 0 !important;
     padding: 4px 12px !important;
     border-radius: 8px !important;
-    color: #F79F24 !important;
-    font: 500 12px/18px 'Urbanist', sans-serif !important;
+    color: #f79f24 !important;
+    font: 500 12px/18px "Urbanist", sans-serif !important;
   }
 }
 
-
-@media (max-width:360px) {
+@media (max-width: 360px) {
   .footer-hero__socials {
     gap: 0 !important;
   }

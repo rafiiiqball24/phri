@@ -3,33 +3,43 @@
     <div class="navbar__inner">
       <div class="navbar__left">
         <NuxtLink to="/" class="navbar__logoWrap">
-          <img src="/Icons/Logo.svg" alt="PHRI Logo" class="navbar__logo" />
+          <img src="/img/icons/Logo.svg" alt="PHRI Logo" class="navbar__logo" />
           <span class="navbar__brand">PHRI</span>
         </NuxtLink>
       </div>
 
       <nav class="navbar__menu">
         <NuxtLink :class="['navbar__link', isExact('/') && 'active']" to="/">Beranda</NuxtLink>
-        <NuxtLink :class="['navbar__link', isActive('/about-us') && 'active']" to="/about-us">
-          Tentang
-          Kami
-        </NuxtLink>
+        <NuxtLink :class="['navbar__link', isActive('/about-us') && 'active']" to="/about-us"> Tentang Kami </NuxtLink>
         <NuxtLink :class="['navbar__link', isActive('/contact') && 'active']" to="/contact">Kontak</NuxtLink>
         <NuxtLink :class="['navbar__link', isActive('/help') && 'active']" to="/help">Bantuan</NuxtLink>
       </nav>
 
       <div class="navbar__right">
         <NuxtLink to="/cart" class="navbar__cart" aria-label="Cart">
-          <img src="/Icons/Cart.svg" alt="Cart" />
+          <img src="/img/icons/Cart.svg" alt="Cart" />
           <span v-if="cartCount > 0" class="badge">{{ cartCount }}</span>
         </NuxtLink>
 
-        <div v-if="showLang" class="lang" :class="{ 'is-open': langOpen }" tabindex="0" role="button"
-          :aria-expanded="String(langOpen)" @click="toggleLang" @keydown.enter.prevent="toggleLang"
-          @keydown.space.prevent="toggleLang" @blur="langOpen = false">
+        <div
+          v-if="showLang"
+          class="lang"
+          :class="{ 'is-open': langOpen }"
+          tabindex="0"
+          role="button"
+          :aria-expanded="String(langOpen)"
+          @click="toggleLang"
+          @keydown.enter.prevent="toggleLang"
+          @keydown.space.prevent="toggleLang"
+          @blur="langOpen = false">
           <span class="lang__code">{{ currentLabel }}</span>
           <svg class="lang__caret" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M7 9l5 6 5-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            <path
+              d="M7 9l5 6 5-6"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
               stroke-linejoin="round" />
           </svg>
           <ul v-if="langOpen" class="lang__menu" role="menu">
@@ -51,7 +61,7 @@
       <aside v-if="mobileOpen" class="mm">
         <div class="mm__head">
           <NuxtLink to="/" class="mm__brand" @click="mobileOpen = false">
-            <img src="/Icons/Logo.svg" alt="" /><span>PHRI</span>
+            <img src="/img/icons/Logo.svg" alt="" /><span>PHRI</span>
           </NuxtLink>
           <button class="mm__close" @click="mobileOpen = false" aria-label="Tutup">✕</button>
         </div>
@@ -62,7 +72,7 @@
           <NuxtLink class="mm__link" to="/help" @click="mobileOpen = false">Bantuan</NuxtLink>
         </nav>
         <NuxtLink to="S/cart" class="mm__cart" @click="mobileOpen = false">
-          <img src="/Icons/Cart.svg" alt="" /><span>Keranjang</span>
+          <img src="/img/icons/Cart.svg" alt="" /><span>Keranjang</span>
           <em v-if="cartCount > 0" class="mm__badge">{{ cartCount }}</em>
         </NuxtLink>
       </aside>
@@ -71,48 +81,52 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { useRoute } from 'vue-router'
-import { useCart } from '@/composables/useCart'
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+import { useRoute } from "vue-router";
+import { useCart } from "@/composables/useCart";
 
-const { items } = useCart()
+const { items } = useCart();
 
-const cartCount = computed(() => items.value.reduce((sum, it) => sum + it.qty, 0))
+const cartCount = computed(() => items.value.reduce((sum, it) => sum + it.qty, 0));
 
-const localeRef = ref<'id' | 'en'>('id')
-const langOpen = ref(false)
-const mobileOpen = ref(false)
-const currentLabel = computed(() => String(localeRef.value || 'id').toUpperCase())
+const localeRef = ref<"id" | "en">("id");
+const langOpen = ref(false);
+const mobileOpen = ref(false);
+const currentLabel = computed(() => String(localeRef.value || "id").toUpperCase());
 
-function toggleLang() { langOpen.value = !langOpen.value }
-function setLocale(code: 'id' | 'en') { localeRef.value = code; langOpen.value = false }
+function toggleLang() {
+  langOpen.value = !langOpen.value;
+}
+function setLocale(code: "id" | "en") {
+  localeRef.value = code;
+  langOpen.value = false;
+}
 
 function onDocClick(e: MouseEvent) {
-  const el = document.querySelector('.lang')
-  if (el && !el.contains(e.target as Node)) langOpen.value = false
+  const el = document.querySelector(".lang");
+  if (el && !el.contains(e.target as Node)) langOpen.value = false;
 }
-onMounted(() => document.addEventListener('click', onDocClick))
-onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
+onMounted(() => document.addEventListener("click", onDocClick));
+onBeforeUnmount(() => document.removeEventListener("click", onDocClick));
 
-const showLang = false
+const showLang = false;
 
 onMounted(() => {
-  if (showLang) document.addEventListener('click', onDocClick)
-})
+  if (showLang) document.addEventListener("click", onDocClick);
+});
 onBeforeUnmount(() => {
-  if (showLang) document.removeEventListener('click', onDocClick)
-})
+  if (showLang) document.removeEventListener("click", onDocClick);
+});
 
-
-const route = useRoute()
-const isExact = (path: string) => route.path === path
-const isActive = (path: string) => route.path === path || route.path.startsWith(path + '/')
+const route = useRoute();
+const isExact = (path: string) => route.path === path;
+const isActive = (path: string) => route.path === path || route.path.startsWith(path + "/");
 </script>
 
 <style scoped>
 .navbar {
   background: #fff;
-  border-bottom: 1px solid #E5E5E5;
+  border-bottom: 1px solid #e5e5e5;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -144,12 +158,12 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
 }
 
 .navbar__brand {
-  color: #0A0A0A;
+  color: #0a0a0a;
   font-family: var(--Font-Family-Text-Tittle, Urbanist);
   font-size: 24px;
   font-weight: 700;
   line-height: 32px;
-  letter-spacing: -.005px;
+  letter-spacing: -0.005px;
 }
 
 .navbar__menu {
@@ -158,21 +172,21 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
 }
 
 .navbar__link {
-  color: #0A0A0A;
-  font: 500 16px/24px 'Urbanist', sans-serif;
+  color: #0a0a0a;
+  font: 500 16px/24px "Urbanist", sans-serif;
   text-decoration: none;
   padding: 6px 10px;
   border-radius: 8px;
-  transition: color .2s, background .2s;
+  transition: color 0.2s, background 0.2s;
 }
 
 .navbar__link:hover {
-  color: #F79F24;
+  color: #f79f24;
 }
 
 .navbar__link.active,
 .navbar__link.active:hover {
-  background: #F79F24;
+  background: #f79f24;
   color: #fff;
 }
 
@@ -198,7 +212,7 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
   position: absolute;
   top: -6px;
   right: -8px;
-  background: #FF4D4F;
+  background: #ff4d4f;
   color: #fff;
   font-size: 11px;
   font-weight: 700;
@@ -220,16 +234,16 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
 }
 
 .lang__code {
-  font: 600 16px 'Urbanist', sans-serif;
-  color: #F79F24;
+  font: 600 16px "Urbanist", sans-serif;
+  color: #f79f24;
   line-height: 1;
 }
 
 .lang__caret {
   width: 18px;
   height: 18px;
-  color: #F79F24;
-  transition: transform .18s;
+  color: #f79f24;
+  transition: transform 0.18s;
 }
 
 .lang.is-open .lang__caret {
@@ -244,10 +258,10 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
   right: 0;
   top: calc(100% + 6px);
   background: #fff;
-  border: 1px solid #E5E5E5;
+  border: 1px solid #e5e5e5;
   border-radius: 8px;
   min-width: 90px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   z-index: 50;
   font-size: 14px;
 }
@@ -255,13 +269,13 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
 .lang__item {
   padding: 8px 12px;
   border-radius: 6px;
-  font-family: 'Urbanist', sans-serif;
-  color: #F79F24;
+  font-family: "Urbanist", sans-serif;
+  color: #f79f24;
   text-align: left;
 }
 
 .lang__item:hover {
-  background: #FFF3E3;
+  background: #fff3e3;
 }
 
 .hamburger {
@@ -278,13 +292,13 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
   display: block;
   width: 100%;
   height: 100%;
-  background: url('/Icons/List.svg') center/contain no-repeat;
+  background: url("/img/icons/List.svg") center/contain no-repeat;
 }
 
 .mm__backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, .3);
+  background: rgba(0, 0, 0, 0.3);
   z-index: 998;
 }
 
@@ -313,7 +327,7 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
   font-weight: 700;
   font-size: 18px;
   text-decoration: none;
-  color: #0A0A0A;
+  color: #0a0a0a;
 }
 
 .mm__brand img {
@@ -336,8 +350,8 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
 }
 
 .mm__link {
-  font: 400 16px 'Urbanist', sans-serif;
-  color: #0A0A0A;
+  font: 400 16px "Urbanist", sans-serif;
+  color: #0a0a0a;
   text-decoration: none;
   padding: 8px 0;
 }
@@ -347,7 +361,7 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #F79F24;
+  background: #f79f24;
   color: #fff;
   border-radius: 12px;
   padding: 12px 16px;
@@ -363,7 +377,7 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
 
 .mm__badge {
   margin-left: auto;
-  background: #FF4D4F;
+  background: #ff4d4f;
   color: #fff;
   border-radius: 999px;
   padding: 0 6px;
@@ -373,7 +387,7 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity .2s;
+  transition: opacity 0.2s;
 }
 
 .fade-enter-from,
@@ -383,7 +397,7 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
 
 .slide-enter-active,
 .slide-leave-active {
-  transition: transform .25s, opacity .25s;
+  transition: transform 0.25s, opacity 0.25s;
 }
 
 .slide-enter-from,
@@ -392,7 +406,7 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
   opacity: 0;
 }
 
-@media (min-width:900px) {
+@media (min-width: 900px) {
   .navbar__menu {
     display: flex;
   }
@@ -407,7 +421,7 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
   }
 }
 
-@media (max-width:899px) {
+@media (max-width: 899px) {
   .navbar__inner {
     padding: 14px 20px;
     gap: 16px;
@@ -432,7 +446,7 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
   }
 }
 
-@media (max-width:599px) {
+@media (max-width: 599px) {
   .navbar__inner {
     padding: 12px 16px;
     gap: 12px;

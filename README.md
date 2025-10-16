@@ -1,6 +1,6 @@
 <br />
 <div align="center">
-  <img width="200" src="assets/images/nuxt_logo.png" alt="Nuxt 3">
+  <img width="200" src="assets/img/nuxt_logo.png" alt="Nuxt 3">
 </div>
 <br />
 
