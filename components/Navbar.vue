@@ -67,7 +67,7 @@
         </div>
         <nav class="mm__nav">
           <NuxtLink class="mm__link" to="/" @click="mobileOpen = false">Beranda</NuxtLink>
-          <NuxtLink class="mm__link" to="/aboutus" @click="mobileOpen = false">Tentang Kami</NuxtLink>
+          <NuxtLink class="mm__link" to="/about-us" @click="mobileOpen = false">Tentang Kami</NuxtLink>
           <NuxtLink class="mm__link" to="/contact" @click="mobileOpen = false">Kontak</NuxtLink>
           <NuxtLink class="mm__link" to="/help" @click="mobileOpen = false">Bantuan</NuxtLink>
         </nav>
