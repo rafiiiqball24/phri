@@ -37,6 +37,7 @@
               </svg>
               <span class="badge__text">Highly Recommend</span>
             </div>
+<<<<<<< HEAD
             <figcaption class="pager">{{ current + 1 }} / {{ total }}</figcaption>
             <div v-if="hasMulti" class="navgroup">
               <button class="navbtn" aria-label="Sebelumnya" @click="prevImg">
@@ -45,6 +46,106 @@
               <button class="navbtn navbtn--right" aria-label="Berikutnya" @click="nextImg">
                 <img src="/img/icons/CaretRight.svg" alt="" />
               </button>
+=======
+
+            <div class="col col--right">
+                <template v-if="loading">
+                    <div class="skline skline--lg skel"></div>
+                    <div class="skline skel" style="width:120px;"></div>
+                    <div class="skline skel" style="width:160px; height:24px; border-radius:8px;"></div>
+                    <div class="skline skel" style="width:120px;"></div>
+
+                    <div class="skblock">
+                        <div class="skline skel" style="width:140px;"></div>
+                        <div class="skgrid">
+                            <div v-for="i in 6" :key="'sksize' + i" class="skopt skel"></div>
+                        </div>
+                    </div>
+
+                    <div class="skblock">
+                        <div class="skline skel" style="width:120px;"></div>
+                        <div class="skgrid">
+                            <div v-for="i in 6" :key="'skcolor' + i" class="skopt skel"></div>
+                        </div>
+                    </div>
+
+                    <div class="skline skel" style="width:100px;"></div>
+                    <div class="skbtn skel"></div>
+
+                    <section class="desc desc--mobile">
+                        <div class="skline skel" style="width:100px;"></div>
+                        <div class="skline skel"></div>
+                        <div class="skline skel" style="width:80%;"></div>
+                    </section>
+                </template>
+
+                <template v-else>
+                    <h1 class="title">{{ product.name }}</h1>
+                    <div class="category">{{ product.category || 'Produk' }}</div>
+                    <div class="price">Rp{{ formatIDR(displayPrice) }}</div>
+                    <div class="tax">Termasuk pajak.</div>
+
+                    <div v-if="product.sizes?.length" class="block">
+                        <div class="block__head">
+                            <span class="block__label">Pilih Ukuran</span>
+                            <button class="sizeguide" type="button">Size Guide</button>
+                        </div>
+                        <div class="optgrid">
+                            <button v-for="size in product.sizes" :key="size.id" class="opt"
+                                :class="{ 'is-disabled': !size.available, 'is-active': selectedSizeId === size.id }"
+                                :disabled="!size.available"
+                                @click="() => { selectedSizeId = size.id; selectedSize = size.name }">
+                                {{ size.name }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div v-if="product.colors?.length" class="block">
+                        <div class="block__head"><span class="block__label">Pilih Warna</span></div>
+                        <div class="optgrid">
+                            <button v-for="color in product.colors" :key="color.id" class="opt"
+                                :class="{ 'is-disabled': !color.available, 'is-active': selectedColorId === color.id }"
+                                :disabled="!color.available"
+                                @click="() => { selectedColorId = color.id; selectedColor = color.name }">
+                                {{ color.name }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="block">
+                        <div class="block__head"><span class="block__label">Jumlah</span></div>
+                        <div class="optgrid" style="grid-template-columns: 1fr;">
+                            <input class="input" type="number" min="1" :max="displayStock" v-model.number="qty" />
+                        </div>
+                    </div>
+
+                    <div class="stock">Stok: {{ displayStock }}</div>
+                    <button class="cta" :disabled="!canAdd" @click="onAddToCart">Tambahkan ke Keranjang</button>
+
+                    <section class="desc desc--mobile">
+                        <h3 class="desc__title">Deskripsi</h3>
+                        <p class="desc__body">{{ product.description || '—' }}</p>
+                        <button class="desc__read">Baca semua <img src="/Icons/CaretDownOrange.svg" alt="" /></button>
+                    </section>
+
+                    <section class="ship">
+                        <h3 class="ship__title">Informasi Pengiriman</h3>
+                        <div class="ship__row">
+                            <img src="/Icons/truck.svg" alt="" class="ship__icon" />
+                            <p class="ship__text">Estimasi 12–15 hari (Jawa), 20–22 hari (luar Jawa) setelah pemesanan.
+                            </p>
+                        </div>
+                        <div class="ship__row">
+                            <img src="/Icons/package.svg" alt="" class="ship__icon" />
+                            <p class="ship__text">Pengemasan aman. Butuh tambahan kemasan? Hubungi layanan kami.</p>
+                        </div>
+                        <div class="ship__row">
+                            <img src="/Icons/box.svg" alt="" class="ship__icon" />
+                            <p class="ship__text">Kerusakan saat pengantaran di luar tanggung jawab kami.</p>
+                        </div>
+                    </section>
+                </template>
+>>>>>>> 029262c (add intl-tel-input dependency and update product detail handling)
             </div>
           </figure>
 
@@ -184,6 +285,7 @@ useHead({
   title: "Detail Product",
 });
 
+<<<<<<< HEAD
 type VariantOpt = { id: string; name: string };
 type Variant = { name: string; options: VariantOpt[] };
 type ProductApi = {
@@ -200,6 +302,16 @@ type ProductApi = {
   gallery?: any[];
   medias?: any[];
 };
+=======
+type VariantOpt = { id: string; name: string }
+type Variant = { name: string; options: VariantOpt[] }
+type Combination = { id: string; price: number | null; sku?: string | null; quantity?: number | null; optionIds: string[] }
+type ProductApi = {
+    id: string; name: string; slug: string; thumbnail?: string; price: number;
+    quantity: number | string; description?: string; product_category?: { id: string; name: string }
+    variants?: Variant[]; images?: any[]; gallery?: any[]; medias?: any[]; combinations?: any[]
+}
+>>>>>>> 029262c (add intl-tel-input dependency and update product detail handling)
 
 const route = useRoute();
 const router = useRouter();
@@ -225,6 +337,7 @@ function ensureSession(): string {
   }
 }
 
+<<<<<<< HEAD
 const debug = false;
 const loading = ref(true);
 const selectedSize = ref("");
@@ -245,6 +358,19 @@ const product = ref<{
   category?: string;
   sizes: { name: string; available: boolean }[];
   colors: { name: string; available: boolean }[];
+=======
+const debug = false
+const loading = ref(true)
+const selectedSize = ref(''); const selectedColor = ref(''); const qty = ref(1)
+const selectedSizeId = ref<string>(''); const selectedColorId = ref<string>('')
+const current = ref(0); const ts = ref(0); const te = ref(0)
+
+const product = ref<{
+    id?: string; name: string; price: number; stock: number; image: string; images: string[];
+    description?: string; category?: string;
+    sizes: { id: string; name: string; available: boolean }[];
+    colors: { id: string; name: string; available: boolean }[];
+>>>>>>> 029262c (add intl-tel-input dependency and update product detail handling)
 }>({
   name: "—",
   price: 0,
@@ -257,6 +383,7 @@ const product = ref<{
 
 const rec = ref<Array<{ to: any; name: string; image: string; price: number; tags: string[]; soldOut: boolean }>>([]);
 
+<<<<<<< HEAD
 const total = computed(() => product.value.images.length || (product.value.image ? 1 : 0));
 const hasMulti = computed(() => product.value.images.length > 1);
 const needSize = computed(() => product.value.sizes?.length > 0);
@@ -267,6 +394,35 @@ const canAdd = computed(() => {
   if (needColor.value && !selectedColor.value) return false;
   return true;
 });
+=======
+const comboMap = new Map<string, Combination>()
+const keyFor = (ids: string[]) => ids.slice().sort().join('+')
+
+const total = computed(() => product.value.images.length || (product.value.image ? 1 : 0))
+const hasMulti = computed(() => product.value.images.length > 1)
+const needSize = computed(() => product.value.sizes?.length > 0)
+const needColor = computed(() => product.value.colors?.length > 0)
+
+const chosenIds = computed(() => {
+    const ids: string[] = []
+    if (selectedSizeId.value) ids.push(selectedSizeId.value)
+    if (selectedColorId.value) ids.push(selectedColorId.value)
+    return ids
+})
+const matchedCombo = computed<Combination | undefined>(() => {
+    if (!chosenIds.value.length) return undefined
+    return comboMap.get(keyFor(chosenIds.value))
+})
+const displayPrice = computed(() => matchedCombo.value?.price ?? product.value.price)
+const displayStock = computed(() => matchedCombo.value?.quantity ?? product.value.stock)
+
+const canAdd = computed(() => {
+    if (displayStock.value <= 0) return false
+    if (needSize.value && !selectedSizeId.value) return false
+    if (needColor.value && !selectedColorId.value) return false
+    return true
+})
+>>>>>>> 029262c (add intl-tel-input dependency and update product detail handling)
 
 function normalizeImages(p: ProductApi): string[] {
   const arr =
@@ -283,6 +439,7 @@ function normalizeImages(p: ProductApi): string[] {
 }
 
 function mapProduct(p: ProductApi) {
+<<<<<<< HEAD
   const sizes = (p.variants?.find((v) => v.name?.toLowerCase() === "ukuran")?.options || []).map((o) => ({
     name: o.name,
     available: true,
@@ -305,6 +462,35 @@ function mapProduct(p: ProductApi) {
     colors,
   };
   current.value = 0;
+=======
+    const sizes = (p.variants?.find(v => v.name?.toLowerCase() === 'ukuran')?.options || [])
+        .map(o => ({ id: o.id, name: o.name, available: true }))
+    const colors = (p.variants?.find(v => v.name?.toLowerCase() === 'warna')?.options || [])
+        .map(o => ({ id: o.id, name: o.name, available: true }))
+    const images = normalizeImages(p)
+
+    comboMap.clear()
+    const combos = p.combinations || []
+    if (Array.isArray(combos)) {
+        for (const c of combos) {
+            const optionIds = (c.product_variant_option_ids || []).filter(Boolean)
+            if (optionIds.length) {
+                comboMap.set(keyFor(optionIds), {
+                    id: c.id, price: c.price ?? null, sku: c.sku ?? null, quantity: c.quantity ?? null, optionIds
+                })
+            }
+        }
+    }
+
+    product.value = {
+        id: p.id, name: p.name, price: Number(p.price ?? 0), stock: Number(p.quantity ?? 0),
+        image: images[0] || asset(p.thumbnail) || '',
+        images, description: p.description, category: p.product_category?.name, sizes, colors
+    }
+    selectedSize.value = ''; selectedSizeId.value = ''
+    selectedColor.value = ''; selectedColorId.value = ''
+    current.value = 0
+>>>>>>> 029262c (add intl-tel-input dependency and update product detail handling)
 }
 
 async function fetchDetailById(id: string) {
@@ -364,7 +550,30 @@ function onSwipe() {
   d < 0 ? nextImg() : prevImg();
 }
 
+function recomputeAvailability() {
+    if (selectedSizeId.value && product.value.colors?.length) {
+        product.value.colors = product.value.colors.map(c => ({
+            ...c,
+            available: !!comboMap.get(keyFor([selectedSizeId.value!, c.id]))
+        }))
+    } else if (product.value.colors?.length) {
+        product.value.colors = product.value.colors.map(c => ({ ...c, available: true }))
+    }
+
+    if (selectedColorId.value && product.value.sizes?.length) {
+        product.value.sizes = product.value.sizes.map(s => ({
+            ...s,
+            available: !!comboMap.get(keyFor([s.id, selectedColorId.value!]))
+        }))
+    } else if (product.value.sizes?.length) {
+        product.value.sizes = product.value.sizes.map(s => ({ ...s, available: true }))
+    }
+}
+
+watch([selectedSizeId, selectedColorId], recomputeAvailability)
+
 async function onAddToCart() {
+<<<<<<< HEAD
   if (!canAdd.value) return;
   const session_id = ensureSession();
   try {
@@ -397,6 +606,37 @@ async function onAddToCart() {
     color: selectedColor.value || undefined,
   });
   router.push("/cart");
+=======
+    if (!canAdd.value) return
+    const session_id = ensureSession()
+    try {
+        await ApiService.post('/cart', {
+            session_id,
+            products: [{
+                product_id: product.value.id,
+                qty: qty.value,
+                size: selectedSize.value || undefined,
+                color: selectedColor.value || undefined,
+                variant_option_ids: [selectedSizeId.value, selectedColorId.value].filter(Boolean),
+                combination_id: matchedCombo.value?.id || undefined,
+                price_override: matchedCombo.value?.price ?? undefined
+            }]
+        }, { headers })
+    } catch (e) {
+        console.error('POST /cart gagal:', e)
+    }
+    addItem({
+        id: product.value.id as string,
+        name: product.value.name,
+        image: product.value.images[current.value] || product.value.image,
+        price: displayPrice.value,
+        qty: qty.value,
+        stock: displayStock.value,
+        size: selectedSize.value || undefined,
+        color: selectedColor.value || undefined,
+    })
+    router.push('/cart')
+>>>>>>> 029262c (add intl-tel-input dependency and update product detail handling)
 }
 
 onServerPrefetch(fetchPage);
