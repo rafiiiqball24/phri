@@ -21,25 +21,12 @@
           <span v-if="cartCount > 0" class="badge">{{ cartCount }}</span>
         </NuxtLink>
 
-        <div
-          v-if="showLang"
-          class="lang"
-          :class="{ 'is-open': langOpen }"
-          tabindex="0"
-          role="button"
-          :aria-expanded="String(langOpen)"
-          @click="toggleLang"
-          @keydown.enter.prevent="toggleLang"
-          @keydown.space.prevent="toggleLang"
-          @blur="langOpen = false">
+        <div v-if="showLang" class="lang" :class="{ 'is-open': langOpen }" tabindex="0" role="button"
+          :aria-expanded="String(langOpen)" @click="toggleLang" @keydown.enter.prevent="toggleLang"
+          @keydown.space.prevent="toggleLang" @blur="langOpen = false">
           <span class="lang__code">{{ currentLabel }}</span>
           <svg class="lang__caret" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              d="M7 9l5 6 5-6"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
+            <path d="M7 9l5 6 5-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
               stroke-linejoin="round" />
           </svg>
           <ul v-if="langOpen" class="lang__menu" role="menu">
@@ -71,7 +58,7 @@
           <NuxtLink class="mm__link" to="/contact" @click="mobileOpen = false">Kontak</NuxtLink>
           <NuxtLink class="mm__link" to="/help" @click="mobileOpen = false">Bantuan</NuxtLink>
         </nav>
-        <NuxtLink to="S/cart" class="mm__cart" @click="mobileOpen = false">
+        <NuxtLink to="/cart" class="mm__cart" @click="mobileOpen = false">
           <img src="/img/icons/Cart.svg" alt="" /><span>Keranjang</span>
           <em v-if="cartCount > 0" class="mm__badge">{{ cartCount }}</em>
         </NuxtLink>

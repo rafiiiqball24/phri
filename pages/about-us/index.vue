@@ -8,7 +8,9 @@
             PHRI Shop
             <span class="hero__underline"></span>
           </h1>
-          <p class="hero__subtitle">Building a Beneficial Ecosystem Together</p>
+          <p class="hero__subtitle">
+          <p class="hero__subtitle">Ciptakan ekosistem yang positif dan bermanfaat</p>
+          </p>
         </div>
       </div>
 
@@ -19,29 +21,33 @@
 
     <section class="intro container">
       <div class="intro__copy">
-        <h2 class="intro__title">What is PHRI Shop?</h2>
+        <h2 class="intro__title">Apa itu PHRI Shop?</h2>
         <p class="intro__desc">
-          PHRI Shop is more than just a marketplace—it's a community-driven platform designed to create mutual benefits
-          for all its members. We connect buyers and sellers in a trusted ecosystem that prioritizes transparency,
-          fairness, and shared prosperity.
+          Kami bukan sekadar marketplace — ini adalah platform berbasis komunitas yang dirancang untuk memberikan
+          manfaat bersama bagi seluruh anggotanya. Kami menghubungkan pembeli dan penjual dalam ekosistem tepercaya yang
+          mengutamakan
+          transparansi, keadilan, dan kesejahteraan bersama.
         </p>
         <p class="intro__desc">
-          Through innovative features and member-centric policies, we're building a sustainable economic platform where
-          every transaction contributes to the collective growth and welfare of our community.
+          Melalui fitur-fitur inovatif dan kebijakan yang berfokus pada anggota, kami membangun platform ekonomi
+          berkelanjutan di mana setiap transaksi berkontribusi pada pertumbuhan dan kesejahteraan komunitas secara
+          kolektif.
         </p>
 
         <div class="intro__badges">
           <div class="badge">
             <img class="badge__ico" src="/img/icons/store.svg" alt="" />
-            <span class="badge__text">Trusted Marketplace</span>
+            <span class="badge__text">Marketplace
+              Terpercaya</span>
           </div>
           <div class="badge">
             <img class="badge__ico" src="/img/icons/community.svg" alt="" />
-            <span class="badge__text">Community Focus</span>
+            <span class="badge__text">Berfokus pada
+              Komunitas</span>
           </div>
           <div class="badge">
             <img class="badge__ico" src="/img/icons/trendup.svg" alt="" />
-            <span class="badge__text">Shared Growth</span>
+            <span class="badge__text">Tumbuh Bersama</span>
           </div>
         </div>
       </div>
@@ -53,8 +59,9 @@
 
     <section class="vm">
       <div class="container">
-        <h3 class="vm__heading">Our Vision & Mission</h3>
-        <p class="vm__sub">Guiding principles that drive our commitment to creating lasting value for our community.</p>
+        <h3 class="vm__heading">Visi & Misi Kami</h3>
+        <p class="vm__sub">Prinsip yang menuntun komitmen kami untuk menciptakan nilai berkelanjutan bagi komunitas
+          kami.</p>
 
         <div class="vm__grid">
           <div class="vm__card">
@@ -62,10 +69,10 @@
               <img src="/img/icons/vision.svg" alt="" />
             </div>
             <div class="vm__body">
-              <h4 class="vm__title">Our Vision</h4>
+              <h4 class="vm__title">Visi</h4>
               <p class="vm__text">
-                To become an independent economic platform that improves the welfare of its members through sustainable
-                growth, innovation, and community empowerment.
+                Menjadi platform ekonomi mandiri yang meningkatkan kesejahteraan anggotanya melalui pertumbuhan
+                berkelanjutan, inovasi, dan pemberdayaan komunitas.
               </p>
             </div>
           </div>
@@ -75,10 +82,11 @@
               <img src="/img/icons/mission.svg" alt="" />
             </div>
             <div class="vm__body">
-              <h4 class="vm__title">Our Mission</h4>
+              <h4 class="vm__title">Misi</h4>
               <p class="vm__text">
-                To provide a transparent, accessible, and member-focused marketplace that creates opportunities for
-                economic participation, fosters trust, and delivers shared prosperity to all stakeholders.
+                Menyediakan marketplace transparan, mudah diakses, dan berfokus pada anggota, membuka peluang
+                partisipasi ekonomi, menumbuhkan kepercayaan, serta menghadirkan kesejahteraan bersama bagi seluruh
+                pemangku kepentingan.
               </p>
             </div>
           </div>
@@ -89,45 +97,49 @@
     <section class="values">
       <div class="container">
         <h3 class="values__heading">Our Core Values</h3>
-        <p class="values__sub">The fundamental principles that shape our culture and guide our actions.</p>
+        <p class="values__sub">Prinsip dasar yang membentuk budaya kami dan menjadi panduan dalam setiap tindakan kami.
+        </p>
 
         <div class="values__grid">
           <div class="val card">
             <div class="val__ico"><img src="/img/icons/integrity.svg" alt="" /></div>
             <h4 class="val__title">Integrity</h4>
-            <p class="val__text">We operate with transparency and honesty in every transaction and interaction.</p>
+            <p class="val__text">Kami menjalankan setiap transaksi dan interaksi dengan transparansi dan kejujuran.</p>
           </div>
 
           <div class="val card">
             <div class="val__ico"><img src="/img/icons/heart.svg" alt="" /></div>
             <h4 class="val__title">Community First</h4>
             <p class="val__text">
-              Our members are at the heart of everything we do, driving our decisions and innovations.
+              Anggota kami adalah inti dari setiap langkah dan inovasi yang kami lakukan.
             </p>
           </div>
 
           <div class="val card">
             <div class="val__ico"><img src="/img/icons/inovation.svg" alt="" /></div>
             <h4 class="val__title">Innovation</h4>
-            <p class="val__text">We continuously evolve and adapt to meet the changing needs of our marketplace.</p>
+            <p class="val__text">Kami terus berkembang dan beradaptasi untuk memenuhi kebutuhan pasar.</p>
           </div>
 
           <div class="val card">
             <div class="val__ico"><img src="/img/icons/trust.svg" alt="" /></div>
             <h4 class="val__title">Trust</h4>
-            <p class="val__text">Building lasting relationships through reliable service and consistent quality.</p>
+            <p class="val__text">Kami membangun hubungan yang melalui layanan yang andal dan kualitas yang konsisten.
+            </p>
           </div>
 
           <div class="val card">
             <div class="val__ico"><img src="/img/icons/excelence.svg" alt="" /></div>
             <h4 class="val__title">Excellence</h4>
-            <p class="val__text">We strive for the highest standards in every aspect of our platform and service.</p>
+            <p class="val__text">Kami berupaya mencapai standar tertinggi dalam setiap aspek platform dan layanan kami.
+            </p>
           </div>
 
           <div class="val card">
             <div class="val__ico"><img src="/img/icons/shared.svg" alt="" /></div>
             <h4 class="val__title">Shared Prosperity</h4>
-            <p class="val__text">Creating value that benefits all members of our ecosystem equally.</p>
+            <p class="val__text">Kami menciptakan nilai yang memberikan manfaat bagi seluruh anggota kami secara merata.
+            </p>
           </div>
         </div>
       </div>

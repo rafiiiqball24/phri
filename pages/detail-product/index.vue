@@ -15,29 +15,18 @@
         <div v-if="loading" class="media skel"></div>
 
         <template v-else>
-          <figure
-            class="media"
-            @touchstart="ts = $event.touches[0].clientX"
-            @touchend="
-              te = $event.changedTouches[0].clientX;
-              onSwipe();
-            ">
+          <figure class="media" @touchstart="ts = $event.touches[0].clientX" @touchend="
+            te = $event.changedTouches[0].clientX;
+          onSwipe();
+          ">
             <img :src="product.images[current] || product.image" :alt="product.name" />
             <div class="badge">
-              <svg
-                class="badge__icon"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#DBAD1B"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round">
+              <svg class="badge__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                stroke="#DBAD1B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polygon points="12 2 15 9 22 9 17 14 19 21 12 17 5 21 7 14 2 9 9 9" />
               </svg>
               <span class="badge__text">Highly Recommend</span>
             </div>
-<<<<<<< HEAD
             <figcaption class="pager">{{ current + 1 }} / {{ total }}</figcaption>
             <div v-if="hasMulti" class="navgroup">
               <button class="navbtn" aria-label="Sebelumnya" @click="prevImg">
@@ -46,106 +35,6 @@
               <button class="navbtn navbtn--right" aria-label="Berikutnya" @click="nextImg">
                 <img src="/img/icons/CaretRight.svg" alt="" />
               </button>
-=======
-
-            <div class="col col--right">
-                <template v-if="loading">
-                    <div class="skline skline--lg skel"></div>
-                    <div class="skline skel" style="width:120px;"></div>
-                    <div class="skline skel" style="width:160px; height:24px; border-radius:8px;"></div>
-                    <div class="skline skel" style="width:120px;"></div>
-
-                    <div class="skblock">
-                        <div class="skline skel" style="width:140px;"></div>
-                        <div class="skgrid">
-                            <div v-for="i in 6" :key="'sksize' + i" class="skopt skel"></div>
-                        </div>
-                    </div>
-
-                    <div class="skblock">
-                        <div class="skline skel" style="width:120px;"></div>
-                        <div class="skgrid">
-                            <div v-for="i in 6" :key="'skcolor' + i" class="skopt skel"></div>
-                        </div>
-                    </div>
-
-                    <div class="skline skel" style="width:100px;"></div>
-                    <div class="skbtn skel"></div>
-
-                    <section class="desc desc--mobile">
-                        <div class="skline skel" style="width:100px;"></div>
-                        <div class="skline skel"></div>
-                        <div class="skline skel" style="width:80%;"></div>
-                    </section>
-                </template>
-
-                <template v-else>
-                    <h1 class="title">{{ product.name }}</h1>
-                    <div class="category">{{ product.category || 'Produk' }}</div>
-                    <div class="price">Rp{{ formatIDR(displayPrice) }}</div>
-                    <div class="tax">Termasuk pajak.</div>
-
-                    <div v-if="product.sizes?.length" class="block">
-                        <div class="block__head">
-                            <span class="block__label">Pilih Ukuran</span>
-                            <button class="sizeguide" type="button">Size Guide</button>
-                        </div>
-                        <div class="optgrid">
-                            <button v-for="size in product.sizes" :key="size.id" class="opt"
-                                :class="{ 'is-disabled': !size.available, 'is-active': selectedSizeId === size.id }"
-                                :disabled="!size.available"
-                                @click="() => { selectedSizeId = size.id; selectedSize = size.name }">
-                                {{ size.name }}
-                            </button>
-                        </div>
-                    </div>
-
-                    <div v-if="product.colors?.length" class="block">
-                        <div class="block__head"><span class="block__label">Pilih Warna</span></div>
-                        <div class="optgrid">
-                            <button v-for="color in product.colors" :key="color.id" class="opt"
-                                :class="{ 'is-disabled': !color.available, 'is-active': selectedColorId === color.id }"
-                                :disabled="!color.available"
-                                @click="() => { selectedColorId = color.id; selectedColor = color.name }">
-                                {{ color.name }}
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="block">
-                        <div class="block__head"><span class="block__label">Jumlah</span></div>
-                        <div class="optgrid" style="grid-template-columns: 1fr;">
-                            <input class="input" type="number" min="1" :max="displayStock" v-model.number="qty" />
-                        </div>
-                    </div>
-
-                    <div class="stock">Stok: {{ displayStock }}</div>
-                    <button class="cta" :disabled="!canAdd" @click="onAddToCart">Tambahkan ke Keranjang</button>
-
-                    <section class="desc desc--mobile">
-                        <h3 class="desc__title">Deskripsi</h3>
-                        <p class="desc__body">{{ product.description || '—' }}</p>
-                        <button class="desc__read">Baca semua <img src="/Icons/CaretDownOrange.svg" alt="" /></button>
-                    </section>
-
-                    <section class="ship">
-                        <h3 class="ship__title">Informasi Pengiriman</h3>
-                        <div class="ship__row">
-                            <img src="/Icons/truck.svg" alt="" class="ship__icon" />
-                            <p class="ship__text">Estimasi 12–15 hari (Jawa), 20–22 hari (luar Jawa) setelah pemesanan.
-                            </p>
-                        </div>
-                        <div class="ship__row">
-                            <img src="/Icons/package.svg" alt="" class="ship__icon" />
-                            <p class="ship__text">Pengemasan aman. Butuh tambahan kemasan? Hubungi layanan kami.</p>
-                        </div>
-                        <div class="ship__row">
-                            <img src="/Icons/box.svg" alt="" class="ship__icon" />
-                            <p class="ship__text">Kerusakan saat pengantaran di luar tanggung jawab kami.</p>
-                        </div>
-                    </section>
-                </template>
->>>>>>> 029262c (add intl-tel-input dependency and update product detail handling)
             </div>
           </figure>
 
@@ -160,9 +49,9 @@
       <div class="col col--right">
         <template v-if="loading">
           <div class="skline skline--lg skel"></div>
-          <div class="skline skel" style="width: 120px"></div>
+          <div class="skline skline--sm skel"></div>
           <div class="skline skel" style="width: 160px; height: 24px; border-radius: 8px"></div>
-          <div class="skline skel" style="width: 120px"></div>
+          <div class="skline skline--sm skel"></div>
 
           <div class="skblock">
             <div class="skline skel" style="width: 140px"></div>
@@ -186,12 +75,34 @@
             <div class="skline skel"></div>
             <div class="skline skel" style="width: 80%"></div>
           </section>
+
+          <section class="ship">
+            <div class="skline skel" style="width: 180px; margin-bottom: 4px;"></div>
+            <div class="ship__row">
+              <div class="skel" style="width:46px;height:46px;border-radius:8px;"></div>
+              <div style="flex:1;">
+                <div class="skline skel" style="width: 80%"></div>
+              </div>
+            </div>
+            <div class="ship__row">
+              <div class="skel" style="width:46px;height:46px;border-radius:8px;"></div>
+              <div style="flex:1;">
+                <div class="skline skel" style="width: 78%"></div>
+              </div>
+            </div>
+            <div class="ship__row">
+              <div class="skel" style="width:46px;height:46px;border-radius:8px;"></div>
+              <div style="flex:1;">
+                <div class="skline skel" style="width: 70%"></div>
+              </div>
+            </div>
+          </section>
         </template>
 
         <template v-else>
           <h1 class="title">{{ product.name }}</h1>
           <div class="category">{{ product.category || "Produk" }}</div>
-          <div class="price">Rp{{ formatIDR(product.price) }}</div>
+          <div class="price">Rp{{ formatIDR(displayPrice) }}</div>
           <div class="tax">Termasuk pajak.</div>
 
           <div v-if="product.sizes?.length" class="block">
@@ -200,13 +111,9 @@
               <button class="sizeguide" type="button">Size Guide</button>
             </div>
             <div class="optgrid">
-              <button
-                v-for="size in product.sizes"
-                :key="size.name"
-                class="opt"
+              <button v-for="size in product.sizes" :key="size.name" class="opt"
                 :class="{ 'is-disabled': !size.available, 'is-active': selectedSize === size.name }"
-                :disabled="!size.available"
-                @click="selectedSize = size.name">
+                :disabled="!size.available" @click="() => { selectedSize = size.name; selectedSizeId = size.id; }">
                 {{ size.name }}
               </button>
             </div>
@@ -215,13 +122,9 @@
           <div v-if="product.colors?.length" class="block">
             <div class="block__head"><span class="block__label">Pilih Warna</span></div>
             <div class="optgrid">
-              <button
-                v-for="color in product.colors"
-                :key="color.name"
-                class="opt"
+              <button v-for="color in product.colors" :key="color.name" class="opt"
                 :class="{ 'is-disabled': !color.available, 'is-active': selectedColor === color.name }"
-                :disabled="!color.available"
-                @click="selectedColor = color.name">
+                :disabled="!color.available" @click="() => { selectedColor = color.name; selectedColorId = color.id; }">
                 {{ color.name }}
               </button>
             </div>
@@ -230,11 +133,11 @@
           <div class="block">
             <div class="block__head"><span class="block__label">Jumlah</span></div>
             <div class="optgrid" style="grid-template-columns: 1fr">
-              <input class="input" type="number" min="1" :max="product.stock" v-model.number="qty" />
+              <input class="input" type="number" min="1" :max="displayStock" v-model.number="qty" />
             </div>
           </div>
 
-          <div class="stock">Stok: {{ product.stock }}</div>
+          <div class="stock">Stok: {{ displayStock }}</div>
           <button class="cta" :disabled="!canAdd" @click="onAddToCart">Tambahkan ke Keranjang</button>
 
           <section class="desc desc--mobile">
@@ -262,56 +165,41 @@
       </div>
     </div>
 
-    <Recommendations
-      class="recs--compact"
-      v-if="!loading && rec.length"
-      title="Rekomendasi Untuk di Beli"
+    <Recommendations class="recs--compact" v-if="!loading && rec.length" title="Rekomendasi Untuk di Beli"
       :items="rec" />
     <div v-else class="rec-skeleton recs--compact">
-      <div v-for="i in 4" :key="'recs' + i" class="card skel"></div>
+      <div v-for="i in 4" :key="'recs' + i" class="card">
+        <div class="skthumb skel"></div>
+        <div class="skline skel sk-name"></div>
+        <div class="sktags">
+          <span class="sktag skel"></span>
+          <span class="sktag skel"></span>
+          <span class="sktag skel"></span>
+        </div>
+        <div class="skline skel sk-price"></div>
+      </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, onServerPrefetch, watch } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, onServerPrefetch, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import ApiService from "@/core/services/ApiService";
 import { useCurrency } from "@/composables/useCurrency";
 import { useCart } from "@/composables/useCart";
 const { formatIDR } = useCurrency();
 
-useHead({
-  title: "Detail Product",
-});
+useHead({ title: "Detail Product" });
 
-<<<<<<< HEAD
 type VariantOpt = { id: string; name: string };
 type Variant = { name: string; options: VariantOpt[] };
+type Combination = { id: string; price: number | null; sku?: string | null; quantity?: number | null; optionIds: string[] };
 type ProductApi = {
-  id: string;
-  name: string;
-  slug: string;
-  thumbnail?: string;
-  price: number;
-  quantity: number | string;
-  description?: string;
-  product_category?: { id: string; name: string };
-  variants?: Variant[];
-  images?: any[];
-  gallery?: any[];
-  medias?: any[];
+  id: string; name: string; slug: string; thumbnail?: string; price: number;
+  quantity: number | string; description?: string; product_category?: { id: string; name: string }
+  variants?: Variant[]; images?: any[]; gallery?: any[]; medias?: any[]; combinations?: any[]
 };
-=======
-type VariantOpt = { id: string; name: string }
-type Variant = { name: string; options: VariantOpt[] }
-type Combination = { id: string; price: number | null; sku?: string | null; quantity?: number | null; optionIds: string[] }
-type ProductApi = {
-    id: string; name: string; slug: string; thumbnail?: string; price: number;
-    quantity: number | string; description?: string; product_category?: { id: string; name: string }
-    variants?: Variant[]; images?: any[]; gallery?: any[]; medias?: any[]; combinations?: any[]
-}
->>>>>>> 029262c (add intl-tel-input dependency and update product detail handling)
 
 const route = useRoute();
 const router = useRouter();
@@ -337,40 +225,22 @@ function ensureSession(): string {
   }
 }
 
-<<<<<<< HEAD
 const debug = false;
 const loading = ref(true);
 const selectedSize = ref("");
 const selectedColor = ref("");
 const qty = ref(1);
+const selectedSizeId = ref<string>("");
+const selectedColorId = ref<string>("");
 const current = ref(0);
 const ts = ref(0);
 const te = ref(0);
 
 const product = ref<{
-  id?: string;
-  name: string;
-  price: number;
-  stock: number;
-  image: string;
-  images: string[];
-  description?: string;
-  category?: string;
-  sizes: { name: string; available: boolean }[];
-  colors: { name: string; available: boolean }[];
-=======
-const debug = false
-const loading = ref(true)
-const selectedSize = ref(''); const selectedColor = ref(''); const qty = ref(1)
-const selectedSizeId = ref<string>(''); const selectedColorId = ref<string>('')
-const current = ref(0); const ts = ref(0); const te = ref(0)
-
-const product = ref<{
-    id?: string; name: string; price: number; stock: number; image: string; images: string[];
-    description?: string; category?: string;
-    sizes: { id: string; name: string; available: boolean }[];
-    colors: { id: string; name: string; available: boolean }[];
->>>>>>> 029262c (add intl-tel-input dependency and update product detail handling)
+  id?: string; name: string; price: number; stock: number; image: string; images: string[];
+  description?: string; category?: string;
+  sizes: { id: string; name: string; available: boolean }[];
+  colors: { id: string; name: string; available: boolean }[];
 }>({
   name: "—",
   price: 0,
@@ -383,46 +253,34 @@ const product = ref<{
 
 const rec = ref<Array<{ to: any; name: string; image: string; price: number; tags: string[]; soldOut: boolean }>>([]);
 
-<<<<<<< HEAD
+const comboMap = new Map<string, Combination>();
+const keyFor = (ids: string[]) => ids.slice().sort().join("+");
+
 const total = computed(() => product.value.images.length || (product.value.image ? 1 : 0));
 const hasMulti = computed(() => product.value.images.length > 1);
 const needSize = computed(() => product.value.sizes?.length > 0);
 const needColor = computed(() => product.value.colors?.length > 0);
-const canAdd = computed(() => {
-  if (product.value.stock <= 0) return false;
-  if (needSize.value && !selectedSize.value) return false;
-  if (needColor.value && !selectedColor.value) return false;
-  return true;
-});
-=======
-const comboMap = new Map<string, Combination>()
-const keyFor = (ids: string[]) => ids.slice().sort().join('+')
-
-const total = computed(() => product.value.images.length || (product.value.image ? 1 : 0))
-const hasMulti = computed(() => product.value.images.length > 1)
-const needSize = computed(() => product.value.sizes?.length > 0)
-const needColor = computed(() => product.value.colors?.length > 0)
 
 const chosenIds = computed(() => {
-    const ids: string[] = []
-    if (selectedSizeId.value) ids.push(selectedSizeId.value)
-    if (selectedColorId.value) ids.push(selectedColorId.value)
-    return ids
-})
+  const ids: string[] = [];
+  if (selectedSizeId.value) ids.push(selectedSizeId.value);
+  if (selectedColorId.value) ids.push(selectedColorId.value);
+  return ids;
+});
 const matchedCombo = computed<Combination | undefined>(() => {
-    if (!chosenIds.value.length) return undefined
-    return comboMap.get(keyFor(chosenIds.value))
-})
-const displayPrice = computed(() => matchedCombo.value?.price ?? product.value.price)
-const displayStock = computed(() => matchedCombo.value?.quantity ?? product.value.stock)
+  if (!chosenIds.value.length) return undefined;
+  return comboMap.get(keyFor(chosenIds.value));
+});
+const displayPrice = computed(() => matchedCombo.value?.price ?? product.value.price);
+const displayStock = computed(() => matchedCombo.value?.quantity ?? product.value.stock);
 
 const canAdd = computed(() => {
-    if (displayStock.value <= 0) return false
-    if (needSize.value && !selectedSizeId.value) return false
-    if (needColor.value && !selectedColorId.value) return false
-    return true
-})
->>>>>>> 029262c (add intl-tel-input dependency and update product detail handling)
+  if (displayStock.value <= 0) return false;
+  if (qty.value <= 0) return false;
+  if (needSize.value && !selectedSizeId.value) return false;
+  if (needColor.value && !selectedColorId.value) return false;
+  return true;
+});
 
 function normalizeImages(p: ProductApi): string[] {
   const arr =
@@ -439,16 +297,36 @@ function normalizeImages(p: ProductApi): string[] {
 }
 
 function mapProduct(p: ProductApi) {
-<<<<<<< HEAD
   const sizes = (p.variants?.find((v) => v.name?.toLowerCase() === "ukuran")?.options || []).map((o) => ({
+    id: o.id,
     name: o.name,
     available: true,
   }));
   const colors = (p.variants?.find((v) => v.name?.toLowerCase() === "warna")?.options || []).map((o) => ({
+    id: o.id,
     name: o.name,
     available: true,
   }));
   const images = normalizeImages(p);
+
+  comboMap.clear();
+  const combos = p.combinations || [];
+  if (Array.isArray(combos)) {
+    for (const c of combos) {
+      const optionIds = (c as any).product_variant_option_ids || [];
+      if (Array.isArray(optionIds) && optionIds.filter(Boolean).length) {
+        const clean = optionIds.filter(Boolean);
+        comboMap.set(keyFor(clean), {
+          id: (c as any).id,
+          price: (c as any).price ?? null,
+          sku: (c as any).sku ?? null,
+          quantity: (c as any).quantity ?? null,
+          optionIds: clean,
+        });
+      }
+    }
+  }
+
   product.value = {
     id: p.id,
     name: p.name,
@@ -461,36 +339,11 @@ function mapProduct(p: ProductApi) {
     sizes,
     colors,
   };
+  selectedSize.value = "";
+  selectedSizeId.value = "";
+  selectedColor.value = "";
+  selectedColorId.value = "";
   current.value = 0;
-=======
-    const sizes = (p.variants?.find(v => v.name?.toLowerCase() === 'ukuran')?.options || [])
-        .map(o => ({ id: o.id, name: o.name, available: true }))
-    const colors = (p.variants?.find(v => v.name?.toLowerCase() === 'warna')?.options || [])
-        .map(o => ({ id: o.id, name: o.name, available: true }))
-    const images = normalizeImages(p)
-
-    comboMap.clear()
-    const combos = p.combinations || []
-    if (Array.isArray(combos)) {
-        for (const c of combos) {
-            const optionIds = (c.product_variant_option_ids || []).filter(Boolean)
-            if (optionIds.length) {
-                comboMap.set(keyFor(optionIds), {
-                    id: c.id, price: c.price ?? null, sku: c.sku ?? null, quantity: c.quantity ?? null, optionIds
-                })
-            }
-        }
-    }
-
-    product.value = {
-        id: p.id, name: p.name, price: Number(p.price ?? 0), stock: Number(p.quantity ?? 0),
-        image: images[0] || asset(p.thumbnail) || '',
-        images, description: p.description, category: p.product_category?.name, sizes, colors
-    }
-    selectedSize.value = ''; selectedSizeId.value = ''
-    selectedColor.value = ''; selectedColorId.value = ''
-    current.value = 0
->>>>>>> 029262c (add intl-tel-input dependency and update product detail handling)
 }
 
 async function fetchDetailById(id: string) {
@@ -551,30 +404,53 @@ function onSwipe() {
 }
 
 function recomputeAvailability() {
-    if (selectedSizeId.value && product.value.colors?.length) {
-        product.value.colors = product.value.colors.map(c => ({
-            ...c,
-            available: !!comboMap.get(keyFor([selectedSizeId.value!, c.id]))
-        }))
-    } else if (product.value.colors?.length) {
-        product.value.colors = product.value.colors.map(c => ({ ...c, available: true }))
-    }
+  if (selectedSizeId.value && product.value.colors?.length) {
+    product.value.colors = product.value.colors.map((c) => ({
+      ...c,
+      available: !!comboMap.get(keyFor([selectedSizeId.value!, c.id])),
+    }));
+  } else if (product.value.colors?.length) {
+    product.value.colors = product.value.colors.map((c) => ({ ...c, available: true }));
+  }
 
-    if (selectedColorId.value && product.value.sizes?.length) {
-        product.value.sizes = product.value.sizes.map(s => ({
-            ...s,
-            available: !!comboMap.get(keyFor([s.id, selectedColorId.value!]))
-        }))
-    } else if (product.value.sizes?.length) {
-        product.value.sizes = product.value.sizes.map(s => ({ ...s, available: true }))
-    }
+  if (selectedColorId.value && product.value.sizes?.length) {
+    product.value.sizes = product.value.sizes.map((s) => ({
+      ...s,
+      available: !!comboMap.get(keyFor([s.id, selectedColorId.value!])),
+    }));
+  } else if (product.value.sizes?.length) {
+    product.value.sizes = product.value.sizes.map((s) => ({ ...s, available: true }));
+  }
 }
 
-watch([selectedSizeId, selectedColorId], recomputeAvailability)
+watch([selectedSizeId, selectedColorId], recomputeAvailability);
+
+watch(qty, (v) => {
+  if (v == null || Number.isNaN(v)) qty.value = 1;
+  else if (v < 0) qty.value = 1;
+});
+
+function scrollTopForce() {
+  if (!process.client) return;
+  const jump = (y = 0) => {
+    window.scrollTo({ top: y, behavior: "auto" });
+    document.documentElement.scrollTop = y;
+    document.body.scrollTop = y;
+  };
+  jump(0);
+  requestAnimationFrame(() => jump(0));
+  setTimeout(() => jump(0), 80);
+  setTimeout(() => jump(0), 180);
+}
 
 async function onAddToCart() {
-<<<<<<< HEAD
+  if (qty.value <= 0) {
+    alert("Jumlah minimal 1.");
+    qty.value = 1;
+    return;
+  }
   if (!canAdd.value) return;
+
   const session_id = ensureSession();
   try {
     await ApiService.post(
@@ -587,60 +463,32 @@ async function onAddToCart() {
             qty: qty.value,
             size: selectedSize.value || undefined,
             color: selectedColor.value || undefined,
+            variant_option_ids: [selectedSizeId.value, selectedColorId.value].filter(Boolean),
+            combination_id: matchedCombo.value?.id || undefined,
+            price_override: matchedCombo.value?.price ?? undefined,
           },
         ],
       },
       { headers }
     );
-  } catch (e) {
-    console.error("POST /cart gagal:", e);
-  }
+  } catch (e) { }
   addItem({
     id: product.value.id as string,
     name: product.value.name,
     image: product.value.images[current.value] || product.value.image,
-    price: product.value.price,
+    price: displayPrice.value,
     qty: qty.value,
-    stock: product.value.stock,
+    stock: displayStock.value,
     size: selectedSize.value || undefined,
     color: selectedColor.value || undefined,
   });
   router.push("/cart");
-=======
-    if (!canAdd.value) return
-    const session_id = ensureSession()
-    try {
-        await ApiService.post('/cart', {
-            session_id,
-            products: [{
-                product_id: product.value.id,
-                qty: qty.value,
-                size: selectedSize.value || undefined,
-                color: selectedColor.value || undefined,
-                variant_option_ids: [selectedSizeId.value, selectedColorId.value].filter(Boolean),
-                combination_id: matchedCombo.value?.id || undefined,
-                price_override: matchedCombo.value?.price ?? undefined
-            }]
-        }, { headers })
-    } catch (e) {
-        console.error('POST /cart gagal:', e)
-    }
-    addItem({
-        id: product.value.id as string,
-        name: product.value.name,
-        image: product.value.images[current.value] || product.value.image,
-        price: displayPrice.value,
-        qty: qty.value,
-        stock: displayStock.value,
-        size: selectedSize.value || undefined,
-        color: selectedColor.value || undefined,
-    })
-    router.push('/cart')
->>>>>>> 029262c (add intl-tel-input dependency and update product detail handling)
 }
 
 onServerPrefetch(fetchPage);
-onMounted(() => {
+onMounted(async () => {
+  await nextTick();
+  scrollTopForce();
   fetchPage();
   const onKey = (e: KeyboardEvent) => {
     if (e.key === "ArrowRight") nextImg();
@@ -649,10 +497,22 @@ onMounted(() => {
   window.addEventListener("keydown", onKey);
   onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 });
+
 watch(
   () => route.query.id,
-  () => fetchPage()
+  async () => {
+    await nextTick();
+    scrollTopForce();
+    fetchPage();
+  }
 );
+
+watch(loading, async (v) => {
+  if (v === false) {
+    await nextTick();
+    scrollTopForce();
+  }
+});
 
 function simulateLoading() {
   loading.value = true;
@@ -770,9 +630,23 @@ function toggleStock() {
   display: block;
 }
 
+.media.skel {
+  background: linear-gradient(270deg, rgba(219, 219, 219, 0.05) 0%, #dbdbdb 50%, rgba(219, 219, 219, 0.05) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite linear;
+  border-radius: 12px;
+}
+
 @media (max-width: 1024px) {
+
   .media,
   .media img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1/1;
+  }
+
+  .media.skel {
     width: 100%;
     height: auto;
     aspect-ratio: 1/1;
@@ -886,7 +760,7 @@ function toggleStock() {
 
 .category {
   font: 500 14px/22px var(--ff);
-  color: #75775;
+  color: #757575;
 }
 
 .price {
@@ -1038,15 +912,21 @@ function toggleStock() {
 
 .skline {
   height: 18px;
-  width: 180px;
+  width: 60%;
   border-radius: 6px;
   margin: 8px 0 6px;
 }
 
 .skline--lg {
   height: 28px;
-  width: 60%;
+  width: 70%;
   border-radius: 8px;
+}
+
+.skline--sm {
+  height: 14px;
+  width: 140px;
+  border-radius: 6px;
 }
 
 .skblock {
@@ -1062,7 +942,7 @@ function toggleStock() {
 
 .skopt {
   height: 36px;
-  border-radius: 6px;
+  border-radius: 4px;
 }
 
 .skbtn {
@@ -1080,8 +960,43 @@ function toggleStock() {
 }
 
 .rec-skeleton .card {
-  height: 320px;
   border-radius: 16px;
+  padding: 12px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .04);
+  background: #fff;
+}
+
+.skthumb {
+  width: 100%;
+  height: 240px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.sk-name {
+  height: 18px;
+  width: 60%;
+  margin: 6px 0 10px;
+  border-radius: 6px;
+}
+
+.sktags {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.sktag {
+  width: 56px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.sk-price {
+  height: 18px;
+  width: 80px;
+  border-radius: 6px;
 }
 
 @media (max-width: 1024px) {

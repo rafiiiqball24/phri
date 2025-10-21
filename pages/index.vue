@@ -33,13 +33,13 @@
                             'Belanja produk terbaik, sekaligus ikut berkontribusi dalam program berbagi untuk sesama.'
                         }}
                     </p>
-                    <NuxtLink to="/" class="hero__cta">Belanja Sekarang</NuxtLink>
+                    <button type="button" class="hero__cta" @click="scrollToProduk">Belanja Sekarang</button>
                 </div>
             </div>
         </section>
 
         <!-- PRODUK -->
-        <section class="container section-pad">
+        <section ref="produkRef" id="produk-section" class="container section-pad">
             <h2 class="section__title" style="margin:8px 0 18px">Produk Kami</h2>
 
             <!-- GRID SKELETON -->
@@ -143,18 +143,26 @@ watch(
     },
     { deep: true }
 )
+
+// Scroll halus ke bagian "Produk Kami"
+const produkRef = ref<HTMLElement | null>(null)
+function scrollToProduk() {
+    if (process.client) {
+        const el = (produkRef.value as any) || document.getElementById('produk-section')
+        if (el && 'scrollIntoView' in el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+}
 </script>
 
 <style scoped>
-/* ===== HERO ===== */
 .hero {
     position: relative;
     width: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 40px 0;
-    min-height: 700px;
+    padding: 60px 0;
+    min-height: 600px;
     background: center/cover no-repeat;
     background-color: #f79f24;
     color: #fff;
@@ -164,51 +172,55 @@ watch(
 .hero__container {
     display: flex;
     justify-content: flex-start;
-    align-items: center;
+    align-items: flex-start;
     height: 100%;
+    padding: 0 20px;
 }
 
 .hero__container.container {
-    margin-left: 0;
-    padding-left: 0;
-    max-width: 100%;
+    margin: 0 auto;
+    max-width: 1280px;
+    width: 100%;
 }
 
 .hero__left {
-    margin-left: 120px;
-
+    max-width: 614px;
+    width: 100%;
 }
 
-
 .hero__title {
-    width: 614px;
-    font: 600 32px/1.25 var(--ff);
+    font: 600 42px/1.2 var(--ff);
+    margin: 0 0 16px;
 }
 
 .hero__subtitle {
-    margin-top: 12px;
-    font: 400 20px/28px var(--ff);
-    max-width: 614px;
+    font: 400 18px/1.6 var(--ff);
+    margin: 0 0 32px;
+    opacity: 0.9;
 }
 
 .hero__cta {
     display: inline-flex;
     justify-content: center;
     align-items: center;
-    padding: 12px 16px;
+    padding: 14px 28px;
     border-radius: 12px;
     background: #fdfaed;
+    border: 2px solid #f79f24;
     color: #f79f24;
-    font: 500 20px/28px var(--ff);
-    letter-spacing: -0.003px;
-    box-shadow: var(--shadow-1);
+    font: 600 16px/1 var(--ff);
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     text-decoration: none;
+    transition: all 0.2s ease;
 }
 
 .hero__cta:hover {
     background: #fff;
+    border-color: #f79f24;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
-
 
 .hero--skel {
     background: #ffe3bb;
@@ -235,68 +247,136 @@ watch(
     height: 40px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 1024px) {
     .hero {
-        min-height: 414px;
-        padding: 20px 0;
+        min-height: 500px;
+        padding: 40px 0;
+    }
+
+    .hero__title {
+        font-size: 36px;
+    }
+
+    .hero__subtitle {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero {
+        min-height: 450px;
+        padding: 30px 0;
+    }
+
+    .hero__container {
+        padding: 0 16px;
     }
 
     .hero__left {
+        max-width: 500px;
+    }
+
+    .hero__title {
+        font-size: 32px;
+        margin: 0 0 12px;
+    }
+
+    .hero__subtitle {
+        font-size: 15px;
+        margin: 0 0 24px;
+    }
+}
+
+@media (max-width: 600px) {
+    .hero {
+        min-height: 400px;
+        padding: 0;
+        justify-content: flex-start;
+    }
+
+    .hero__container {
+        padding: 24px 16px;
         margin: 0;
-        width: 100%;
-        max-width: 328px;
+        max-width: 100%;
+    }
+
+    .hero__left {
+        max-width: 100%;
+        text-align: left;
     }
 
     .hero__title {
         font-size: 20px;
-        line-height: 28px;
+        line-height: 1.3;
         margin: 0 0 8px;
-        width: auto;
+        max-width: 280px;
     }
 
     .hero__subtitle {
         font-size: 14px;
-        line-height: 22px;
-        margin: 0 0 12px;
-        max-width: none;
+        line-height: 1.5;
+        margin: 0 0 16px;
+        max-width: 280px;
+        opacity: 0.9;
     }
 
     .hero__cta {
-        padding: 4px 12px;
-        border-radius: 8px;
-        font-size: 12px;
-        line-height: 18px;
-        width: 100px;
+        padding: 8px 16px;
+        font-size: 14px;
+        border-radius: 6px;
+        width: auto;
+        min-width: 120px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 }
 
+.section__title {
+    padding: 0 20px;
+}
+
+@media (max-width: 900px) {
+    .section__title {
+        padding: 0 16px;
+    }
+}
+
+@media (max-width: 600px) {
+    .section__title {
+        padding: 0 12px;
+    }
+}
 
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+    margin: 0 auto;
+    max-width: 1280px;
+    padding: 0 20px;
 }
 
 @media (max-width: 1200px) {
     .products-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
     }
 }
 
 @media (max-width: 900px) {
     .products-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 16px;
+        padding: 0 16px;
     }
 }
-
 
 @media (max-width: 600px) {
     .products-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(2, 1fr);
         gap: 12px;
+        padding: 0 12px;
     }
 }
-
 
 .card-skel {
     height: 320px;
@@ -304,14 +384,34 @@ watch(
     background: #eee;
 }
 
-
 .section-pad {
-    padding: 32px 0 48px;
+    padding: 40px 0 60px;
+}
+
+@media (max-width: 768px) {
+    .section-pad {
+        padding: 32px 0 48px;
+    }
+}
+
+@media (max-width: 600px) {
+    .section-pad {
+        padding: 24px 0 36px;
+    }
 }
 
 .err {
     display: flex;
     gap: 12px;
     align-items: center;
+    padding: 0 20px;
+}
+
+@media (max-width: 600px) {
+    .err {
+        padding: 0 12px;
+        flex-direction: column;
+        text-align: center;
+    }
 }
 </style>
