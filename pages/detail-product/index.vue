@@ -137,7 +137,10 @@
             </div>
           </div>
 
-          <div class="stock">Stok: {{ displayStock }}</div>
+          <div class="stock">
+            Stok: {{ displayStock }}
+            <span v-if="displayStock <= 0" class="stock-alert">Stok Habis</span>
+          </div>
           <button class="cta" :disabled="!canAdd" @click="onAddToCart">Tambahkan ke Keranjang</button>
 
           <section class="desc desc--mobile">
@@ -844,6 +847,18 @@ function toggleStock() {
   margin-top: 12px;
   font: 500 14px/22px var(--ff);
   color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stock-alert {
+  background: #FFE9E9;
+  color: #E53935;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 18px;
 }
 
 .cta {

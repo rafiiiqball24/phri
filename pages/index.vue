@@ -348,7 +348,8 @@ function scrollToProduk() {
 
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    /* Force 4 columns on large screens for tighter cards */
+    grid-template-columns: repeat(4, 1fr);
     gap: 24px;
     margin: 0 auto;
     max-width: 1280px;
@@ -357,14 +358,14 @@ function scrollToProduk() {
 
 @media (max-width: 1200px) {
     .products-grid {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        grid-template-columns: repeat(3, 1fr);
         gap: 20px;
     }
 }
 
 @media (max-width: 900px) {
     .products-grid {
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        grid-template-columns: repeat(2, 1fr);
         gap: 16px;
         padding: 0 16px;
     }
