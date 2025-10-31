@@ -309,7 +309,7 @@ function scrollToProduk() {
         font-size: 20px;
         line-height: 1.3;
         margin: 0 0 8px;
-        max-width: 280px;
+        max-width: 281px;
     }
 
     .hero__subtitle {

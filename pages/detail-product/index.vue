@@ -989,7 +989,7 @@ function toggleStock() {
 }
 
 .sk-name {
-  height: 18px;
+  height: 17px;
   width: 60%;
   margin: 6px 0 10px;
   border-radius: 6px;
