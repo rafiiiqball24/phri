@@ -49,7 +49,7 @@ class ApiService {
    * @param params: RequestConfig
    * @returns Promise<FetchResponse>
    */
-  public static post(resource: string, params: any) {
+  public static post(resource: string, params: any, extraHeaders?: { [key: string]: any }) {
     return useMyFetch({
       request: resource,
       options: {
@@ -57,6 +57,7 @@ class ApiService {
         body: params,
         headers: {
           'Content-Type': 'multipart/form-data',
+          ...(extraHeaders || {}),
         },
       },
     });

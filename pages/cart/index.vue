@@ -1,11 +1,10 @@
 <template>
   <section class="page container">
-    <Breadcrumb
-      :items="[
-        { label: 'Beranda', to: '/' },
-        { label: 'Detail Produk', to: '/detail-product' },
-        { label: 'Keranjang' },
-      ]" />
+    <Breadcrumb :items="[
+      { label: 'Beranda', to: '/' },
+      { label: 'Detail Produk', to: '/detail-product' },
+      { label: 'Keranjang' },
+    ]" />
 
     <div v-if="showDebug" class="dbg">
       <span class="dbg__title">Debug:</span>
@@ -52,12 +51,8 @@
               <button class="row__remove" @click="onRemove(it)">Hapus</button>
             </div>
             <div class="row__meta">
-              <span v-if="it.color"
-                >Warna: <b>{{ it.color }}</b></span
-              >
-              <span v-if="it.size"
-                >Ukuran: <b>{{ it.size }}</b></span
-              >
+              <span v-if="it.color">Warna: <b>{{ it.color }}</b></span>
+              <span v-if="it.size">Ukuran: <b>{{ it.size }}</b></span>
             </div>
             <div class="row__foot">
               <div class="row__price">Rp{{ formatIDR(it.price) }}</div>
@@ -71,30 +66,18 @@
         </article>
       </div>
 
-      <SummaryBox
-        v-if="!dbg.loading"
-        title="Ringkasan Pembelian"
-        :count-label="`${displayedItems.length} Item`"
-        :lines="[
-          ...displayedItems.map((it) => ({ name: `${it.qty}× ${it.name}`, price: it.price * it.qty })),
-          ...(paymentFeeDisplay > 0 ? [{ name: 'Payment Fee', price: paymentFeeDisplay }] : []),
-        ]"
-        total-label="Estimasi Pembayaran"
-        :total="grandTotalDisplay"
-        cta="Buat Pesanan"
-        :cta-disabled="!canOrder"
-        @cta="goCheckout"
-        :links="[
+      <SummaryBox v-if="!dbg.loading" title="Ringkasan Pembelian" :count-label="`${displayedItems.length} Item`" :lines="[
+        ...displayedItems.map((it) => ({ name: `${it.qty}× ${it.name}`, price: it.price * it.qty })),
+        ...(paymentFeeDisplay > 0 ? [{ name: 'Payment Fee', price: paymentFeeDisplay }] : []),
+      ]" total-label="Estimasi Pembayaran" :total="grandTotalDisplay" cta="Buat Pesanan" :cta-disabled="!canOrder"
+        @cta="goCheckout" :links="[
           { label: 'Butuh Bantuan?', to: '/help' },
           { label: 'Hubungi Kami', to: '/contact', underline: true },
           { label: 'Informasi Pengiriman', to: '/help', underline: true },
         ]" />
     </div>
 
-    <Recommendations
-      class="recs--compact"
-      v-if="!dbg.loading && rec.length"
-      title="Rekomendasi Untuk di Beli"
+    <Recommendations v-if="!dbg.loading && rec.length" class="product-recs" title="Rekomendasi Untuk di Beli"
       :items="rec" />
   </section>
 </template>
@@ -231,7 +214,7 @@ function ensureSession() {
       sid = crypto.randomUUID();
       localStorage.setItem("phri_session_id", sid);
     }
-  } catch {}
+  } catch { }
 }
 function goCheckout() {
   if (!canOrder.value) return;
@@ -260,7 +243,7 @@ function mapToCard(p: ProductApi) {
     .map((o) => o.name)
     .slice(0, 4);
   return {
-    to: { path: "/detail-product", query: { id: p.id } },
+    to: { path: "/detail-product", query: { slug: p.slug } },
     name: p.name,
     image: normalizeImages(p)[0] || asset(p.thumbnail) || "",
     price: Number(p.price ?? 0),
@@ -276,8 +259,8 @@ async function fetchRecommendations() {
     const arr: ProductApi[] = (data.value as any)?.data?.products?.data || [];
     const cartIds = new Set((items.value as any[]).map((it) => String(it.id)));
     const cleaned = arr.filter((p) => !cartIds.has(String(p.id)));
-    rec.value = cleaned.slice(0, 4).map(mapToCard);
-  } catch {}
+    rec.value = cleaned.slice(0, 10).map(mapToCard);
+  } catch { }
 }
 
 onMounted(() => {
@@ -323,7 +306,7 @@ async function syncCartStocks() {
         it.qty = max;
       }
     }
-  } catch {}
+  } catch { }
 }
 </script>
 
@@ -528,36 +511,32 @@ async function syncCartStocks() {
   }
 }
 
-.recs--compact :deep(.recs-grid) {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
+.product-recs {
+  margin: 40px 0;
 }
 
-.recs--compact :deep(.card) {
-  padding: 10px;
-  border-radius: 12px;
+/* Override carousel styles for the cart page */
+.product-recs :deep(.rec__carousel) {
+  margin: 0 -20px;
+  padding: 0 20px;
 }
 
-.recs--compact :deep(.card__thumb) {
-  height: 240px;
+.product-recs :deep(.rec__slide) {
+  min-width: 220px;
 }
 
-.recs--compact :deep(.card__name) {
-  font-size: 14px;
-  line-height: 20px;
+@media (max-width: 768px) {
+  .product-recs :deep(.rec__carousel) {
+    margin: 0 -16px;
+    padding: 0 16px;
+  }
 }
 
-.recs--compact :deep(.card__price) {
-  font-size: 14px;
-  line-height: 20px;
-}
-
-.recs--compact :deep(.card-link) {
-  display: block;
-}
-
-.recs--compact :deep(.card) {
-  max-width: 100%;
+@media (max-width: 480px) {
+  .product-recs :deep(.rec__carousel) {
+    margin: 0 -12px;
+    padding: 0 12px;
+  }
 }
 
 .rec-skeleton .card {

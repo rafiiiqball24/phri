@@ -28,20 +28,29 @@
               <span class="badge__text">Highly Recommend</span>
             </div>
             <figcaption class="pager">{{ current + 1 }} / {{ total }}</figcaption>
-            <div v-if="hasMulti" class="navgroup">
-              <button class="navbtn" aria-label="Sebelumnya" @click="prevImg">
-                <img src="/img/icons/CaretLeft.svg" alt="" />
+            <div class="navgroup">
+
+              <button class="navbtn" :class="{ 'navbtn--white': current > 0 }" aria-label="Sebelumnya" @click="prevImg">
+                <svg class="navico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
               </button>
-              <button class="navbtn navbtn--right" aria-label="Berikutnya" @click="nextImg">
-                <img src="/img/icons/CaretRight.svg" alt="" />
+
+              <button class="navbtn navbtn--white" aria-label="Berikutnya" @click="nextImg">
+                <svg class="navico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
               </button>
             </div>
+
           </figure>
 
           <section class="desc hidden-mobile">
             <h3 class="desc__title">Deskripsi</h3>
             <p class="desc__body">{{ product.description || "—" }}</p>
-            <button class="desc__read">Baca semua <img src="/img/icons/CaretDownOrange.svg" alt="" /></button>
+
           </section>
         </template>
       </div>
@@ -168,18 +177,30 @@
       </div>
     </div>
 
-    <Recommendations class="recs--compact" v-if="!loading && rec.length" title="Rekomendasi Untuk di Beli"
-      :items="rec" />
-    <div v-else class="rec-skeleton recs--compact">
-      <div v-for="i in 4" :key="'recs' + i" class="card">
-        <div class="skthumb skel"></div>
-        <div class="skline skel sk-name"></div>
-        <div class="sktags">
-          <span class="sktag skel"></span>
-          <span class="sktag skel"></span>
-          <span class="sktag skel"></span>
+    <template v-if="!loading">
+      <Recommendations v-if="rec.length" class="product-recs" title="Rekomendasi Untuk di Beli" :items="rec" />
+      <div v-else class="rec-empty">
+        <!-- Empty state if needed -->
+      </div>
+    </template>
+    <div v-else class="rec-skeleton">
+      <div class="rec-skeleton__head">
+        <div class="skline skel" style="width: 200px; height: 24px;"></div>
+        <div class="rec-skeleton__nav">
+          <div class="skel" style="width: 36px; height: 36px; border-radius: 8px;"></div>
+          <div class="skel" style="width: 36px; height: 36px; border-radius: 8px;"></div>
         </div>
-        <div class="skline skel sk-price"></div>
+      </div>
+      <div class="rec-skeleton__grid">
+        <div v-for="i in 4" :key="'recs' + i" class="card">
+          <div class="skthumb skel"></div>
+          <div class="skline skel sk-name"></div>
+          <div class="sktags">
+            <span class="sktag skel"></span>
+            <span class="sktag skel"></span>
+          </div>
+          <div class="skline skel sk-price"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -292,11 +313,20 @@ function normalizeImages(p: ProductApi): string[] {
     (Array.isArray(p.medias) && p.medias) ||
     [];
   const imgs = arr
-    .map((it: any) => (typeof it === "string" ? it : it?.url || it?.path || it?.src))
+    .map((it: any) => {
+      if (!it) return null;
+      if (typeof it === "string") return it;
+      // support multiple possible field names returned by API
+      return it.url || it.path || it.src || it.image_path || null;
+    })
     .filter(Boolean)
     .map((u: string) => asset(u));
-  if (!imgs.length && p.thumbnail) imgs.push(asset(p.thumbnail));
-  return imgs;
+
+  // If thumbnail exists, include it as first image (but avoid duplicates)
+  const out: string[] = [];
+  if (p.thumbnail) out.push(asset(p.thumbnail));
+  for (const u of imgs) if (!out.includes(u)) out.push(u);
+  return out;
 }
 
 function mapProduct(p: ProductApi) {
@@ -349,31 +379,31 @@ function mapProduct(p: ProductApi) {
   current.value = 0;
 }
 
-async function fetchDetailById(id: string) {
-  const detail = await ApiService.query(`/product/${id}`, { headers });
+async function fetchDetailById(slug: string) {
+  // Try fetching directly by slug path (API supports slug as identifier)
+  const detail = await ApiService.query(`/product/${slug}`, {});
   if (!detail.error.value && detail.data.value) {
     const raw =
       (detail.data.value as any)?.data?.product || (detail.data.value as any)?.data || (detail.data.value as any);
-    if (raw && raw.id) return raw as ProductApi;
-  }
-  const list = await ApiService.query("/product", { params: { page: 1 }, headers });
-  const arr: ProductApi[] = (list.data.value as any)?.data?.products?.data || [];
-  const found = arr.find((p) => p.id === id);
-  if (found) {
-    rec.value = arr
-      .filter((p) => p.id !== id)
-      .slice(0, 4)
-      .map((p) => ({
-        to: { path: "/detail-product", query: { id: p.id } },
-        name: p.name,
-        image: asset(p.thumbnail),
-        price: p.price,
-        tags: (p.variants?.find((v) => v.name?.toLowerCase() === "warna")?.options || [])
-          .map((o) => o.name)
-          .slice(0, 4),
-        soldOut: Number(p.quantity ?? 0) <= 0,
-      }));
-    return found;
+    if (raw && raw.id) {
+      // Fetch recommendations separately to ensure they load independently
+      const list = await ApiService.query("/product", { params: { page: 1 } });
+      const arr: ProductApi[] = (list.data.value as any)?.data?.products?.data || [];
+      rec.value = arr
+        .filter((p) => p.slug !== slug)
+        .slice(0, 10)
+        .map((p) => ({
+          to: { path: "/detail-product", query: { slug: p.slug } },
+          name: p.name,
+          image: asset(p.thumbnail),
+          price: p.price,
+          tags: (p.variants?.find((v) => v.name?.toLowerCase() === "warna")?.options || [])
+            .map((o) => o.name)
+            .slice(0, 4),
+          soldOut: Number(p.quantity ?? 0) <= 0,
+        }));
+      return raw as ProductApi;
+    }
   }
   throw new Error("Produk tidak ditemukan.");
 }
@@ -381,9 +411,10 @@ async function fetchDetailById(id: string) {
 async function fetchPage() {
   loading.value = true;
   try {
-    const id = String(route.query.id || "");
-    if (!id) throw new Error("Parameter id tidak ada.");
-    const raw = await fetchDetailById(id);
+    const slug = String(route.query.slug || route.query.id || "");
+    // support old ?id= fallback but prefer slug
+    if (!slug) throw new Error("Parameter slug tidak ada.");
+    const raw = await fetchDetailById(slug);
     mapProduct(raw);
   } catch (e: any) {
     product.value.description = e?.message || "Gagal memuat data.";
@@ -394,12 +425,18 @@ async function fetchPage() {
 
 function nextImg() {
   if (!hasMulti.value) return;
-  current.value = (current.value + 1) % product.value.images.length;
+  // kalau udah di gambar terakhir, jangan lanjut
+  if (current.value >= product.value.images.length - 1) return;
+  current.value++;
 }
+
 function prevImg() {
   if (!hasMulti.value) return;
-  current.value = (current.value - 1 + product.value.images.length) % product.value.images.length;
+  // kalau di gambar pertama, jangan mundur lagi
+  if (current.value <= 0) return;
+  current.value--;
 }
+
 function onSwipe() {
   const d = te.value - ts.value;
   if (Math.abs(d) < 50) return;
@@ -502,7 +539,7 @@ onMounted(async () => {
 });
 
 watch(
-  () => route.query.id,
+  () => route.query.slug || route.query.id,
   async () => {
     await nextTick();
     scrollTopForce();
@@ -699,18 +736,34 @@ function toggleStock() {
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .06);
+  color: #111;
+  transition: all .2s ease;
 }
 
-.navbtn--right {
+
+.navico {
+  width: 26px;
+  /* sebelumnya 18px */
+  height: 26px;
+  stroke-width: 2.2;
+  /* bikin garis panah sedikit lebih tebal */
+  display: block;
+}
+
+.navbtn--white {
   background: #fff;
   border: 1px solid #e6e6e6;
+}
+
+.navbtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .desc {

@@ -49,8 +49,9 @@
 
             <!-- GRID DATA -->
             <div v-else class="products-grid">
-                <CardProduct v-for="p in products" :key="p.id" :to="{ path: '/detail-product', query: { id: p.id } }"
-                    :name="p.name" :image="p.image" :price="p.price" :tags="p.tags" :soldOut="p.soldOut" />
+                <CardProduct v-for="p in products" :key="p.id"
+                    :to="{ path: '/detail-product', query: { slug: p.slug } }" :name="p.name" :image="p.image"
+                    :price="p.price" :tags="p.tags" :soldOut="p.soldOut" />
             </div>
         </section>
     </div>
@@ -97,7 +98,7 @@ const search = ref<string>((route.query.search as string) || '')
 
 const banner = ref<Banner | null>(null)
 const products = ref<
-    Array<{ id: string; name: string; image: string; price: number; tags: string[]; soldOut: boolean }>
+    Array<{ id: string; slug?: string; name: string; image: string; price: number; tags: string[]; soldOut: boolean }>
 >([])
 
 const fetchHome = async () => {
@@ -117,6 +118,7 @@ const fetchHome = async () => {
             const colorOpts = p.variants?.find((v) => v.name?.toLowerCase() === 'warna')?.options?.map((o) => o.name) ?? []
             return {
                 id: p.id,
+                slug: (p as any).slug,
                 name: p.name,
                 image: asset(p.thumbnail),
                 price: p.price,
