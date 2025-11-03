@@ -201,8 +201,11 @@ watch(
 
 /* Force initial visible area to 4 slides on desktop */
 .rec__carousel--fixed {
-  max-width: calc(220px * 4 + 12px * 3);
+  /* hapus padding & margin bleed di container */
+  padding: 0;
   margin: 0 auto;
+  /* viewport pas 4 kartu + 3 gap */
+  max-width: calc(220px * 4 + 12px * 3);
 }
 
 @media (max-width: 768px) {
