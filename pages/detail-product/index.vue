@@ -29,14 +29,12 @@
             </div>
             <figcaption class="pager">{{ current + 1 }} / {{ total }}</figcaption>
             <div class="navgroup">
-
               <button class="navbtn" :class="{ 'navbtn--white': current > 0 }" aria-label="Sebelumnya" @click="prevImg">
                 <svg class="navico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="15 18 9 12 15 6" />
                 </svg>
               </button>
-
               <button class="navbtn navbtn--white" aria-label="Berikutnya" @click="nextImg">
                 <svg class="navico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
@@ -44,13 +42,19 @@
                 </svg>
               </button>
             </div>
-
           </figure>
 
           <section class="desc hidden-mobile">
             <h3 class="desc__title">Deskripsi</h3>
-            <p class="desc__body">{{ product.description || "—" }}</p>
-
+            <p ref="descBodyEl" class="desc__body" :class="{ 'is-clamped': canToggle && !isExpanded }"
+              :style="{ '--clamp': String(currentClamp) }">
+              {{ product.description || "—" }}
+            </p>
+            <button v-if="canToggle" class="desc__read" type="button" @click="toggleDesc"
+              :class="{ 'is-open': isExpanded }">
+              Baca semua
+              <img class="caret" src="/img/icons/CaretDownOrange.svg" alt="" />
+            </button>
           </section>
         </template>
       </div>
@@ -61,30 +65,25 @@
           <div class="skline skline--sm skel"></div>
           <div class="skline skel" style="width: 160px; height: 24px; border-radius: 8px"></div>
           <div class="skline skline--sm skel"></div>
-
           <div class="skblock">
             <div class="skline skel" style="width: 140px"></div>
             <div class="skgrid">
               <div v-for="i in 6" :key="'sksize' + i" class="skopt skel"></div>
             </div>
           </div>
-
           <div class="skblock">
             <div class="skline skel" style="width: 120px"></div>
             <div class="skgrid">
               <div v-for="i in 6" :key="'skcolor' + i" class="skopt skel"></div>
             </div>
           </div>
-
           <div class="skline skel" style="width: 100px"></div>
           <div class="skbtn skel"></div>
-
           <section class="desc desc--mobile">
             <div class="skline skel" style="width: 100px"></div>
             <div class="skline skel"></div>
             <div class="skline skel" style="width: 80%"></div>
           </section>
-
           <section class="ship">
             <div class="skline skel" style="width: 180px; margin-bottom: 4px;"></div>
             <div class="ship__row">
@@ -154,8 +153,15 @@
 
           <section class="desc desc--mobile">
             <h3 class="desc__title">Deskripsi</h3>
-            <p class="desc__body">{{ product.description || "—" }}</p>
-            <button class="desc__read">Baca semua <img src="/img/icons/CaretDownOrange.svg" alt="" /></button>
+            <p ref="descBodyElMobile" class="desc__body" :class="{ 'is-clamped': canToggle && !isExpanded }"
+              :style="{ '--clamp': String(currentClamp) }">
+              {{ product.description || "—" }}
+            </p>
+            <button v-if="canToggle" class="desc__read" type="button" @click="toggleDesc"
+              :class="{ 'is-open': isExpanded }">
+              Baca semua
+              <img class="caret" src="/img/icons/CaretDownOrange.svg" alt="" />
+            </button>
           </section>
 
           <section class="ship">
@@ -179,9 +185,7 @@
 
     <template v-if="!loading">
       <Recommendations v-if="rec.length" class="product-recs" title="Rekomendasi Untuk di Beli" :items="rec" />
-      <div v-else class="rec-empty">
-        <!-- Empty state if needed -->
-      </div>
+      <div v-else class="rec-empty"></div>
     </template>
     <div v-else class="rec-skeleton">
       <div class="rec-skeleton__head">
@@ -316,7 +320,6 @@ function normalizeImages(p: ProductApi): string[] {
     .map((it: any) => {
       if (!it) return null;
       if (typeof it === "string") return it;
-
       return it.url || it.path || it.src || it.image_path || null;
     })
     .filter(Boolean)
@@ -379,13 +382,11 @@ function mapProduct(p: ProductApi) {
 }
 
 async function fetchDetailById(slug: string) {
-
   const detail = await ApiService.query(`/product/${slug}`, {});
   if (!detail.error.value && detail.data.value) {
     const raw =
       (detail.data.value as any)?.data?.product || (detail.data.value as any)?.data || (detail.data.value as any);
     if (raw && raw.id) {
-
       const list = await ApiService.query("/product", { params: { page: 1 } });
       const arr: ProductApi[] = (list.data.value as any)?.data?.products?.data || [];
       rec.value = arr
@@ -397,8 +398,9 @@ async function fetchDetailById(slug: string) {
           image: asset(p.thumbnail),
           price: p.price,
           tags: (p.variants?.find((v) => v.name?.toLowerCase() === "warna")?.options || [])
-            .map((o) => o.name)
-            .slice(0, 4),
+            .map((o) => String(o.name ?? "").trim())
+            .filter(Boolean),
+
           soldOut: Number(p.quantity ?? 0) <= 0,
         }));
       return raw as ProductApi;
@@ -411,7 +413,6 @@ async function fetchPage() {
   loading.value = true;
   try {
     const slug = String(route.query.slug || route.query.id || "");
-
     if (!slug) throw new Error("Parameter slug tidak ada.");
     const raw = await fetchDetailById(slug);
     mapProduct(raw);
@@ -424,14 +425,12 @@ async function fetchPage() {
 
 function nextImg() {
   if (!hasMulti.value) return;
-
   if (current.value >= product.value.images.length - 1) return;
   current.value++;
 }
 
 function prevImg() {
   if (!hasMulti.value) return;
-
   if (current.value <= 0) return;
   current.value--;
 }
@@ -558,6 +557,53 @@ function simulateLoading() {
 function toggleStock() {
   product.value.stock = product.value.stock === 0 ? 12 : 0;
 }
+
+const descBodyEl = ref<HTMLElement | null>(null);
+const descBodyElMobile = ref<HTMLElement | null>(null);
+const isExpanded = ref(false);
+const canToggle = ref(false);
+const totalLines = ref(0);
+const currentClamp = computed(() => {
+  if (!canToggle.value) return 999;
+  return isExpanded.value ? Math.min(totalLines.value, 7) : 5;
+});
+function readLineCount(el: HTMLElement | null) {
+  if (!el) return 0;
+  const prevClamp = el.style.getPropertyValue('--clamp');
+  el.style.setProperty('--clamp', '999');
+  el.classList.remove('is-clamped');
+  const cs = getComputedStyle(el);
+  const lhStr = cs.lineHeight;
+  const lineHeight = lhStr === 'normal' ? 24 : parseFloat(lhStr);
+  const lines = Math.round(el.scrollHeight / lineHeight);
+  el.style.setProperty('--clamp', prevClamp || String(currentClamp.value));
+  if (canToggle.value && !isExpanded.value) el.classList.add('is-clamped');
+  return lines;
+}
+function measureDesc() {
+  const el = descBodyEl.value || descBodyElMobile.value;
+  if (!el) return;
+  totalLines.value = readLineCount(el);
+  canToggle.value = totalLines.value > 5;
+  if (!canToggle.value) isExpanded.value = false;
+}
+function toggleDesc() {
+  isExpanded.value = !isExpanded.value;
+  requestAnimationFrame(() => {
+    const el = descBodyEl.value || descBodyElMobile.value;
+    if (!el) return;
+    el.style.setProperty('--clamp', String(currentClamp.value));
+  });
+}
+onMounted(() => {
+  nextTick(measureDesc);
+  window.addEventListener('resize', measureDesc);
+});
+onBeforeUnmount(() => window.removeEventListener('resize', measureDesc));
+watch(() => product.value.description, () => {
+  isExpanded.value = false;
+  nextTick(measureDesc);
+});
 </script>
 
 <style scoped>
@@ -743,13 +789,10 @@ function toggleStock() {
   transition: all .2s ease;
 }
 
-
 .navico {
   width: 26px;
-  /* sebelumnya 18px */
   height: 26px;
   stroke-width: 2.2;
-  /* bikin garis panah sedikit lebih tebal */
   display: block;
 }
 
@@ -779,15 +822,33 @@ function toggleStock() {
   color: var(--text);
 }
 
+.desc__body.is-clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  -webkit-line-clamp: var(--clamp, 5);
+}
+
 .desc__read {
-  display: flex;
-  gap: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 4px 0;
   background: none;
   border: 0;
   cursor: pointer;
   color: var(--brand);
   font: 500 12px/18px var(--ff);
+}
+
+.desc__read .caret {
+  width: 16px;
+  height: 16px;
+  transition: transform .2s ease;
+}
+
+.desc__read.is-open .caret {
+  transform: rotate(180deg);
 }
 
 .desc--mobile {

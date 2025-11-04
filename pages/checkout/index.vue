@@ -141,7 +141,7 @@
                 <h3 class="modal__title">Order Berhasil</h3>
                 <p class="modal__desc">
                     Terima kasih, pesananmu sudah kami terima<span v-if="success.orderCode"> (#{{ success.orderCode
-                    }})</span>.
+                        }})</span>.
                     Silakan cek email untuk instruksi pembayaran dan detail pengiriman.
                 </p>
                 <button class="btn btn--primary btn--block modal__btn" @click="closeSuccess">Oke</button>
@@ -431,7 +431,7 @@ async function submit() {
 .sec-title {
     margin: 30px 0 0;
     font: 600 20px/28px var(--ff);
-    color: #0000
+    color: var(--text, #0a0a0a);
 }
 
 .sec-link {

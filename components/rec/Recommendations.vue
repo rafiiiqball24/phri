@@ -14,21 +14,19 @@
       </div>
     </div>
 
-    <!-- desktop -->
     <div v-if="!isMobile" class="rec__carousel rec__carousel--fixed" ref="carouselRef">
       <div class="rec__track" :style="trackStyle">
         <div v-for="(p, i) in items" :key="i" class="rec__slide">
           <CardProduct :to="p.to" :name="p.name" :image="p.image" :price="p.price" :tags="p.tags || []"
-            :soldOut="p.soldOut" />
+            :soldOut="p.soldOut" :tag-limit="3" :extra-below="true" />
         </div>
       </div>
     </div>
 
-    <!-- mobile -->
     <div v-else class="rec__grid">
       <div v-for="(p, i) in items" :key="i" class="rec__grid-item">
         <CardProduct :to="p.to" :name="p.name" :image="p.image" :price="p.price" :tags="p.tags || []"
-          :soldOut="p.soldOut" />
+          :soldOut="p.soldOut" :tag-limit="3" :extra-below="true" />
       </div>
     </div>
   </section>
@@ -133,16 +131,18 @@ watch(() => props.items.length, async () => { await nextTick(); updateLayout(); 
 }
 
 .rec__carousel--fixed {
-  padding: 0;
-  margin: 0 auto;
-  max-width: calc(220px*4 + 12px*3);
+  /* lebar tetap 4 kartu, tapi kasih ruang tambahan 2px */
+  max-width: calc(220px * 4 + 12px * 3 + 2px);
+  padding-right: 2px;
+  /* gutter kecil */
+  box-sizing: content-box;
+  /* padding menambah ruang, bukan mengecilkan area */
 }
 
 .rec__carousel--fixed .rec__track {
   padding: 0;
 }
 
-/* === MOBILE GRID FIX === */
 .rec__grid {
   padding: 0 16px;
   display: grid;
@@ -161,7 +161,6 @@ watch(() => props.items.length, async () => { await nextTick(); updateLayout(); 
   }
 }
 
-/* Paksa override 2 kolom aktif */
 @media (max-width:768px) {
   .rec__nav {
     display: none !important;

@@ -3,16 +3,18 @@
         <article :class="['card', { 'card--soldout': soldOut }]">
             <div class="card__thumb">
                 <img :src="image" :alt="name" />
-                <span v-if="soldOut" class="soldout-badge">
-                    <span class="soldout-text">Stok Habis</span>
-                </span>
+                <span v-if="soldOut" class="soldout-badge"><span class="soldout-text">Stok Habis</span></span>
             </div>
+
             <div class="card__body">
                 <h3 class="card__name">{{ name }}</h3>
-                <ul class="card__tags">
-                    <li v-for="(t, i) in tags.slice(0, 4)" :key="i">{{ t }}</li>
-                    <li v-if="tags.length > 4">+{{ tags.length - 4 }}</li>
+
+                <ul v-if="visibleTags.length" class="card__tags">
+                    <li v-for="(t, i) in visibleTags" :key="i">{{ t }}</li>
                 </ul>
+
+                <div v-if="extraBelow && extraCount > 0" class="card__extra">+{{ extraCount }}</div>
+
                 <p class="card__price">Rp{{ idr(price) }}</p>
             </div>
         </article>
@@ -20,8 +22,31 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+
 type To = string | { path?: string; name?: string; query?: Record<string, any> }
-defineProps<{ to: To; name: string; image: string; price: number; tags: string[]; soldOut?: boolean }>()
+
+const props = withDefaults(defineProps<{
+    to: To
+    name: string
+    image: string
+    price: number
+    tags: string[]
+    soldOut?: boolean
+    tagLimit?: number
+    extraBelow?: boolean
+}>(), {
+    tagLimit: 3,
+    extraBelow: false
+})
+
+const cleanTags = computed(() =>
+    (props.tags || []).map(t => String(t ?? '').trim()).filter(Boolean)
+)
+
+const visibleTags = computed(() => cleanTags.value.slice(0, props.tagLimit))
+const extraCount = computed(() => Math.max(0, cleanTags.value.length - props.tagLimit))
+
 const idr = (n: number) => new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(n)
 </script>
 
@@ -35,6 +60,7 @@ const idr = (n: number) => new Intl.NumberFormat('id-ID', { maximumFractionDigit
     overflow: hidden;
     background: #fff;
     transition: box-shadow .2s, transform .2s;
+    height: 360px;
 }
 
 .card:hover {
@@ -51,24 +77,18 @@ const idr = (n: number) => new Intl.NumberFormat('id-ID', { maximumFractionDigit
 .card__thumb {
     position: relative;
     width: 100%;
-    aspect-ratio: 1/1;
+    height: 230px;
     background: #fff;
     overflow: hidden;
+    flex: 0 0 auto;
 }
 
 .card__thumb img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
-}
-
-@media (max-width:900px) {
-    .card__thumb img {
-        object-fit: contain;
-        padding: 8px;
-        background: #fff;
-    }
+    background: #fff;
 }
 
 .soldout-badge {
@@ -88,43 +108,65 @@ const idr = (n: number) => new Intl.NumberFormat('id-ID', { maximumFractionDigit
 .card__body {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     padding: 12px;
+    flex: 1 1 auto;
 }
 
 .card__name {
     margin: 0;
     font: 600 14px/20px var(--ff);
     color: #111;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .card__tags {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+    flex-wrap: nowrap;
+    gap: 8px;
     margin: 0;
     padding: 0;
     list-style: none;
     font: 500 12px/16px var(--ff);
     color: #757575;
+    overflow: hidden;
 }
 
 .card__tags li {
     background: #f5f5f5;
-    padding: 2px 8px;
+    padding: 2px 10px;
     border-radius: 999px;
     white-space: nowrap;
+}
+
+.card__extra {
+    width: fit-content;
+    background: #f5f5f5;
+    color: #757575;
+    font: 600 11px/16px var(--ff);
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-top: 2px;
 }
 
 .card__price {
     margin: 0;
     font: 700 14px/20px var(--ff);
     color: #111;
+    margin-top: auto;
 }
 
 @media (max-width:600px) {
     .card {
+        height: 320px;
         border-radius: 12px;
+    }
+
+    .card__thumb {
+        height: 200px;
     }
 
     .card__body {
@@ -135,10 +177,6 @@ const idr = (n: number) => new Intl.NumberFormat('id-ID', { maximumFractionDigit
     .card__name {
         font-size: 12px;
         line-height: 18px;
-        -webkit-line-clamp: 2;
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
     }
 
     .card__tags {
@@ -148,8 +186,14 @@ const idr = (n: number) => new Intl.NumberFormat('id-ID', { maximumFractionDigit
     }
 
     .card__tags li {
-        padding: 2px 6px;
+        padding: 2px 8px;
         border-radius: 6px;
+    }
+
+    .card__extra {
+        font-size: 10px;
+        line-height: 14px;
+        padding: 2px 6px;
     }
 
     .card__price {

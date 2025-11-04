@@ -74,7 +74,11 @@ import { useCart } from "@/composables/useCart";
 
 const { items } = useCart();
 
-const cartCount = computed(() => items.value.reduce((sum, it) => sum + it.qty, 0));
+const cartCount = computed(() => {
+
+  const ids = new Set(items.value.map(it => it.id));
+  return ids.size;
+});
 
 const localeRef = ref<"id" | "en">("id");
 const langOpen = ref(false);

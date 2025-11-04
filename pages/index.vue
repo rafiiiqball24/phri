@@ -51,7 +51,8 @@
             <div v-else class="products-grid">
                 <CardProduct v-for="p in products" :key="p.id"
                     :to="{ path: '/detail-product', query: { slug: p.slug } }" :name="p.name" :image="p.image"
-                    :price="p.price" :tags="p.tags" :soldOut="p.soldOut" />
+                    :price="p.price" :tags="p.tags" :soldOut="p.soldOut" :tag-limit="3" :extra-below="true" />
+
             </div>
         </section>
     </div>
@@ -115,17 +116,23 @@ const fetchHome = async () => {
 
         const list: ProductApi[] = res?.data?.products?.data ?? []
         products.value = list.map((p) => {
-            const colorOpts = p.variants?.find((v) => v.name?.toLowerCase() === 'warna')?.options?.map((o) => o.name) ?? []
+            const colorOpts =
+                p.variants?.find((v) => v.name?.toLowerCase() === 'warna')?.options ?? []
+            const tags = colorOpts
+                .map((o) => String(o?.name ?? '').trim())
+                .filter(Boolean)
+
             return {
                 id: p.id,
                 slug: (p as any).slug,
                 name: p.name,
                 image: asset(p.thumbnail),
-                price: p.price,
-                tags: colorOpts.slice(0, 4),
-                soldOut: (p.quantity ?? 0) <= 0
+                price: Number(p.price ?? 0),
+                tags,
+                soldOut: Number(p.quantity ?? 0) <= 0
             }
         })
+
     } catch (e: any) {
         errorMsg.value = e?.message || 'Gagal memuat data.'
     } finally {
