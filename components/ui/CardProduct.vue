@@ -7,7 +7,6 @@
                     <span class="soldout-text">Stok Habis</span>
                 </span>
             </div>
-
             <div class="card__body">
                 <h3 class="card__name">{{ name }}</h3>
                 <ul class="card__tags">
@@ -22,18 +21,8 @@
 
 <script setup lang="ts">
 type To = string | { path?: string; name?: string; query?: Record<string, any> }
-
-defineProps<{
-    to: To
-    name: string
-    image: string
-    price: number
-    tags: string[]
-    soldOut?: boolean
-}>()
-
-const idr = (n: number) =>
-    new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(n)
+defineProps<{ to: To; name: string; image: string; price: number; tags: string[]; soldOut?: boolean }>()
+const idr = (n: number) => new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(n)
 </script>
 
 <style scoped>
@@ -45,12 +34,12 @@ const idr = (n: number) =>
     border-radius: 16px;
     overflow: hidden;
     background: #fff;
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    transition: box-shadow .2s, transform .2s;
 }
 
 .card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .08);
 }
 
 .card-link {
@@ -62,7 +51,7 @@ const idr = (n: number) =>
 .card__thumb {
     position: relative;
     width: 100%;
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 1/1;
     background: #fff;
     overflow: hidden;
 }
@@ -74,7 +63,7 @@ const idr = (n: number) =>
     display: block;
 }
 
-@media (max-width: 900px) {
+@media (max-width:900px) {
     .card__thumb img {
         object-fit: contain;
         padding: 8px;
@@ -86,7 +75,7 @@ const idr = (n: number) =>
     position: absolute;
     left: 8px;
     top: 8px;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, .6);
     color: #fff;
     border-radius: 999px;
     padding: 6px 10px;
@@ -133,7 +122,7 @@ const idr = (n: number) =>
     color: #111;
 }
 
-@media (max-width: 600px) {
+@media (max-width:600px) {
     .card {
         border-radius: 12px;
     }

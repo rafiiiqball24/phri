@@ -2,20 +2,20 @@
   <section class="rec">
     <div class="rec__head">
       <h2 class="rec__title">{{ title }}</h2>
-      <div class="rec__nav">
+      <div class="rec__nav" v-if="!isMobile">
         <button class="navsq" :class="{ 'navsq--disabled': currentIndex <= 0 }" :disabled="currentIndex <= 0"
-          aria-label="Sebelumnya" @click="prevSlide">
+          @click="prevSlide">
           <img src="/img/icons/CaretLeft.svg" alt="" />
         </button>
-
         <button class="navsq" :class="{ 'navsq--disabled': currentIndex >= maxIndex }"
-          :disabled="currentIndex >= maxIndex" aria-label="Berikutnya" @click="nextSlide">
+          :disabled="currentIndex >= maxIndex" @click="nextSlide">
           <img src="/img/icons/CaretRight.svg" alt="" />
         </button>
       </div>
     </div>
 
-    <div class="rec__carousel rec__carousel--fixed" ref="carouselRef">
+    <!-- desktop -->
+    <div v-if="!isMobile" class="rec__carousel rec__carousel--fixed" ref="carouselRef">
       <div class="rec__track" :style="trackStyle">
         <div v-for="(p, i) in items" :key="i" class="rec__slide">
           <CardProduct :to="p.to" :name="p.name" :image="p.image" :price="p.price" :tags="p.tags || []"
@@ -23,93 +23,41 @@
         </div>
       </div>
     </div>
+
+    <!-- mobile -->
+    <div v-else class="rec__grid">
+      <div v-for="(p, i) in items" :key="i" class="rec__grid-item">
+        <CardProduct :to="p.to" :name="p.name" :image="p.image" :price="p.price" :tags="p.tags || []"
+          :soldOut="p.soldOut" />
+      </div>
+    </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+const props = defineProps<{ title?: string; items: Array<{ to: any; name: string; image: string; price: number; tags?: string[]; soldOut?: boolean }> }>()
 
-const props = defineProps<{
-  title?: string;
-  items: Array<{ to: any; name: string; image: string; price: number; tags?: string[]; soldOut?: boolean }>;
-}>();
+const carouselRef = ref<HTMLElement | null>(null)
+const currentIndex = ref(0)
+const slideWidth = ref(0)
+const visibleSlides = ref(4)
+const isMobile = ref(false)
+const GAP = 12
 
-const carouselRef = ref<HTMLElement | null>(null);
-const currentIndex = ref(0);
-const slideWidth = ref(0);
-const visibleSlides = ref(4);
+const checkMobile = () => { isMobile.value = window.matchMedia('(max-width:768px)').matches }
+const maxIndex = computed(() => Math.max(0, props.items.length - visibleSlides.value))
+const trackStyle = computed(() => isMobile.value ? {} : { transform: `translateX(-${currentIndex.value * (slideWidth.value + GAP)}px)` })
 
-// Computed maximum index based on items length and visible slides
-const maxIndex = computed(() => Math.max(0, props.items.length - visibleSlides.value));
+function updateDesktop() { if (!carouselRef.value) return; visibleSlides.value = 4; slideWidth.value = 220; if (currentIndex.value > maxIndex.value) currentIndex.value = maxIndex.value }
+function updateLayout() { checkMobile(); if (!isMobile.value) updateDesktop(); else currentIndex.value = 0 }
+function nextSlide() { if (!isMobile.value && currentIndex.value < maxIndex.value) currentIndex.value++ }
+function prevSlide() { if (!isMobile.value && currentIndex.value > 0) currentIndex.value-- }
 
-// gap between slides (must match CSS .rec__track gap)
-const GAP = 12;
-// computed style for the track (use px units). Include gap in the step so slides align exactly.
-const trackStyle = computed(() => ({ transform: `translateX(-${currentIndex.value * (slideWidth.value + GAP)}px)` }));
-
-function updateSlideWidth() {
-  if (!carouselRef.value) return;
-  const containerWidth = carouselRef.value.offsetWidth;
-
-  // If this carousel is using the fixed 4-slide layout, force 4 visible slides
-  if (carouselRef.value?.classList?.contains('rec__carousel--fixed')) {
-    visibleSlides.value = 4;
-  } else {
-    // Update visible slides based on container width
-    if (containerWidth >= 992) {
-      visibleSlides.value = 4;
-    } else if (containerWidth >= 768) {
-      visibleSlides.value = 3;
-    } else if (containerWidth >= 480) {
-      visibleSlides.value = 2;
-    } else {
-      visibleSlides.value = 1;
-    }
-  }
-
-  // Fixed slide width of 220px (keeps card size consistent)
-  slideWidth.value = 220;
-
-  // Clamp currentIndex if needed
-  if (currentIndex.value > maxIndex.value) currentIndex.value = maxIndex.value;
-}
-
-function nextSlide() {
-  if (currentIndex.value < maxIndex.value) {
-    currentIndex.value++;
-  }
-}
-
-function prevSlide() {
-  if (currentIndex.value > 0) {
-    currentIndex.value--;
-  }
-}
-
-// Reset position when items change
-watch(() => props.items, () => {
-  currentIndex.value = 0;
-});
-
-onMounted(async () => {
-  await nextTick();
-  updateSlideWidth();
-  window.addEventListener('resize', updateSlideWidth);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', updateSlideWidth);
-});
-
-// Recompute sizes when items change (e.g. async load)
-watch(
-  () => props.items.length,
-  async () => {
-    await nextTick();
-    updateSlideWidth();
-    currentIndex.value = 0;
-  }
-);
+watch(() => props.items, () => currentIndex.value = 0)
+onMounted(async () => { await nextTick(); updateLayout(); window.addEventListener('resize', updateLayout) })
+onUnmounted(() => window.removeEventListener('resize', updateLayout))
+watch(() => props.items.length, async () => { await nextTick(); updateLayout(); currentIndex.value = 0 })
 </script>
 
 <style scoped>
@@ -147,36 +95,26 @@ watch(
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.12s ease;
-  z-index: 40;
+  transition: .12s;
 }
 
 .navsq img {
   width: 14px;
   height: 14px;
-  /* make icon visible on brand background */
   filter: invert(100%) brightness(200%);
 }
 
 .navsq:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, .08);
 }
 
 .navsq--disabled {
-  /* Keep brand background, but visually indicate disabled with reduced opacity */
-  background: var(--brand);
-  border: 1px solid var(--brand);
-  opacity: 0.6;
+  opacity: .6;
   cursor: not-allowed;
 }
 
-.navsq--disabled img {
-  filter: invert(100%) brightness(200%);
-}
-
 .rec__carousel {
-  position: relative;
   overflow: hidden;
   padding: 0 20px;
   margin: 0 -20px;
@@ -185,13 +123,8 @@ watch(
 .rec__track {
   display: flex;
   gap: 12px;
-  transition: transform 0.3s ease;
+  transition: transform .3s ease;
   padding: 0 20px;
-}
-
-/* When carousel is fixed to show exactly 4 slides, remove extra track padding so last card isn't clipped */
-.rec__carousel--fixed .rec__track {
-  padding: 0;
 }
 
 .rec__slide {
@@ -199,42 +132,65 @@ watch(
   width: 220px;
 }
 
-/* Force initial visible area to 4 slides on desktop */
 .rec__carousel--fixed {
-  /* hapus padding & margin bleed di container */
   padding: 0;
   margin: 0 auto;
-  /* viewport pas 4 kartu + 3 gap */
-  max-width: calc(220px * 4 + 12px * 3);
+  max-width: calc(220px*4 + 12px*3);
 }
 
-@media (max-width: 768px) {
-  .rec__head {
-    padding: 0 16px;
+.rec__carousel--fixed .rec__track {
+  padding: 0;
+}
+
+/* === MOBILE GRID FIX === */
+.rec__grid {
+  padding: 0 16px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.rec__grid-item {
+  min-width: 0;
+}
+
+@media (max-width:360px) {
+  .rec__grid {
+    padding: 0 12px;
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Paksa override 2 kolom aktif */
+@media (max-width:768px) {
+  .rec__nav {
+    display: none !important;
   }
 
   .rec__carousel {
-    padding: 0 16px;
+    overflow: visible !important;
+    padding: 0 16px !important;
+    margin: 0 !important;
   }
 
-  .rec__carousel--fixed {
-    max-width: 100%;
-    margin: 0 -16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .rec__head {
-    padding: 0 12px;
+  .rec__track {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    transform: none !important;
+    padding: 0 !important;
   }
 
-  .rec__carousel {
-    padding: 0 12px;
+  .rec__slide {
+    width: auto !important;
+    min-width: 0 !important;
   }
 
-  .rec__carousel--fixed {
-    max-width: 100%;
-    margin: 0 -12px;
+  .rec__slide :deep(.card),
+  .rec__slide :deep(> *) {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
   }
 }
 </style>
