@@ -316,13 +316,12 @@ function normalizeImages(p: ProductApi): string[] {
     .map((it: any) => {
       if (!it) return null;
       if (typeof it === "string") return it;
-      // support multiple possible field names returned by API
+
       return it.url || it.path || it.src || it.image_path || null;
     })
     .filter(Boolean)
     .map((u: string) => asset(u));
 
-  // If thumbnail exists, include it as first image (but avoid duplicates)
   const out: string[] = [];
   if (p.thumbnail) out.push(asset(p.thumbnail));
   for (const u of imgs) if (!out.includes(u)) out.push(u);
@@ -380,13 +379,13 @@ function mapProduct(p: ProductApi) {
 }
 
 async function fetchDetailById(slug: string) {
-  // Try fetching directly by slug path (API supports slug as identifier)
+
   const detail = await ApiService.query(`/product/${slug}`, {});
   if (!detail.error.value && detail.data.value) {
     const raw =
       (detail.data.value as any)?.data?.product || (detail.data.value as any)?.data || (detail.data.value as any);
     if (raw && raw.id) {
-      // Fetch recommendations separately to ensure they load independently
+
       const list = await ApiService.query("/product", { params: { page: 1 } });
       const arr: ProductApi[] = (list.data.value as any)?.data?.products?.data || [];
       rec.value = arr
@@ -412,7 +411,7 @@ async function fetchPage() {
   loading.value = true;
   try {
     const slug = String(route.query.slug || route.query.id || "");
-    // support old ?id= fallback but prefer slug
+
     if (!slug) throw new Error("Parameter slug tidak ada.");
     const raw = await fetchDetailById(slug);
     mapProduct(raw);
@@ -425,14 +424,14 @@ async function fetchPage() {
 
 function nextImg() {
   if (!hasMulti.value) return;
-  // kalau udah di gambar terakhir, jangan lanjut
+
   if (current.value >= product.value.images.length - 1) return;
   current.value++;
 }
 
 function prevImg() {
   if (!hasMulti.value) return;
-  // kalau di gambar pertama, jangan mundur lagi
+
   if (current.value <= 0) return;
   current.value--;
 }
@@ -499,17 +498,13 @@ async function onAddToCart() {
         session_id,
         products: [
           {
-            product_id: product.value.id,
-            qty: qty.value,
-            size: selectedSize.value || undefined,
-            color: selectedColor.value || undefined,
-            variant_option_ids: [selectedSizeId.value, selectedColorId.value].filter(Boolean),
-            combination_id: matchedCombo.value?.id || undefined,
-            price_override: matchedCombo.value?.price ?? undefined,
+            id: String(product.value.id),
+            quantity: Number(qty.value),
+            product_variant_option_ids: [selectedSizeId.value, selectedColorId.value].filter(Boolean),
           },
         ],
       },
-      { headers }
+      { ...headers, 'Content-Type': 'application/json' }
     );
   } catch (e) { }
   addItem({
@@ -521,6 +516,8 @@ async function onAddToCart() {
     stock: displayStock.value,
     size: selectedSize.value || undefined,
     color: selectedColor.value || undefined,
+    optionIds: [selectedSizeId.value, selectedColorId.value].filter(Boolean) as string[],
+    combinationId: matchedCombo.value?.id || null,
   });
   router.push("/cart");
 }

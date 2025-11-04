@@ -11,44 +11,27 @@ interface IFetch {
 
 const useMyFetch = ({ request, options }: IFetch) => {
   const config = useRuntimeConfig();
-  const newOptions: any = {
-    ...options,
-    baseURL: config.public.baseURL,
-    headers: {
-      'x-api-key': config.public.apiKey,
-      Accept: 'application/json',
-    },
+  const defaults: Record<string, any> = {
+    'x-api-key': config.public.apiKey,
+    Accept: 'application/json',
   };
+  const mergedHeaders = { ...defaults, ...(options?.headers || {}) };
+  const newOptions: any = { ...options, baseURL: config.public.baseURL, headers: mergedHeaders };
   return useFetch(request, newOptions);
 };
 
 class ApiService {
-  /**
-   * @description send the GET HTTP request
-   * @param resource: string
-   * @param params: RequestConfig
-   * @returns Promise<FetchResponse>
-   */
+  
   public static query(resource: string, params: any) {
     return useMyFetch({ request: resource, options: params });
   }
 
-  /**
-   * @description send the GET HTTP request
-   * @param resource: string
-   * @param slug: string
-   * @returns Promise<FetchResponse>
-   */
+ 
   public static get(resource: string, slug = '' as string) {
     return useMyFetch({ request: `${resource}/${slug}` });
   }
 
-  /**
-   * @description set the POST HTTP request
-   * @param resource: string
-   * @param params: RequestConfig
-   * @returns Promise<FetchResponse>
-   */
+ 
   public static post(resource: string, params: any, extraHeaders?: { [key: string]: any }) {
     return useMyFetch({
       request: resource,
@@ -56,20 +39,14 @@ class ApiService {
         method: 'POST',
         body: params,
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json',
           ...(extraHeaders || {}),
         },
       },
     });
   }
 
-  /**
-   * @description send the UPDATE HTTP request
-   * @param resource: string
-   * @param slug: string
-   * @param params: RequestConfig
-   * @returns Promise<FetchResponse>
-   */
+
   public static update(resource: string, slug: string, params: any) {
     return useMyFetch({
       request: `${resource}/${slug}`,
@@ -77,18 +54,13 @@ class ApiService {
         method: 'PUT',
         body: params,
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json',
         },
       },
     });
   }
 
-  /**
-   * @description Send the PUT HTTP request
-   * @param resource: string
-   * @param params: RequestConfig
-   * @returns Promise<FetchResponse>
-   */
+ 
   public static put(resource: string, params: any) {
     return useMyFetch({
       request: resource,
@@ -96,17 +68,13 @@ class ApiService {
         method: 'PUT',
         body: params,
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json',
         },
       },
     });
   }
 
-  /**
-   * @description Send the DELETE HTTP request
-   * @param resource: string
-   * @returns Promise<FetchResponse>
-   */
+  
   public static delete(resource: string) {
     return useMyFetch({
       request: resource,

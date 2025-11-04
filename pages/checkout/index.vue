@@ -100,8 +100,7 @@
 
                     <NoticeInfo>
                         Pesanan dilakukan sebelum jam 15.00 dari hari Senin–Jumat. Biasanya diproses di hari yang sama.
-                        Harga pengiriman mungkin
-                        diperbarui setelah alamat dimasukkan.
+                        Harga pengiriman mungkin diperbarui setelah alamat dimasukkan.
                     </NoticeInfo>
 
                     <button class="btn btn--primary btn--block" :disabled="!canProceed || sending" @click="submit">
@@ -156,10 +155,9 @@ import { ref, computed, watch, onMounted } from 'vue'
 import ApiService from '@/core/services/ApiService'
 import { useRouter } from 'vue-router'
 import { useCart } from '@/composables/useCart'
+import { ensureSession, getSession } from '@/composables/useSession'
 
-useHead({
-    title: 'Checkout'
-})
+useHead({ title: 'Checkout' })
 
 type Opt = { value: string; label: string }
 type ProvinceItem = { id: string; name: string; external_id?: number | null }
@@ -175,29 +173,6 @@ const config = useRuntimeConfig()
 const apiKey = (config.public.xApiKey || config.public.apiKey || '') as string
 const headers: Record<string, string> = { Accept: 'application/json', 'Content-Type': 'application/json' }
 if (apiKey) headers['x-api-key'] = apiKey
-
-const SID_KEY = 'phri_session_id'
-const MAX_SID_LEN = 20
-function genShortId(len = 16) {
-    return Array.from(crypto.getRandomValues(new Uint8Array(len))).map(b => 'abcdefghijklmnopqrstuvwxyz0123456789'[b % 36]).join('')
-}
-function isValidSid(s?: string | null) {
-    if (!s) return false
-    if (s.length > MAX_SID_LEN) return false
-    return /^[a-z0-9]+$/.test(s)
-}
-function ensureSession(): string {
-    try {
-        let sid = localStorage.getItem(SID_KEY)
-        if (!isValidSid(sid)) {
-            sid = genShortId(16)
-            localStorage.setItem(SID_KEY, sid)
-        }
-        return sid!
-    } catch {
-        return String(Date.now()).slice(-12)
-    }
-}
 
 const form = ref({ name: '', address: '', detail: '', email: '', phone: '', postalcode: '' })
 const agreed = ref(false)
@@ -236,7 +211,7 @@ const valid = computed(() =>
     emailOk(form.value.email) &&
     phoneOk(form.value.phone)
 )
-const canProceed = computed(() => agreed.value && valid.value && !dbg.value.loading)
+const canProceed = computed(() => agreed.value && valid.value && !dbg.value.loading && displayedItems.value.length > 0)
 
 function digitsOnly(field: 'postalcode' | 'phone', maxLen = 5) {
     form.value[field] = String(form.value[field] ?? '').replace(/\D+/g, '').slice(0, maxLen) as any
@@ -278,6 +253,7 @@ watch(selProvinsi, val => {
     const pid = optValue(val)
     if (pid) fetchKota(pid)
 })
+
 onMounted(() => {
     ensureSession()
     fetchProvinsi()
@@ -287,7 +263,7 @@ onMounted(() => {
 const paymentFee = ref(0)
 const grandTotalWithFee = computed(() => total.value + paymentFee.value)
 async function fetchCartFee() {
-    const sid = ensureSession()
+    const sid = getSession()
     if (!sid) { paymentFee.value = 0; return }
     try {
         const { data } = await ApiService.query('/cart', { params: { session_id: sid }, headers })
@@ -299,40 +275,76 @@ async function fetchCartFee() {
 }
 watch(items, () => { fetchCartFee() }, { deep: true })
 
-async function resolveVariantOptionIds(productId: string, sizeName?: string, colorName?: string) {
+type ResolvedOpts = { optionIds: string[]; combinationId?: string | null }
+async function resolveVariantOptionIds(productId: string, sizeName?: string, colorName?: string): Promise<ResolvedOpts> {
     try {
         const { data, error } = await ApiService.query(`/product/${productId}`, { headers })
-        if (error.value) return []
+        if (error.value) return { optionIds: [] }
         const raw = (data.value as any)?.data?.product || (data.value as any)?.data || (data.value as any)
         const variants: any[] = raw?.variants || []
+        const combinations: any[] = raw?.combinations || []
         const pickId = (labelLower: 'ukuran' | 'warna', name?: string) => {
             if (!name) return null
             const v = variants.find(v => String(v.name ?? '').trim().toLowerCase() === labelLower)
             if (!v?.options?.length) return null
-            const opt = v.options.find((o: any) => String((o.name ?? o?.option?.name) ?? '').trim().toLowerCase() === name.trim().toLowerCase())
+            const opt = v.options.find((o: any) => String((o.name ?? o?.option?.name) ?? '').trim().toLowerCase() === String(name).trim().toLowerCase())
             return opt?.id || opt?.option?.id || null
         }
         const sizeId = pickId('ukuran', sizeName)
         const colorId = pickId('warna', colorName)
-        return [sizeId, colorId].filter(Boolean) as string[]
+        const ids = [sizeId, colorId].filter(Boolean) as string[]
+        if (ids.length) {
+            const set = new Set(ids)
+            const combo = (combinations || []).find((c: any) => {
+                const arr = (c?.product_variant_option_ids || []).filter(Boolean)
+                return arr.length === set.size && arr.every((x: string) => set.has(String(x)))
+            })
+            return { optionIds: ids, combinationId: combo?.id || null }
+        }
+        if (Array.isArray(combinations) && combinations.length === 1) {
+            const combo = combinations[0] as any
+            const comboIds = combo?.product_variant_option_ids || []
+            return { optionIds: (Array.isArray(comboIds) ? comboIds.filter(Boolean) : []) as string[], combinationId: combo?.id || null }
+        }
+        const singleVariantIds = variants
+            .map(v => (Array.isArray(v.options) && v.options.length === 1 ? (v.options[0]?.id || v.options[0]?.option?.id || null) : null))
+            .filter(Boolean)
+        if (singleVariantIds.length && singleVariantIds.length === variants.length) {
+            const set = new Set(singleVariantIds)
+            const combo = (combinations || []).find((c: any) => {
+                const arr = (c?.product_variant_option_ids || []).filter(Boolean)
+                return arr.length === set.size && arr.every((x: string) => set.has(String(x)))
+            })
+            return { optionIds: singleVariantIds as string[], combinationId: combo?.id || null }
+        }
+        return { optionIds: [] }
     } catch {
-        return []
+        return { optionIds: [] }
     }
 }
 
 async function buildCartPayload(session_id: string) {
     const products = await Promise.all(
-        displayedItems.value.map(async (it) => {
-            const optionIds = await resolveVariantOptionIds(it.id as string, it.size, it.color)
-            return { id: String(it.id), quantity: Number(it.qty), product_variant_option_ids: Array.isArray(optionIds) ? optionIds : [] }
+        displayedItems.value.map(async (it: any) => {
+            const preset = Array.isArray(it.optionIds) ? it.optionIds.filter(Boolean) : []
+            if (preset.length) {
+                return { id: String(it.id), quantity: Number(it.qty), product_variant_option_ids: preset, combination_id: it.combinationId || undefined }
+            }
+            const resolved = await resolveVariantOptionIds(String(it.id), it.size, it.color)
+            return { id: String(it.id), quantity: Number(it.qty), product_variant_option_ids: resolved.optionIds || [], combination_id: resolved.combinationId || undefined }
         })
     )
+    const invalid = products.filter(p => !Array.isArray((p as any).product_variant_option_ids) || (p as any).product_variant_option_ids.length === 0)
+    if (invalid.length) {
+        throw new Error('Beberapa item belum memiliki varian lengkap. Mohon pilih ukuran/warna untuk semua item.')
+    }
+    try { console.debug('[cart:snapshot]', JSON.stringify({ session_id, products })) } catch { }
     return { session_id, products }
 }
 async function pushCartSnapshot(session_id: string) {
     if (displayedItems.value.length === 0) return
     const body = await buildCartPayload(session_id)
-    const res = await ApiService.post('/cart', body, { headers })
+    const res = await ApiService.post('/cart', body, { ...headers, 'Content-Type': 'application/json' })
     if (res.error.value) {
         const err = (res.error.value as any)?.data?.errors || (res.error.value as any)?.errors || (res.error.value as any) || {}
         throw new Error(JSON.stringify(err, null, 2))
@@ -365,12 +377,11 @@ async function submit() {
             regency_id: optValue(selKota.value)!,
             postalcode: form.value.postalcode
         }
-        const { data, error } = await ApiService.post('/order', payload, { headers })
+        const { data, error } = await ApiService.post('/order', payload, { ...headers, 'Content-Type': 'application/json' })
         if (error.value) throw error.value
         const root = (data.value as any)?.data || data.value
         const code = root?.order?.code || root?.order_code || root?.code || null
         success.value.orderCode = code ? String(code) : null
-        // bersihkan cart setelah berhasil membuat order
         await clearAll()
         success.value.open = true
     } catch (e: any) {
