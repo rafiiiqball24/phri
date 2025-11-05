@@ -4,9 +4,17 @@ stages:
 
 variables:
   NODE_ENV: production
+  SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
+  SSH_USER: $SSH_USER
+  SSH_HOST: $SSH_HOST
+  SSH_PORT: $SSH_PORT
   APP_PATH: $APP_PATH
-  VITE_APP_BASE_URL: $VITE_APP_BASE_URL
-  VITE_APP_API_KEY: $VITE_APP_API_KEY
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+    - bun.lockb
 
 build:
   stage: build
@@ -14,107 +22,36 @@ build:
   only:
     - main
   script:
-    - echo "Building application..."
-    - echo "VITE_APP_BASE_URL=$VITE_APP_BASE_URL" > .env
-    - echo "VITE_APP_API_KEY=$VITE_APP_API_KEY" >> .env
+    - echo "Setting up environment variables..."
+    # Convert GitLab vars -> Nuxt/Vite vars
+    - echo "VITE_APP_BASE_URL=$APP_BASE_URL" > .env
+    - echo "VITE_APP_API_URL=$API_URL" >> .env
+    - echo "Installing dependencies with Bun..."
     - bun install
+    - echo "Building the Nuxt 3 application..."
     - bun run build
   artifacts:
     paths:
       - .output/
-      - .nuxt/
-      - dist/
       - bun.lockb
-      - .env
-      - package.json
-      - node_modules/
     expire_in: 1 week
 
 deploy:
   stage: deploy
-  image: alpine:latest
+  image: oven/bun:latest
   only:
     - main
-  dependencies:
-    - build
   before_script:
-    - echo "=== Setting up deployment environment ==="
-    - apk add --no-cache openssh-client rsync bash
-    
-    # Create SSH directory
     - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    
-    # Validate required variables
-    - |
-      for var in SSH_PRIVATE_KEY SSH_USER SSH_HOST SSH_PORT APP_PATH; do
-        eval val=\$$var
-        if [ -z "$val" ]; then
-          echo "ERROR: $var is not set"
-          exit 1
-        fi
-      done
-    
-    # Setup SSH key
+    - apt-get update && apt-get install -y openssh-client rsync
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
-    
-    # Add server to known_hosts
-    - ssh-keyscan -p $SSH_PORT -H $SSH_HOST >> ~/.ssh/known_hosts 2>/dev/null || true
-    
-    # Test SSH connection
-    - ssh -p $SSH_PORT -o ConnectTimeout=10 $SSH_USER@$SSH_HOST "echo 'SSH connection successful'"
-
+    - ssh-keyscan -p $SSH_PORT $SSH_HOST >> ~/.ssh/known_hosts
   script:
-    - echo "=== Deploying to production server ==="
-    
-    # Sync files to server
-    - |
-      rsync -avz --delete \
-        -e "ssh -p $SSH_PORT -o StrictHostKeyChecking=no" \
-        --exclude 'node_modules/.cache' \
-        --exclude '.git' \
-        --exclude '.gitignore' \
-        --exclude 'README.md' \
-        ./ $SSH_USER@$SSH_HOST:$APP_PATH/
-    
-    # Run deployment commands on server
-    - |
-      ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "bash -s" << ENDSSH
-        set -e
-        cd $APP_PATH
-        
-        echo "Current directory: \$(pwd)"
-        echo "Checking files..."
-        ls -la
-        
-        echo "Installing dependencies..."
-        if [ -f "package.json" ]; then
-          /root/.bun/bin/bun install --production
-        else
-          echo "ERROR: package.json not found!"
-          exit 1
-        fi
-        
-        echo "Reloading PM2..."
-        if pm2 list | grep -q "ecosystem.config.cjs"; then
-          pm2 reload ecosystem.config.cjs --env production
-        else
-          pm2 start ecosystem.config.cjs --env production
-        fi
-        
-        echo "Deployment completed successfully!"
-      ENDSSH
-
-  after_script:
-    - echo "=== Cleaning up ==="
-    - rm -f ~/.ssh/id_rsa
-    - rm -f ~/.ssh/known_hosts
-
-  retry:
-    max: 2
-    when:
-      - runner_system_failure
-      - stuck_or_timeout_failure
-
-  timeout: 15m
+    - echo "Deploying to the server..."
+    - rsync -e "ssh -p $SSH_PORT" -az --exclude node_modules --exclude .git ./ $SSH_USER@$SSH_HOST:$APP_PATH
+    - ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "
+        cd $APP_PATH &&
+        /root/.bun/bin/bun install --production &&
+        pm2 reload ecosystem.config.cjs --env production
+      "
