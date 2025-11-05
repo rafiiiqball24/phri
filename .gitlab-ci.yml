@@ -4,13 +4,13 @@ stages:
 
 variables:
   NODE_ENV: production
-  VITE_APP_BASE_URL: $VITE_APP_BASE_URL
-  VITE_APP_API_KEY: $VITE_APP_API_KEY
+  SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
   SSH_USER: $SSH_USER
   SSH_HOST: $SSH_HOST
   SSH_PORT: $SSH_PORT
   APP_PATH: $APP_PATH
-  SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
+  VITE_APP_BASE_URL: $VITE_APP_BASE_URL
+  VITE_APP_API_KEY: $VITE_APP_API_KEY
 
 cache:
   key: ${CI_COMMIT_REF_SLUG}
@@ -24,12 +24,12 @@ build:
   only:
     - main
   script:
-    - echo "Creating .env file..."
+    - echo "Setting up environment variables..."
     - echo "VITE_APP_BASE_URL=$VITE_APP_BASE_URL" > .env
     - echo "VITE_APP_API_KEY=$VITE_APP_API_KEY" >> .env
-    - echo "Installing dependencies with Bun..."
+    - echo "Installing dependencies..."
     - bun install
-    - echo "Building the Nuxt 3 app..."
+    - echo "Building the app..."
     - bun run build
   artifacts:
     paths:
@@ -47,11 +47,8 @@ deploy:
     - apt-get update && apt-get install -y openssh-client rsync
     - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
-    # fallback SSH_PORT kalau variabel kosong
-    - : "${SSH_PORT:=22}"
-    - echo "Using SSH port: $SSH_PORT"
     - ssh-keyscan -p $SSH_PORT $SSH_HOST >> ~/.ssh/known_hosts
   script:
-    - echo "Deploying app to server..."
+    - echo "🚀 Deploying to $SSH_HOST..."
     - rsync -e "ssh -p $SSH_PORT" -az --exclude node_modules --exclude .git ./ $SSH_USER@$SSH_HOST:$APP_PATH
     - ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "cd $APP_PATH && /root/.bun/bin/bun install --production && pm2 reload ecosystem.config.cjs --env production"
