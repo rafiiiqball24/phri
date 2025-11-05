@@ -55,6 +55,8 @@ deploy:
         fi
       done
     
+    - echo "APP_PATH is set to: $APP_PATH"
+    
     # Setup SSH key
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
@@ -78,33 +80,35 @@ deploy:
         --exclude 'README.md' \
         ./ $SSH_USER@$SSH_HOST:$APP_PATH/
     
-    # Run deployment commands on server
+    # Run deployment commands on server - METHOD 1: Direct command
+    - echo "Running deployment script on server at $APP_PATH"
     - |
-      ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "bash -s" << ENDSSH
+      ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "
         set -e
-        cd $APP_PATH
+        echo 'Changing to directory: $APP_PATH'
+        cd $APP_PATH || exit 1
         
-        echo "Current directory: \$(pwd)"
-        echo "Checking files..."
+        echo 'Current directory:' \$(pwd)
+        echo 'Listing files...'
         ls -la
         
-        echo "Installing dependencies..."
-        if [ -f "package.json" ]; then
+        echo 'Installing dependencies...'
+        if [ -f 'package.json' ]; then
           /root/.bun/bin/bun install --production
         else
-          echo "ERROR: package.json not found!"
+          echo 'ERROR: package.json not found!'
           exit 1
         fi
         
-        echo "Reloading PM2..."
-        if pm2 list | grep -q "ecosystem.config.cjs"; then
+        echo 'Reloading PM2...'
+        if pm2 list | grep -q 'ecosystem.config.cjs'; then
           pm2 reload ecosystem.config.cjs --env production
         else
           pm2 start ecosystem.config.cjs --env production
         fi
         
-        echo "Deployment completed successfully!"
-      ENDSSH
+        echo 'Deployment completed successfully!'
+      "
 
   after_script:
     - echo "=== Cleaning up ==="
