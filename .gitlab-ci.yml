@@ -51,7 +51,6 @@ deploy:
     - echo "Deploying to the server..."
     - rsync -e "ssh -p $SSH_PORT" -az --exclude node_modules --exclude .git ./ $SSH_USER@$SSH_HOST:$APP_PATH
     - ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "
-        cd $APP_PATH &&
-        /root/.bun/bin/bun install --production &&
-        pm2 reload ecosystem.config.cjs --env production
-      "
+      cd $APP_PATH &&
+      /root/.bun/bin/bun install --no-save &&
+      pm2 reload ecosystem.config.cjs --env production"
