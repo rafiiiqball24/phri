@@ -1,17 +1,47 @@
-image: alpine:3.18
+stages:
+  - build
+  - deploy
 
 variables:
-  DEPLOY_PATH: "/www/wwwroot/backoffice-phri-skka.can.co.id"
+  NODE_ENV: production
+  APP_PATH: $APP_PATH
+  VITE_APP_BASE_URL: $VITE_APP_BASE_URL
+  VITE_APP_API_KEY: $VITE_APP_API_KEY
 
-stages:
-  - deploy
+build:
+  stage: build
+  image: oven/bun:latest
+  only:
+    - main
+  script:
+    - echo "Building application..."
+    - echo "VITE_APP_BASE_URL=$VITE_APP_BASE_URL" > .env
+    - echo "VITE_APP_API_KEY=$VITE_APP_API_KEY" >> .env
+    - bun install
+    - bun run build
+  artifacts:
+    paths:
+      - .output/
+      - .nuxt/
+      - dist/
+      - bun.lockb
+      - .env
+    expire_in: 1 week
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - node_modules/
 
 deploy:
   stage: deploy
+  image: alpine:latest
+  only:
+    - main
+  dependencies:
+    - build
   before_script:
     - echo "=== Setting up deployment environment ==="
-    - echo "Installing required packages..."
-    - apk add --no-cache bash openssh rsync
+    - apk add --no-cache openssh-client rsync bash
     
     # Create SSH directory
     - mkdir -p ~/.ssh
@@ -19,69 +49,56 @@ deploy:
     
     # Validate required variables
     - |
-      for var in SSH_PRIVATE_KEY SSH_USER SSH_HOST SSH_PORT; do
+      for var in SSH_PRIVATE_KEY SSH_USER SSH_HOST SSH_PORT APP_PATH; do
         eval val=\$$var
         if [ -z "$val" ]; then
-          echo "ERROR: $var variable is not set in GitLab CI/CD settings"
+          echo "ERROR: $var is not set"
           exit 1
         fi
       done
     
     # Setup SSH key
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
-    - chmod 600 ~/.ssh/id_ed25519
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
     
-    # Start SSH agent
-    - eval $(ssh-agent -s)
-    - ssh-add ~/.ssh/id_ed25519
-    
-    # Create SSH config
-    - |
-      cat > ~/.ssh/config << EOF
-      Host production
-        HostName $SSH_HOST
-        User $SSH_USER
-        Port $SSH_PORT
-        IdentityFile ~/.ssh/id_ed25519
-        StrictHostKeyChecking no
-        UserKnownHostsFile /dev/null
-        LogLevel ERROR
-        ServerAliveInterval 60
-        ServerAliveCountMax 3
-      EOF
-    - chmod 600 ~/.ssh/config
+    # Add server to known_hosts
+    - ssh-keyscan -p $SSH_PORT -H $SSH_HOST >> ~/.ssh/known_hosts 2>/dev/null || true
     
     # Test SSH connection
-    - ssh -o ConnectTimeout=10 production "echo 'SSH connection successful'"
+    - ssh -p $SSH_PORT -o ConnectTimeout=10 $SSH_USER@$SSH_HOST "echo 'SSH connection successful'"
 
   script:
-    - echo "=== Starting deployment process ==="
-    - ssh production "ls -lah $DEPLOY_PATH"
+    - echo "=== Deploying to production server ==="
+    
+    # Sync files to server
     - |
-      ssh production << ENDSSH
+      rsync -avz --delete \
+        -e "ssh -p $SSH_PORT -o StrictHostKeyChecking=no" \
+        --exclude 'node_modules' \
+        --exclude '.git' \
+        --exclude '.gitignore' \
+        --exclude 'README.md' \
+        ./ $SSH_USER@$SSH_HOST:$APP_PATH/
+    
+    # Run deployment commands on server
+    - |
+      ssh -p $SSH_PORT $SSH_USER@$SSH_HOST << 'ENDSSH'
         set -e
-        export PORT=$SSH_PORT
-        export NODE_ENV=production
-        export CI_COMMIT_SHA=$CI_COMMIT_SHA
-        export CI_COMMIT_REF_NAME=$CI_COMMIT_REF_NAME
-        cd $DEPLOY_PATH
-        echo "Current directory: \$(pwd)"
-        echo "PORT= \$PORT"
-        echo "NODE_ENV= \$NODE_ENV"
-        echo "Running deploy.sh..."
-        bash ./deploy.sh
+        cd $APP_PATH
+        
+        echo "Installing dependencies..."
+        /root/.bun/bin/bun install --production
+        
+        echo "Reloading PM2..."
+        pm2 reload ecosystem.config.cjs --env production || pm2 start ecosystem.config.cjs --env production
+        
+        echo "Deployment completed successfully!"
       ENDSSH
-    - echo "=== Deployment completed successfully ==="
 
   after_script:
-    - echo "=== Cleaning up SSH keys ==="
-    - rm -f ~/.ssh/id_ed25519
-    - rm -f ~/.ssh/config
-    - killall ssh-agent 2>/dev/null || true
-    - echo "Cleanup completed"
-
-  only:
-    - main
+    - echo "=== Cleaning up ==="
+    - rm -f ~/.ssh/id_rsa
+    - rm -f ~/.ssh/known_hosts
 
   retry:
     max: 2
