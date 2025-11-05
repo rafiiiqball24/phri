@@ -8,53 +8,52 @@ stages:
 
 deploy:
   stage: deploy
-  image: alpine:3.18
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      when: on_success
 
   before_script:
     - echo "=== Setting up deployment environment ==="
     - echo "Installing required packages..."
-    - apk add --no-cache openssh bash rsync
+    - apk add --no-cache bash openssh rsync
 
-    # Create SSH directory
+    # Buat direktori SSH
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
 
-    # Validate required variables
-    - |
+    # Validasi variabel menggunakan bash
+    - bash -c '
       for var in SSH_PRIVATE_KEY SSH_USERNAME PRODUCTION_SERVER PORT; do
-        if [ -z "${!var}" ]; then
+        eval val=\$$var
+        if [ -z "$val" ]; then
           echo "ERROR: $var variable is not set in GitLab CI/CD settings"
           exit 1
         fi
       done
+    '
 
     # Setup SSH key
     - echo "Configuring SSH key..."
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+    - echo "$SSH_PRIVATE_KEY" | tr -d "\r" > ~/.ssh/id_ed25519
     - chmod 600 ~/.ssh/id_ed25519
 
-    # Start SSH agent and add key
+    # Start SSH agent
     - eval $(ssh-agent -s)
     - ssh-add ~/.ssh/id_ed25519
 
-    # Create SSH config for easier connection
-    - |
+    # Buat config SSH
+    - bash -c '
       cat > ~/.ssh/config << EOF
-      Host production
-        HostName $PRODUCTION_SERVER
-        User $SSH_USERNAME
-        Port $PORT
-        IdentityFile ~/.ssh/id_ed25519
-        StrictHostKeyChecking no
-        UserKnownHostsFile /dev/null
-        LogLevel ERROR
-        ServerAliveInterval 60
-        ServerAliveCountMax 3
-      EOF
-    - chmod 600 ~/.ssh/config
+Host production
+  HostName $PRODUCTION_SERVER
+  User $SSH_USERNAME
+  Port $PORT
+  IdentityFile ~/.ssh/id_ed25519
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+  LogLevel ERROR
+  ServerAliveInterval 60
+  ServerAliveCountMax 3
+EOF
+      chmod 600 ~/.ssh/config
+    '
 
     # Test SSH connection
     - echo "Testing SSH connection..."
@@ -62,25 +61,26 @@ deploy:
 
   script:
     - echo "=== Starting deployment process ==="
-    
-    # Check deployment directory
+    - echo "Checking deployment directory via SSH..."
     - ssh production "ls -lah $DEPLOY_PATH"
-    
-    # Run deployment script with environment variables
-    - ssh production "
+
+    - echo "Running deploy.sh with PORT=$PORT..."
+    - bash -c '
+      ssh production "
         set -e
         export PORT=$PORT
         export NODE_ENV=production
         export CI_COMMIT_SHA=$CI_COMMIT_SHA
         export CI_COMMIT_REF_NAME=$CI_COMMIT_REF_NAME
         cd $DEPLOY_PATH
-        echo 'Current directory:' && pwd
-        echo 'Environment variables:'
-        echo 'PORT=' \$PORT
-        echo 'NODE_ENV=' \$NODE_ENV
-        echo 'Running deploy.sh...'
+        echo Current directory: \$(pwd)
+        echo PORT= \$PORT
+        echo NODE_ENV= \$NODE_ENV
+        echo Running deploy.sh...
         bash ./deploy.sh
       "
+    '
+
     - echo "=== Deployment completed successfully ==="
 
   after_script:
@@ -89,6 +89,9 @@ deploy:
     - rm -f ~/.ssh/config
     - killall ssh-agent 2>/dev/null || true
     - echo "Cleanup completed"
+
+  only:
+    - main
 
   retry:
     max: 2
