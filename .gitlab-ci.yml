@@ -1,36 +1,26 @@
-image: oven/bun:latest
+image: alpine:3.18
+
+variables:
+  DEPLOY_PATH: "/www/wwwroot/backoffice-phri-skka.can.co.id"
+  BUN_INSTALL: "/root/.bun"
+  PATH: "/root/.bun/bin:$PATH"
 
 stages:
   - build
   - deploy
 
-variables:
-  NODE_ENV: production
-  VITE_APP_BASE_URL: $VITE_APP_BASE_URL
-  VITE_APP_API_KEY: $VITE_APP_API_KEY
-  SSH_USER: $SSH_USER
-  SSH_HOST: $SSH_HOST
-  SSH_PORT: $SSH_PORT
-  APP_PATH: $APP_PATH
-  SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
-
-cache:
-  key: ${CI_COMMIT_REF_SLUG}
-  paths:
-    - node_modules/
-    - bun.lockb
-
 build:
   stage: build
+  image: oven/bun:latest
   only:
     - main
   script:
-    - echo "=== Creating .env file ==="
+    - echo "Creating .env file..."
     - echo "VITE_APP_BASE_URL=$VITE_APP_BASE_URL" > .env
     - echo "VITE_APP_API_KEY=$VITE_APP_API_KEY" >> .env
-    - echo "=== Installing dependencies with Bun ==="
+    - echo "Installing dependencies with Bun..."
     - bun install
-    - echo "=== Building Nuxt 3 app ==="
+    - echo "Building the Nuxt 3 app..."
     - bun run build
   artifacts:
     paths:
@@ -40,58 +30,52 @@ build:
 
 deploy:
   stage: deploy
+  image: alpine:3.18
   only:
     - main
   before_script:
-    - echo "=== Setting up SSH environment ==="
-    - apk add --no-cache openssh bash rsync
-
+    - echo "=== Setting up deployment environment ==="
+    # Install required packages
+    - apk add --no-cache bash openssh-client rsync curl
+    # Install Bun
+    - curl -fsSL https://bun.sh/install | bash
+    - export PATH="$BUN_INSTALL/bin:$PATH"
     # Create SSH directory
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-
-    # Validate variables
+    # Validate required variables
     - |
       if [ -z "$SSH_PRIVATE_KEY" ]; then
         echo "ERROR: SSH_PRIVATE_KEY is not set"
         exit 1
       fi
     - |
-      if [ -z "$SSH_USER" ]; then
-        echo "ERROR: SSH_USER is not set"
+      if [ -z "$SSH_USERNAME" ]; then
+        echo "ERROR: SSH_USERNAME is not set"
         exit 1
       fi
     - |
-      if [ -z "$SSH_HOST" ]; then
-        echo "ERROR: SSH_HOST is not set"
+      if [ -z "$PRODUCTION_SERVER" ]; then
+        echo "ERROR: PRODUCTION_SERVER is not set"
         exit 1
       fi
     - |
-      if [ -z "$SSH_PORT" ]; then
-        echo "ERROR: SSH_PORT is not set, defaulting to 22"
-        SSH_PORT=22
-      fi
-    - |
-      if [ -z "$APP_PATH" ]; then
-        echo "ERROR: APP_PATH is not set"
+      if [ -z "$PORT" ]; then
+        echo "ERROR: PORT is not set"
         exit 1
       fi
-
     # Setup SSH key
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
     - chmod 600 ~/.ssh/id_ed25519
-
-    # Start SSH agent and add key
     - eval $(ssh-agent -s)
     - ssh-add ~/.ssh/id_ed25519
-
     # Setup SSH config
     - |
       cat > ~/.ssh/config << EOF
       Host production
-        HostName $SSH_HOST
-        User $SSH_USER
-        Port $SSH_PORT
+        HostName $PRODUCTION_SERVER
+        User $SSH_USERNAME
+        Port $PORT
         IdentityFile ~/.ssh/id_ed25519
         StrictHostKeyChecking no
         UserKnownHostsFile /dev/null
@@ -100,26 +84,38 @@ deploy:
         ServerAliveCountMax 3
       EOF
     - chmod 600 ~/.ssh/config
-
     # Test SSH connection
-    - ssh -o ConnectTimeout=10 production "echo 'SSH connection successful to $SSH_HOST'"
+    - ssh -o ConnectTimeout=10 production "echo 'SSH connection successful to $PRODUCTION_SERVER'"
 
   script:
-    - echo "=== Deploying app ==="
-    - rsync -az --exclude node_modules --exclude .git ./ production:$APP_PATH
-    - |
-      ssh production "
+    - echo "=== Starting deployment process ==="
+    - ssh production "ls -lah $DEPLOY_PATH"
+    - ssh production "
         set -e
-        cd $APP_PATH
-        echo 'Installing production dependencies...'
-        /root/.bun/bin/bun install --production
-        echo 'Reloading app with PM2...'
-        pm2 reload ecosystem.config.cjs --env production
+        export PORT=$PORT
+        export NODE_ENV=production
+        export CI_COMMIT_SHA=$CI_COMMIT_SHA
+        export CI_COMMIT_REF_NAME=$CI_COMMIT_REF_NAME
+        cd $DEPLOY_PATH
+        bash ./deploy.sh
       "
+    - echo "=== Deployment completed successfully ==="
 
-after_script:
-  - echo "=== Cleaning up SSH keys ==="
-  - rm -f ~/.ssh/id_ed25519 || true
-  - rm -f ~/.ssh/config || true
-  - killall ssh-agent 2>/dev/null || true
-  - echo "Cleanup completed"
+  after_script:
+    - echo "=== Cleaning up SSH keys ==="
+    - rm -f ~/.ssh/id_ed25519
+    - rm -f ~/.ssh/config
+    - killall ssh-agent 2>/dev/null || true
+    - echo "Cleanup completed"
+
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
+
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+
+  timeout: 15m
