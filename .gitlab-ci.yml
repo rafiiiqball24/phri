@@ -1,0 +1,47 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  NODE_ENV: production
+  SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
+  SSH_USER: $SSH_USER
+  SSH_HOST: $SSH_HOST
+  SSH_PORT: $SSH_PORT
+  APP_PATH: $APP_PATH
+  VITE_APP_BASE_URL: $VITE_APP_BASE_URL
+  VITE_APP_API_KEY: $VITE_APP_API_KEY
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+    - bun.lockb
+
+build:
+  stage: build
+  image: oven/bun:latest
+  only:
+    - main
+  script:
+    - echo "Setting up environment variables..."
+    - echo "VITE_APP_BASE_URL=$VITE_APP_BASE_URL" > .env
+    - echo "VITE_APP_API_KEY=$VITE_APP_API_KEY" >> .env
+    - echo "Installing dependencies with Bun..."
+    - bun install
+    - echo "Building the Nuxt/Vite application..."
+    - bun run build
+  artifacts:
+    paths:
+      - .output/
+      - bun.lockb
+    expire_in: 1 week
+
+deploy:
+  stage: deploy
+  image: oven/bun:latest
+  only:
+    - main
+  before_script:
+    - mkdir -p ~/.ssh
+    - apt-get update && apt-get install -y opens
