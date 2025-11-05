@@ -1,16 +1,18 @@
+image: oven/bun:latest
+
 stages:
   - build
   - deploy
 
 variables:
   NODE_ENV: production
-  SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
+  VITE_APP_BASE_URL: $VITE_APP_BASE_URL
+  VITE_APP_API_KEY: $VITE_APP_API_KEY
   SSH_USER: $SSH_USER
   SSH_HOST: $SSH_HOST
   SSH_PORT: $SSH_PORT
   APP_PATH: $APP_PATH
-  VITE_APP_BASE_URL: $VITE_APP_BASE_URL
-  VITE_APP_API_KEY: $VITE_APP_API_KEY
+  SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
 
 cache:
   key: ${CI_COMMIT_REF_SLUG}
@@ -20,16 +22,15 @@ cache:
 
 build:
   stage: build
-  image: oven/bun:latest
   only:
     - main
   script:
-    - echo "Setting up environment variables..."
+    - echo "=== Creating .env file ==="
     - echo "VITE_APP_BASE_URL=$VITE_APP_BASE_URL" > .env
     - echo "VITE_APP_API_KEY=$VITE_APP_API_KEY" >> .env
-    - echo "Installing dependencies..."
+    - echo "=== Installing dependencies with Bun ==="
     - bun install
-    - echo "Building the app..."
+    - echo "=== Building Nuxt 3 app ==="
     - bun run build
   artifacts:
     paths:
@@ -39,17 +40,86 @@ build:
 
 deploy:
   stage: deploy
-  image: oven/bun:latest
   only:
     - main
   before_script:
-  - mkdir -p ~/.ssh
-  - apt-get update && apt-get install -y openssh-client rsync
-  - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-  - chmod 600 ~/.ssh/id_rsa
-  - echo "Using SSH port: $SSH_PORT"
-  - ssh-keyscan -p $SSH_PORT $SSH_HOST >> ~/.ssh/known_hosts
+    - echo "=== Setting up SSH environment ==="
+    - apk add --no-cache openssh bash rsync
+
+    # Create SSH directory
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+
+    # Validate variables
+    - |
+      if [ -z "$SSH_PRIVATE_KEY" ]; then
+        echo "ERROR: SSH_PRIVATE_KEY is not set"
+        exit 1
+      fi
+    - |
+      if [ -z "$SSH_USER" ]; then
+        echo "ERROR: SSH_USER is not set"
+        exit 1
+      fi
+    - |
+      if [ -z "$SSH_HOST" ]; then
+        echo "ERROR: SSH_HOST is not set"
+        exit 1
+      fi
+    - |
+      if [ -z "$SSH_PORT" ]; then
+        echo "ERROR: SSH_PORT is not set, defaulting to 22"
+        SSH_PORT=22
+      fi
+    - |
+      if [ -z "$APP_PATH" ]; then
+        echo "ERROR: APP_PATH is not set"
+        exit 1
+      fi
+
+    # Setup SSH key
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
+
+    # Start SSH agent and add key
+    - eval $(ssh-agent -s)
+    - ssh-add ~/.ssh/id_ed25519
+
+    # Setup SSH config
+    - |
+      cat > ~/.ssh/config << EOF
+      Host production
+        HostName $SSH_HOST
+        User $SSH_USER
+        Port $SSH_PORT
+        IdentityFile ~/.ssh/id_ed25519
+        StrictHostKeyChecking no
+        UserKnownHostsFile /dev/null
+        LogLevel ERROR
+        ServerAliveInterval 60
+        ServerAliveCountMax 3
+      EOF
+    - chmod 600 ~/.ssh/config
+
+    # Test SSH connection
+    - ssh -o ConnectTimeout=10 production "echo 'SSH connection successful to $SSH_HOST'"
+
   script:
-    - echo "🚀 Deploying to $SSH_HOST..."
-    - rsync -e "ssh -p $SSH_PORT" -az --exclude node_modules --exclude .git ./ $SSH_USER@$SSH_HOST:$APP_PATH
-    - ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "cd $APP_PATH && /root/.bun/bin/bun install --production && pm2 reload ecosystem.config.cjs --env production"
+    - echo "=== Deploying app ==="
+    - rsync -az --exclude node_modules --exclude .git ./ production:$APP_PATH
+    - |
+      ssh production "
+        set -e
+        cd $APP_PATH
+        echo 'Installing production dependencies...'
+        /root/.bun/bin/bun install --production
+        echo 'Reloading app with PM2...'
+        pm2 reload ecosystem.config.cjs --env production
+      "
+
+  after_script:
+    - echo "=== Cleaning up SSH keys ==="
+    - rm -f ~/.ssh/id_ed25519
+    - rm -f ~/.ssh/config
+    - killall ssh-agent 2>/dev/null || true
+    - echo "Cleanup completed"
