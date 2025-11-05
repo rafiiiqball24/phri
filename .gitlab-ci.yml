@@ -26,11 +26,9 @@ build:
       - dist/
       - bun.lockb
       - .env
-    expire_in: 1 week
-  cache:
-    key: ${CI_COMMIT_REF_SLUG}
-    paths:
+      - package.json
       - node_modules/
+    expire_in: 1 week
 
 deploy:
   stage: deploy
@@ -74,7 +72,7 @@ deploy:
     - |
       rsync -avz --delete \
         -e "ssh -p $SSH_PORT -o StrictHostKeyChecking=no" \
-        --exclude 'node_modules' \
+        --exclude 'node_modules/.cache' \
         --exclude '.git' \
         --exclude '.gitignore' \
         --exclude 'README.md' \
@@ -82,15 +80,28 @@ deploy:
     
     # Run deployment commands on server
     - |
-      ssh -p $SSH_PORT $SSH_USER@$SSH_HOST << 'ENDSSH'
+      ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "bash -s" << ENDSSH
         set -e
         cd $APP_PATH
         
+        echo "Current directory: \$(pwd)"
+        echo "Checking files..."
+        ls -la
+        
         echo "Installing dependencies..."
-        /root/.bun/bin/bun install --production
+        if [ -f "package.json" ]; then
+          /root/.bun/bin/bun install --production
+        else
+          echo "ERROR: package.json not found!"
+          exit 1
+        fi
         
         echo "Reloading PM2..."
-        pm2 reload ecosystem.config.cjs --env production || pm2 start ecosystem.config.cjs --env production
+        if pm2 list | grep -q "ecosystem.config.cjs"; then
+          pm2 reload ecosystem.config.cjs --env production
+        else
+          pm2 start ecosystem.config.cjs --env production
+        fi
         
         echo "Deployment completed successfully!"
       ENDSSH
