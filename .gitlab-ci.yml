@@ -8,19 +8,17 @@ stages:
 
 deploy:
   stage: deploy
-
   before_script:
     - echo "=== Setting up deployment environment ==="
     - echo "Installing required packages..."
     - apk add --no-cache bash openssh rsync
-
-    # Buat direktori SSH
+    
+    # Create SSH directory
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-
-    # Validasi variabel
-    - >-
-      bash -c '
+    
+    # Validate required variables
+    - |
       for var in SSH_PRIVATE_KEY SSH_USERNAME PRODUCTION_SERVER PORT; do
         eval val=\$$var
         if [ -z "$val" ]; then
@@ -28,57 +26,52 @@ deploy:
           exit 1
         fi
       done
-      '
-
+    
     # Setup SSH key
-    - echo "$SSH_PRIVATE_KEY" | tr -d "\r" > ~/.ssh/id_ed25519
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
     - chmod 600 ~/.ssh/id_ed25519
-
+    
     # Start SSH agent
     - eval $(ssh-agent -s)
     - ssh-add ~/.ssh/id_ed25519
-
-    # Buat config SSH
-    - >-
-      bash -c '
-      cat > ~/.ssh/config << EOF
-Host production
-  HostName $PRODUCTION_SERVER
-  User $SSH_USERNAME
-  Port $PORT
-  IdentityFile ~/.ssh/id_ed25519
-  StrictHostKeyChecking no
-  UserKnownHostsFile /dev/null
-  LogLevel ERROR
-  ServerAliveInterval 60
-  ServerAliveCountMax 3
-EOF
-      chmod 600 ~/.ssh/config
-      '
-
+    
+    # Create SSH config
+    - |
+      cat > ~/.ssh/config << 'EOF'
+      Host production
+        HostName ${PRODUCTION_SERVER}
+        User ${SSH_USERNAME}
+        Port ${PORT}
+        IdentityFile ~/.ssh/id_ed25519
+        StrictHostKeyChecking no
+        UserKnownHostsFile /dev/null
+        LogLevel ERROR
+        ServerAliveInterval 60
+        ServerAliveCountMax 3
+      EOF
+    - envsubst < ~/.ssh/config > ~/.ssh/config.tmp && mv ~/.ssh/config.tmp ~/.ssh/config
+    - chmod 600 ~/.ssh/config
+    
     # Test SSH connection
-    - ssh -o ConnectTimeout=10 production "echo 'SSH connection successful to $PRODUCTION_SERVER'"
+    - ssh -o ConnectTimeout=10 production "echo 'SSH connection successful'"
 
   script:
     - echo "=== Starting deployment process ==="
     - ssh production "ls -lah $DEPLOY_PATH"
-    - >-
-      bash -c '
-      ssh production "
+    - |
+      ssh production << 'ENDSSH'
         set -e
         export PORT=$PORT
         export NODE_ENV=production
         export CI_COMMIT_SHA=$CI_COMMIT_SHA
         export CI_COMMIT_REF_NAME=$CI_COMMIT_REF_NAME
         cd $DEPLOY_PATH
-        echo Current directory: \$(pwd)
-        echo PORT= \$PORT
-        echo NODE_ENV= \$NODE_ENV
-        echo Running deploy.sh...
+        echo "Current directory: $(pwd)"
+        echo "PORT= $PORT"
+        echo "NODE_ENV= $NODE_ENV"
+        echo "Running deploy.sh..."
         bash ./deploy.sh
-      "
-      '
-    - echo "=== Deployment completed successfully ==="
+      ENDSSH
 
   after_script:
     - echo "=== Cleaning up SSH keys ==="
