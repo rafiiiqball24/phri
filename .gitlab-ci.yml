@@ -19,7 +19,7 @@ deploy:
     
     # Validate required variables
     - |
-      for var in SSH_PRIVATE_KEY SSH_USERNAME PRODUCTION_SERVER PORT; do
+      for var in SSH_PRIVATE_KEY SSH_USER SSH_HOST SSH_PORT; do
         eval val=\$$var
         if [ -z "$val" ]; then
           echo "ERROR: $var variable is not set in GitLab CI/CD settings"
@@ -37,11 +37,11 @@ deploy:
     
     # Create SSH config
     - |
-      cat > ~/.ssh/config << 'EOF'
+      cat > ~/.ssh/config << EOF
       Host production
-        HostName ${PRODUCTION_SERVER}
-        User ${SSH_USERNAME}
-        Port ${PORT}
+        HostName $SSH_HOST
+        User $SSH_USER
+        Port $SSH_PORT
         IdentityFile ~/.ssh/id_ed25519
         StrictHostKeyChecking no
         UserKnownHostsFile /dev/null
@@ -49,7 +49,6 @@ deploy:
         ServerAliveInterval 60
         ServerAliveCountMax 3
       EOF
-    - envsubst < ~/.ssh/config > ~/.ssh/config.tmp && mv ~/.ssh/config.tmp ~/.ssh/config
     - chmod 600 ~/.ssh/config
     
     # Test SSH connection
@@ -59,19 +58,20 @@ deploy:
     - echo "=== Starting deployment process ==="
     - ssh production "ls -lah $DEPLOY_PATH"
     - |
-      ssh production << 'ENDSSH'
+      ssh production << ENDSSH
         set -e
-        export PORT=$PORT
+        export PORT=$SSH_PORT
         export NODE_ENV=production
         export CI_COMMIT_SHA=$CI_COMMIT_SHA
         export CI_COMMIT_REF_NAME=$CI_COMMIT_REF_NAME
         cd $DEPLOY_PATH
-        echo "Current directory: $(pwd)"
-        echo "PORT= $PORT"
-        echo "NODE_ENV= $NODE_ENV"
+        echo "Current directory: \$(pwd)"
+        echo "PORT= \$PORT"
+        echo "NODE_ENV= \$NODE_ENV"
         echo "Running deploy.sh..."
         bash ./deploy.sh
       ENDSSH
+    - echo "=== Deployment completed successfully ==="
 
   after_script:
     - echo "=== Cleaning up SSH keys ==="
