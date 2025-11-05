@@ -2,74 +2,45 @@ image: alpine:3.18
 
 variables:
   DEPLOY_PATH: "/www/wwwroot/backoffice-phri-skka.can.co.id"
-  BUN_INSTALL: "/root/.bun"
-  PATH: "/root/.bun/bin:$PATH"
 
 stages:
-  - build
   - deploy
-
-build:
-  stage: build
-  image: oven/bun:latest
-  only:
-    - main
-  script:
-    - echo "Creating .env file..."
-    - echo "VITE_APP_BASE_URL=$VITE_APP_BASE_URL" > .env
-    - echo "VITE_APP_API_KEY=$VITE_APP_API_KEY" >> .env
-    - echo "Installing dependencies with Bun..."
-    - bun install
-    - echo "Building the Nuxt 3 app..."
-    - bun run build
-  artifacts:
-    paths:
-      - .output/
-      - bun.lockb
-    expire_in: 1 week
 
 deploy:
   stage: deploy
   image: alpine:3.18
-  only:
-    - main
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: on_success
+
   before_script:
     - echo "=== Setting up deployment environment ==="
-    # Install required packages
-    - apk add --no-cache bash openssh-client rsync curl
-    # Install Bun
-    - curl -fsSL https://bun.sh/install | bash
-    - export PATH="$BUN_INSTALL/bin:$PATH"
+    - echo "Installing required packages..."
+    - apk add --no-cache openssh bash rsync
+
     # Create SSH directory
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
+
     # Validate required variables
     - |
-      if [ -z "$SSH_PRIVATE_KEY" ]; then
-        echo "ERROR: SSH_PRIVATE_KEY is not set"
-        exit 1
-      fi
-    - |
-      if [ -z "$SSH_USERNAME" ]; then
-        echo "ERROR: SSH_USERNAME is not set"
-        exit 1
-      fi
-    - |
-      if [ -z "$PRODUCTION_SERVER" ]; then
-        echo "ERROR: PRODUCTION_SERVER is not set"
-        exit 1
-      fi
-    - |
-      if [ -z "$PORT" ]; then
-        echo "ERROR: PORT is not set"
-        exit 1
-      fi
+      for var in SSH_PRIVATE_KEY SSH_USERNAME PRODUCTION_SERVER PORT; do
+        if [ -z "${!var}" ]; then
+          echo "ERROR: $var variable is not set in GitLab CI/CD settings"
+          exit 1
+        fi
+      done
+
     # Setup SSH key
+    - echo "Configuring SSH key..."
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
     - chmod 600 ~/.ssh/id_ed25519
+
+    # Start SSH agent and add key
     - eval $(ssh-agent -s)
     - ssh-add ~/.ssh/id_ed25519
-    # Setup SSH config
+
+    # Create SSH config for easier connection
     - |
       cat > ~/.ssh/config << EOF
       Host production
@@ -84,12 +55,18 @@ deploy:
         ServerAliveCountMax 3
       EOF
     - chmod 600 ~/.ssh/config
+
     # Test SSH connection
+    - echo "Testing SSH connection..."
     - ssh -o ConnectTimeout=10 production "echo 'SSH connection successful to $PRODUCTION_SERVER'"
 
   script:
     - echo "=== Starting deployment process ==="
+    
+    # Check deployment directory
     - ssh production "ls -lah $DEPLOY_PATH"
+    
+    # Run deployment script with environment variables
     - ssh production "
         set -e
         export PORT=$PORT
@@ -97,6 +74,11 @@ deploy:
         export CI_COMMIT_SHA=$CI_COMMIT_SHA
         export CI_COMMIT_REF_NAME=$CI_COMMIT_REF_NAME
         cd $DEPLOY_PATH
+        echo 'Current directory:' && pwd
+        echo 'Environment variables:'
+        echo 'PORT=' \$PORT
+        echo 'NODE_ENV=' \$NODE_ENV
+        echo 'Running deploy.sh...'
         bash ./deploy.sh
       "
     - echo "=== Deployment completed successfully ==="
@@ -107,10 +89,6 @@ deploy:
     - rm -f ~/.ssh/config
     - killall ssh-agent 2>/dev/null || true
     - echo "Cleanup completed"
-
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-      when: on_success
 
   retry:
     max: 2
