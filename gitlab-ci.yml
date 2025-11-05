@@ -1,0 +1,54 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  NODE_ENV: production
+  SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
+  SSH_USER: $SSH_USER
+  SSH_HOST: $SSH_HOST
+  SSH_PORT: $SSH_PORT
+  APP_PATH: $APP_PATH
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+    - bun.lockb
+
+build:
+  stage: build
+  image: oven/bun:latest # Use the official Bun image
+  only:
+    - main # Restrict build to the main branch
+  script:
+    - echo "Setting up environment variables..."
+    - echo "APP_BASE_URL=$APP_BASE_URL" > .env
+    - echo "API_URL=$API_URL" >> .env
+    - echo "API_KEY=$API_KEY" >> .env
+    - echo "Installing dependencies with Bun..."
+    - bun install
+    - echo "Building the Nuxt 3 application..."
+    - bun run build
+  artifacts:
+    paths:
+      - .output/
+      - bun.lockb
+    expire_in: 1 week
+
+deploy:
+  stage: deploy
+  image: oven/bun:latest
+  only:
+    - main # Restrict deployment to the main branch
+  before_script:
+    - mkdir -p ~/.ssh
+    - apt-get update && apt-get install -y openssh-client
+    - apt-get install rsync -y
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -p $SSH_PORT $SSH_HOST >> ~/.ssh/known_hosts
+  script:
+    - echo "Deploying to the server..."
+    - rsync -e "ssh -p $SSH_PORT" -az --exclude node_modules --exclude .git ./ $SSH_USER@$SSH_HOST:$APP_PATH
+    - ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "cd $APP_PATH && /root/.bun/bin/bun install --production && pm2 reload ecosystem.config.cjs --env production"
