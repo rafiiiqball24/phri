@@ -27,9 +27,9 @@ build:
     - echo "Setting up environment variables..."
     - echo "VITE_APP_BASE_URL=$VITE_APP_BASE_URL" > .env
     - echo "VITE_APP_API_KEY=$VITE_APP_API_KEY" >> .env
-    - echo "Installing dependencies with Bun..."
+    - echo "Installing dependencies..."
     - bun install
-    - echo "Building the Nuxt/Vite application..."
+    - echo "Building the app..."
     - bun run build
   artifacts:
     paths:
@@ -44,4 +44,11 @@ deploy:
     - main
   before_script:
     - mkdir -p ~/.ssh
-    - apt-get update && apt-get install -y opens
+    - apt-get update && apt-get install -y openssh-client rsync
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -p $SSH_PORT $SSH_HOST >> ~/.ssh/known_hosts
+  script:
+    - echo "🚀 Deploying to $SSH_HOST..."
+    - rsync -e "ssh -p $SSH_PORT" -az --exclude node_modules --exclude .git ./ $SSH_USER@$SSH_HOST:$APP_PATH
+    - ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "cd $APP_PATH && /root/.bun/bin/bun install --production && pm2 reload ecosystem.config.cjs --env production"
