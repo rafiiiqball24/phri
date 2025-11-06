@@ -24,8 +24,8 @@ build:
   script:
     - echo "Setting up environment variables..."
     # Convert GitLab vars -> Nuxt/Vite vars
-    - echo "VITE_APP_BASE_URL=$APP_BASE_URL" > .env
-    - echo "VITE_APP_API_URL=$API_URL" >> .env
+    - echo "VITE_APP_BASE_URL=$VITE_APP_BASE_URL" >> .env
+    - echo "VITE_APP_API_KEY=$VITE_APP_API_KEY" >> .env
     - echo "Installing dependencies with Bun..."
     - bun install
     - echo "Building the Nuxt 3 application..."
