@@ -263,15 +263,8 @@ onMounted(() => {
 const paymentFee = ref(0)
 const grandTotalWithFee = computed(() => total.value + paymentFee.value)
 async function fetchCartFee() {
-    const sid = getSession()
-    if (!sid) { paymentFee.value = 0; return }
-    try {
-        const { data } = await ApiService.query('/cart', { params: { session_id: sid }, headers })
-        const root = (data.value as any)?.data || {}
-        paymentFee.value = Number(root?.payment_fee ?? 0)
-    } catch {
-        paymentFee.value = 0
-    }
+    // Cart API disabled; fee handled at order time
+    paymentFee.value = 0
 }
 watch(items, () => { fetchCartFee() }, { deep: true })
 
@@ -342,13 +335,8 @@ async function buildCartPayload(session_id: string) {
     return { session_id, products }
 }
 async function pushCartSnapshot(session_id: string) {
-    if (displayedItems.value.length === 0) return
-    const body = await buildCartPayload(session_id)
-    const res = await ApiService.post('/cart', body, { ...headers, 'Content-Type': 'application/json' })
-    if (res.error.value) {
-        const err = (res.error.value as any)?.data?.errors || (res.error.value as any)?.errors || (res.error.value as any) || {}
-        throw new Error(JSON.stringify(err, null, 2))
-    }
+    // No-op: cart is local-only and sent directly with order
+    return
 }
 
 const success = ref<{ open: boolean; orderCode?: string | null }>({ open: false, orderCode: null })
@@ -365,7 +353,8 @@ async function submit() {
     const session_id = ensureSession()
     try {
         sending.value = true
-        await pushCartSnapshot(session_id)
+        // Build products payload from local cart and send with order
+        const cartBody = await buildCartPayload(session_id)
         const payload = {
             session_id,
             name: form.value.name,
@@ -375,7 +364,8 @@ async function submit() {
             address_detail: form.value.detail || '',
             province_id: optValue(selProvinsi.value)!,
             regency_id: optValue(selKota.value)!,
-            postalcode: form.value.postalcode
+            postalcode: form.value.postalcode,
+            products: cartBody.products
         }
         const { data, error } = await ApiService.post('/order', payload, { ...headers, 'Content-Type': 'application/json' })
         if (error.value) throw error.value

@@ -169,13 +169,8 @@ const paymentFee = ref(0)
 const paymentFeeDisplay = computed(() => (canOrder.value ? paymentFee.value : 0))
 
 async function fetchCartFee() {
-  const sid = getSession()
-  if (!sid) { paymentFee.value = 0; return }
-  try {
-    const { data } = await ApiService.query('/cart', { params: { session_id: sid }, headers })
-    const root = (data.value as any)?.data || {}
-    paymentFee.value = Number(root?.payment_fee ?? 0)
-  } catch { paymentFee.value = 0 }
+  // Cart API disabled; fee handled server-side at order time
+  paymentFee.value = 0
 }
 
 function onQtyChange(i: number, v: number) {

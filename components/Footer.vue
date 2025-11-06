@@ -6,16 +6,16 @@
           <p class="footer-hero__title">Temukan Kami di:</p>
           <nav class="footer-hero__socials" aria-label="Sosial Media">
             <a href="https://facebook.com" target="_blank" rel="noopener" class="soc" aria-label="Facebook">
-              <img src="/img/icons/Facebook.svg" alt="https://www.facebook.com/PHRIOnline" />
+              <img src="/img/icons/Facebook.svg" alt="https://www.facebook.com/PHRIOnline/" />
             </a>
             <a href="https://x.com" target="_blank" rel="noopener" class="soc" aria-label="X">
-              <img src="/img/icons/X.svg" alt="https://x.com/PHRIOnline" />
+              <img src="/img/icons/X.svg" alt="https://x.com/phrionline" />
             </a>
             <a href="https://instagram.com" target="_blank" rel="noopener" class="soc" aria-label="Instagram">
               <img src="/img/icons/Instagram.svg" alt="https://www.instagram.com/phrionline/" />
             </a>
             <a href="https://youtube.com" target="_blank" rel="noopener" class="soc" aria-label="YouTube">
-              <img src="/img/icons/Youtube.svg" alt="" />
+              <img src="/img/icons/Youtube.svg" alt="https://www.youtube.com/@phriofficial/videos" />
             </a>
           </nav>
         </div>
@@ -47,7 +47,7 @@ function scrollTop() {
 
   try {
     window.scrollTo({ top: 0, behavior: "smooth" });
-  } catch (_) {}
+  } catch (_) { }
 
   const doc = document as Document;
   const root = (doc.scrollingElement || doc.documentElement) as HTMLElement;
@@ -204,6 +204,7 @@ function scrollTop() {
 }
 
 @media (min-width: 1440px) {
+
   .footer-hero__inner,
   .footer-legal__inner {
     max-width: 1280px;
@@ -211,6 +212,7 @@ function scrollTop() {
 }
 
 @media (min-width: 1280px) and (max-width: 1439px) {
+
   .footer-hero__inner,
   .footer-legal__inner {
     max-width: 1200px;
@@ -218,6 +220,7 @@ function scrollTop() {
 }
 
 @media (min-width: 1025px) and (max-width: 1279px) {
+
   .footer-hero__inner,
   .footer-legal__inner {
     max-width: 1080px;

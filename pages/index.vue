@@ -172,12 +172,18 @@ function scrollToProduk() {
     justify-content: center;
     padding: 60px 0;
     min-height: 600px;
-    background: center/cover no-repeat;
-    background-color: #f79f24;
     color: #fff;
     box-sizing: border-box;
+
+    /* Background handling */
+    background-color: #f79f24;
+    background-repeat: no-repeat;
+    background-position: 60% center;
+    /* geser ke kiri biar posisi tengah */
+    background-size: cover;
 }
 
+/* Container */
 .hero__container {
     display: flex;
     justify-content: flex-start;
@@ -208,6 +214,7 @@ function scrollToProduk() {
     opacity: 0.9;
 }
 
+/* Button */
 .hero__cta {
     display: inline-flex;
     justify-content: center;
@@ -231,6 +238,7 @@ function scrollToProduk() {
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
+/* Skeleton */
 .hero--skel {
     background: #ffe3bb;
 }
@@ -256,10 +264,17 @@ function scrollToProduk() {
     height: 40px;
 }
 
+/* ========================================= */
+/* RESPONSIVE */
+/* ========================================= */
+
 @media (max-width: 1024px) {
     .hero {
-        min-height: 500px;
+        min-height: 520px;
         padding: 40px 0;
+        background-size: contain;
+        background-position: 55% center;
+        /* tetap agak ke kiri */
     }
 
     .hero__title {
@@ -273,8 +288,10 @@ function scrollToProduk() {
 
 @media (max-width: 768px) {
     .hero {
-        min-height: 450px;
+        min-height: 480px;
         padding: 30px 0;
+        background-size: contain;
+        background-position: 52% center;
     }
 
     .hero__container {
@@ -282,11 +299,11 @@ function scrollToProduk() {
     }
 
     .hero__left {
-        max-width: 500px;
+        max-width: 480px;
     }
 
     .hero__title {
-        font-size: 32px;
+        font-size: 30px;
         margin: 0 0 12px;
     }
 
@@ -298,13 +315,17 @@ function scrollToProduk() {
 
 @media (max-width: 600px) {
     .hero {
-        min-height: 400px;
-        padding: 0;
-        justify-content: flex-start;
+        min-height: 420px;
+        padding: 20px 0 24px;
+        justify-content: center;
+        align-items: flex-start;
+        background-size: contain;
+        background-position: 48% center;
+        /* geser sedikit ke kiri */
     }
 
     .hero__container {
-        padding: 24px 16px;
+        padding: 0 16px;
         margin: 0;
         max-width: 100%;
     }
@@ -339,6 +360,7 @@ function scrollToProduk() {
     }
 }
 
+/* Section title */
 .section__title {
     padding: 0 20px;
 }
@@ -355,9 +377,9 @@ function scrollToProduk() {
     }
 }
 
+/* Products grid */
 .products-grid {
     display: grid;
-    /* Force 4 columns on large screens for tighter cards */
     grid-template-columns: repeat(4, 1fr);
     gap: 24px;
     margin: 0 auto;
@@ -394,6 +416,7 @@ function scrollToProduk() {
     background: #eee;
 }
 
+/* Section padding */
 .section-pad {
     padding: 40px 0 60px;
 }
@@ -410,6 +433,7 @@ function scrollToProduk() {
     }
 }
 
+/* Error section */
 .err {
     display: flex;
     gap: 12px;

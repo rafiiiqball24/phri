@@ -489,23 +489,7 @@ async function onAddToCart() {
   }
   if (!canAdd.value) return;
 
-  const session_id = ensureSession();
-  try {
-    await ApiService.post(
-      "/cart",
-      {
-        session_id,
-        products: [
-          {
-            id: String(product.value.id),
-            quantity: Number(qty.value),
-            product_variant_option_ids: [selectedSizeId.value, selectedColorId.value].filter(Boolean),
-          },
-        ],
-      },
-      { ...headers, 'Content-Type': 'application/json' }
-    );
-  } catch (e) { }
+  // Cart is local-only now; skip POST /cart
   addItem({
     id: product.value.id as string,
     name: product.value.name,
