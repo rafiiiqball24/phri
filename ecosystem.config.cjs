@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'phri-shop', // biar match sama app yang udah lo pakai di PM2
+      name: 'phri-shop',
       exec_mode: 'cluster',
       instances: 'max',
       script: '.output/server/index.mjs',
