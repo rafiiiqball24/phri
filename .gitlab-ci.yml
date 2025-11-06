@@ -1,0 +1,59 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  NODE_ENV: production
+  SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
+  SSH_USER: $SSH_USER
+  SSH_HOST: $SSH_HOST
+  SSH_PORT: $SSH_PORT
+  APP_PATH: $APP_PATH
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+    - bun.lockb
+
+build:
+  stage: build
+  image: oven/bun:latest
+  only:
+    - main
+  script:
+    - echo "Setting up environment variables..."
+    # Convert GitLab vars -> Nuxt/Vite vars
+    - echo "VITE_APP_BASE_URL=$APP_BASE_URL" > .env
+    - echo "VITE_APP_API_URL=$API_URL" >> .env
+    - echo "Installing dependencies with Bun..."
+    - bun install
+    - echo "Building the Nuxt 3 application..."
+    - bun run build
+  artifacts:
+    paths:
+      - .output/
+      - bun.lockb
+    expire_in: 1 week
+
+deploy:
+  stage: deploy
+  image: oven/bun:latest
+  only:
+    - main
+  before_script:
+    - mkdir -p ~/.ssh
+    - apt-get update && apt-get install -y openssh-client rsync
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" >> ~/.ssh/config
+    - ssh-keyscan -p ${SSH_PORT:-22} $SSH_HOST >> ~/.ssh/known_hosts
+  script:
+    - echo "Deploying to the server..."
+    - rsync -e "ssh -p $SSH_PORT" -az --exclude node_modules --exclude .git ./ $SSH_USER@$SSH_HOST:$APP_PATH
+    - ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "
+        export PATH=\$PATH:/www/server/nodejs/v20.18.0/bin:/root/.bun/bin &&
+        cd $APP_PATH &&
+        /root/.bun/bin/bun install --ignore-scripts &&
+        (pm2 reload ecosystem.config.cjs || pm2 start ecosystem.config.cjs --env production)
+      "
