@@ -55,5 +55,5 @@ deploy:
         export PATH=\$PATH:/www/server/nodejs/v20.18.0/bin:/root/.bun/bin &&
         cd $APP_PATH &&
         /root/.bun/bin/bun install --ignore-scripts &&
-        (pm2 reload phri-shop --env production || pm2 start ecosystem.config.cjs --env production)
+        (pm2 reload ecosystem.config.cjs || pm2 start ecosystem.config.cjs --env production)
       "
