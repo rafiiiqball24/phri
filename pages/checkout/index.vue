@@ -61,11 +61,17 @@
                             <p v-if="!selProvinsi && shouldShow('provinsi')" class="error-text">Pilih provinsi terlebih
                                 dahulu</p>
                         </div>
+
                         <div class="field">
                             <label class="label">Kota</label>
-                            <CustomSelect v-model="selKota" :options="kotaOpts" placeholder="Pilih kota"
-                                :invalid="shouldShowError('kota')" @update:modelValue="touched.kota = true" />
-                            <p v-if="!selKota && shouldShow('kota')" class="error-text">Pilih kota sesuai provinsi</p>
+                            <div class="select-wrap" :class="{ 'is-disabled': kotaDisabled }">
+                                <CustomSelect v-model="selKota" :options="kotaOpts" placeholder="Pilih kota"
+                                    :invalid="shouldShowError('kota')" />
+                                <div v-if="kotaDisabled" class="select-guard" @click="onKotaGuardClick"></div>
+                            </div>
+                            <p v-if="kotaDisabled && showKotaHint" class="error-text">Pilih provinsi terlebih dahulu</p>
+                            <p v-else-if="!selKota && shouldShow('kota')" class="error-text">Pilih kota sesuai provinsi
+                            </p>
                         </div>
                     </div>
 
@@ -138,10 +144,10 @@
                     ...displayedItems.map(it => ({ name: `${it.qty}× ${it.name}`, price: it.price * it.qty })),
                     ...(paymentFee > 0 ? [{ name: 'Payment Fee', price: paymentFee }] : [])
                 ]" total-label="Total Pembayaran" :total="grandTotalWithFee" :links="[
-                    { label: 'Butuh Bantuan?', to: '/Help' },
-                    { label: 'Hubungi Kami', to: '/contact', underline: true },
-                    { label: 'Informasi Pengiriman', to: '/Help', underline: true }
-                ]">
+            { label: 'Butuh Bantuan?', to: '/Help' },
+            { label: 'Hubungi Kami', to: '/contact', underline: true },
+            { label: 'Informasi Pengiriman', to: '/Help', underline: true }
+        ]">
                     <template #extra>
                         <div style="margin-top: 4px">
                             <MiniCartItem v-for="it in displayedItems" :key="it.id" :image="it.image" :name="it.name"
@@ -159,7 +165,7 @@
                 <h3 class="modal__title">Order Berhasil</h3>
                 <p class="modal__desc">
                     Terima kasih, pesananmu sudah kami terima<span v-if="success.orderCode"> (#{{ success.orderCode
-                    }})</span>.
+                        }})</span>.
                     Silakan cek email untuk instruksi pembayaran dan detail pengiriman.
                 </p>
                 <button class="btn btn--primary btn--block modal__btn" @click="closeSuccess">Oke</button>
@@ -173,7 +179,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import ApiService from '@/core/services/ApiService'
 import { useRouter } from 'vue-router'
 import { useCart } from '@/composables/useCart'
-import { ensureSession, getSession } from '@/composables/useSession'
+import { ensureSession } from '@/composables/useSession'
 
 useHead({ title: 'Checkout' })
 
@@ -184,7 +190,6 @@ const router = useRouter()
 const { items, total, clearAll } = useCart()
 const displayedItems = computed(() => items.value)
 
-const showDebug = false
 const dbg = ref({ loading: false })
 
 const config = useRuntimeConfig()
@@ -228,7 +233,6 @@ const touched = ref({
 const shouldShow = (k: keyof typeof touched.value) => showErr.value || touched.value[k]
 const shouldShowError = (field: keyof typeof touched.value) => {
     if (!shouldShow(field)) return false
-
     switch (field) {
         case 'name':
             return !form.value.name || form.value.name.length < 3 || !nameValid(form.value.name)
@@ -242,10 +246,11 @@ const shouldShowError = (field: keyof typeof touched.value) => {
             return !form.value.postalcode || !/^[0-9]+$/.test(form.value.postalcode) || form.value.postalcode.length !== 5
         case 'email':
             return !emailOk(form.value.email)
-        case 'phone':
+        case 'phone': {
             const phone = form.value.phone
             const normalized = normalizePhone(phone)
             return !phone || !/^[0-9]+$/.test(phone) || normalized.length < 10 || normalized.length > 13
+        }
         default:
             return false
     }
@@ -288,7 +293,10 @@ async function fetchProvinsi(search = '') {
             const k = p.external_id != null ? `ext:${p.external_id}` : `name:${p.name.toUpperCase()}`
                 ; (buckets.get(k) ?? buckets.set(k, []).get(k))!.push(p)
         }
-        provinsiOpts.value = Array.from(buckets.values()).map(dupes => dupes[0]).filter(p => whitelist.has(p.id)).map(p => ({ value: p.id, label: p.name }))
+        provinsiOpts.value = Array.from(buckets.values())
+            .map(dupes => dupes[0])
+            .filter(p => whitelist.has(p.id))
+            .map(p => ({ value: p.id, label: p.name }))
     } catch {
         provinsiOpts.value = []
     }
@@ -321,7 +329,6 @@ const paymentFee = ref(0)
 const grandTotalWithFee = computed(() => total.value + paymentFee.value)
 
 async function fetchCartFee() {
-    // Cart API disabled; fee handled at order time
     paymentFee.value = 0
 }
 
@@ -362,7 +369,7 @@ async function resolveVariantOptionIds(productId: string, sizeName?: string, col
             .map(v => (Array.isArray(v.options) && v.options.length === 1 ? (v.options[0]?.id || v.options[0]?.option?.id || null) : null))
             .filter(Boolean)
         if (singleVariantIds.length && singleVariantIds.length === variants.length) {
-            const set = new Set(singleVariantIds)
+            const set = new Set(singleVariantIds as string[])
             const combo = (combinations || []).find((c: any) => {
                 const arr = (c?.product_variant_option_ids || []).filter(Boolean)
                 return arr.length === set.size && arr.every((x: string) => set.has(String(x)))
@@ -390,20 +397,22 @@ async function buildCartPayload(session_id: string) {
     if (invalid.length) {
         throw new Error('Beberapa item belum memiliki varian lengkap. Mohon pilih ukuran/warna untuk semua item.')
     }
-    try { console.debug('[cart:snapshot]', JSON.stringify({ session_id, products })) } catch { }
     return { session_id, products }
 }
 
-async function pushCartSnapshot(session_id: string) {
-    // No-op: cart is local-only and sent directly with order
-    return
-}
+async function pushCartSnapshot(session_id: string) { return }
 
 const success = ref<{ open: boolean; orderCode?: string | null }>({ open: false, orderCode: null })
+function closeSuccess() { success.value.open = false; router.push('/') }
 
-function closeSuccess() {
-    success.value.open = false
-    router.push('/')
+const kotaDisabled = computed(() => !isSelected(selProvinsi.value))
+const showKotaHint = ref(false)
+let kotaHintTimer: any = null
+function onKotaGuardClick() {
+    touched.value.kota = true
+    showKotaHint.value = true
+    clearTimeout(kotaHintTimer)
+    kotaHintTimer = setTimeout(() => (showKotaHint.value = false), 2500)
 }
 
 async function submit() {
@@ -413,7 +422,6 @@ async function submit() {
     const session_id = ensureSession()
     try {
         sending.value = true
-        // Build products payload from local cart and send with order
         const cartBody = await buildCartPayload(session_id)
         const payload = {
             session_id,
@@ -436,7 +444,6 @@ async function submit() {
         success.value.open = true
     } catch (e: any) {
         const msg = e?.message || 'Gagal membuat order'
-        // Tidak menampilkan server errors seperti di gambar kedua
         alert(`${msg}`)
     } finally {
         sending.value = false
@@ -480,7 +487,7 @@ async function submit() {
 .sec-title {
     margin: 30px 0 0;
     font: 600 20px/28px var(--ff);
-    color: var(--text, #0a0a0a);
+    color: var(--text, #0a0a0a)
 }
 
 .sec-link {
@@ -516,7 +523,7 @@ async function submit() {
     border: 1px solid #e5e5e5;
     border-radius: 8px;
     outline: none;
-    transition: border-color 0.2s ease;
+    transition: border-color 0.2s ease
 }
 
 .input:focus {
@@ -524,7 +531,7 @@ async function submit() {
 }
 
 .input--error {
-    border-color: #d92d20 !important;
+    border-color: #d92d20 !important
 }
 
 .label-row {
@@ -581,6 +588,20 @@ async function submit() {
     width: 100%;
     height: 88px;
     border-radius: 12px
+}
+
+.select-wrap {
+    position: relative
+}
+
+.select-wrap.is-disabled {
+    opacity: .6
+}
+
+.select-guard {
+    position: absolute;
+    inset: 0;
+    cursor: not-allowed
 }
 
 .modal {

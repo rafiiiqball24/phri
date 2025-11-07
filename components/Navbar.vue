@@ -10,7 +10,7 @@
 
       <nav class="navbar__menu">
         <NuxtLink :class="['navbar__link', isExact('/') && 'active']" to="/">Beranda</NuxtLink>
-        <NuxtLink :class="['navbar__link', isActive('/about-us') && 'active']" to="/about-us"> Tentang Kami </NuxtLink>
+        <NuxtLink :class="['navbar__link', isActive('/about-us') && 'active']" to="/about-us">Tentang Kami</NuxtLink>
         <NuxtLink :class="['navbar__link', isActive('/contact') && 'active']" to="/contact">Kontak</NuxtLink>
         <NuxtLink :class="['navbar__link', isActive('/help') && 'active']" to="/help">Bantuan</NuxtLink>
       </nav>
@@ -20,30 +20,15 @@
           <img src="/img/icons/Cart.svg" alt="Cart" />
           <span v-if="cartCount > 0" class="badge">{{ cartCount }}</span>
         </NuxtLink>
-
-        <div v-if="showLang" class="lang" :class="{ 'is-open': langOpen }" tabindex="0" role="button"
-          :aria-expanded="String(langOpen)" @click="toggleLang" @keydown.enter.prevent="toggleLang"
-          @keydown.space.prevent="toggleLang" @blur="langOpen = false">
-          <span class="lang__code">{{ currentLabel }}</span>
-          <svg class="lang__caret" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M7 9l5 6 5-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round" />
-          </svg>
-          <ul v-if="langOpen" class="lang__menu" role="menu">
-            <li class="lang__item" role="menuitem" @click.stop="setLocale('id')">ID</li>
-            <li class="lang__item" role="menuitem" @click.stop="setLocale('en')">EN</li>
-          </ul>
-        </div>
-
-        <button class="hamburger" @click="mobileOpen = true" aria-label="Menu">
-          <span></span><span></span><span></span>
-        </button>
+        <button class="hamburger" @click="mobileOpen = true"
+          aria-label="Menu"><span></span><span></span><span></span></button>
       </div>
     </div>
 
     <transition name="fade">
       <div v-if="mobileOpen" class="mm__backdrop" @click="mobileOpen = false"></div>
     </transition>
+
     <transition name="slide">
       <aside v-if="mobileOpen" class="mm">
         <div class="mm__head">
@@ -52,63 +37,42 @@
           </NuxtLink>
           <button class="mm__close" @click="mobileOpen = false" aria-label="Tutup">✕</button>
         </div>
+
         <nav class="mm__nav">
           <NuxtLink class="mm__link" to="/" @click="mobileOpen = false">Beranda</NuxtLink>
           <NuxtLink class="mm__link" to="/about-us" @click="mobileOpen = false">Tentang Kami</NuxtLink>
           <NuxtLink class="mm__link" to="/contact" @click="mobileOpen = false">Kontak</NuxtLink>
           <NuxtLink class="mm__link" to="/help" @click="mobileOpen = false">Bantuan</NuxtLink>
+
+          <NuxtLink to="/cart" class="mm__cart" @click="mobileOpen = false">
+            <span class="mm__cart-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="17" height="15" viewBox="0 0 17 15" fill="none">
+                <path
+                  d="M6.75 13.5C6.75 13.7225 6.68402 13.94 6.5604 14.125C6.43679 14.31 6.26109 14.4542 6.05552 14.5394C5.84995 14.6245 5.62375 14.6468 5.40552 14.6034C5.18729 14.56 4.98684 14.4528 4.8295 14.2955C4.67217 14.1382 4.56502 13.9377 4.52162 13.7195C4.47821 13.5012 4.50049 13.275 4.58564 13.0695C4.67078 12.8639 4.81498 12.6882 4.99998 12.5646C5.18499 12.441 5.4025 12.375 5.625 12.375C5.92337 12.375 6.20952 12.4935 6.4205 12.7045C6.63147 12.9155 6.75 13.2016 6.75 13.5ZM12.9375 12.375C12.715 12.375 12.4975 12.441 12.3125 12.5646C12.1275 12.6882 11.9833 12.8639 11.8981 13.0695C11.813 13.275 11.7907 13.5012 11.8341 13.7195C11.8775 13.9377 11.9847 14.1382 12.142 14.2955C12.2993 14.4528 12.4998 14.56 12.718 14.6034C12.9363 14.6468 13.1625 14.6245 13.368 14.5394C13.5736 14.4542 13.7493 14.31 13.8729 14.125C13.9965 13.94 14.0625 13.7225 14.0625 13.5C14.0625 13.2016 13.944 12.9155 13.733 12.7045C13.522 12.4935 13.2359 12.375 12.9375 12.375ZM16.2921 3.52547L14.4893 10.0139C14.3902 10.3683 14.1782 10.6808 13.8854 10.9039C13.5927 11.1269 13.2352 11.2485 12.8672 11.25H5.9175C5.54838 11.2498 5.18945 11.1289 4.89544 10.9058C4.60143 10.6826 4.38848 10.3694 4.28906 10.0139L1.8225 1.125H0.5625C0.413316 1.125 0.270242 1.06574 0.164752 0.960248C0.0592632 0.854758 0 0.711684 0 0.5625C0 0.413316 0.0592632 0.270242 0.164752 0.164752C0.270242 0.0592632 0.413316 0 0.5625 0H2.25C2.37298 0 2.49257 0.040255 2.59048 0.11467C2.68839 0.189085 2.75921 0.293535 2.79211 0.412031L3.45867 2.8125H15.75C15.8367 2.81248 15.9223 2.83252 16 2.87103C16.0777 2.90955 16.1454 2.96551 16.1979 3.03454C16.2504 3.10357 16.2862 3.1838 16.3025 3.26896C16.3189 3.35412 16.3153 3.44191 16.2921 3.52547ZM15.0096 3.9375H3.77156L5.37539 9.71297C5.40829 9.83147 5.47911 9.93592 5.57702 10.0103C5.67493 10.0847 5.79452 10.125 5.9175 10.125H12.8672C12.9902 10.125 13.1098 10.0847 13.2077 10.0103C13.3056 9.93592 13.3764 9.83147 13.4093 9.71297L15.0096 3.9375Z"
+                  fill="currentColor" />
+              </svg>
+            </span>
+            <span class="mm__cart-text">Keranjang</span>
+            <em v-if="cartCount > 0" class="mm__badge">{{ cartCount }}</em>
+          </NuxtLink>
+
         </nav>
-        <NuxtLink to="/cart" class="mm__cart" @click="mobileOpen = false">
-          <img src="/img/icons/Cart.svg" alt="" /><span>Keranjang</span>
-          <em v-if="cartCount > 0" class="mm__badge">{{ cartCount }}</em>
-        </NuxtLink>
       </aside>
     </transition>
   </header>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed } from "vue";
 import { useRoute } from "vue-router";
 import { useCart } from "@/composables/useCart";
 
 const { items } = useCart();
-
 const cartCount = computed(() => {
-
   const ids = new Set(items.value.map(it => it.id));
   return ids.size;
 });
-
-const localeRef = ref<"id" | "en">("id");
-const langOpen = ref(false);
 const mobileOpen = ref(false);
-const currentLabel = computed(() => String(localeRef.value || "id").toUpperCase());
-
-function toggleLang() {
-  langOpen.value = !langOpen.value;
-}
-function setLocale(code: "id" | "en") {
-  localeRef.value = code;
-  langOpen.value = false;
-}
-
-function onDocClick(e: MouseEvent) {
-  const el = document.querySelector(".lang");
-  if (el && !el.contains(e.target as Node)) langOpen.value = false;
-}
-onMounted(() => document.addEventListener("click", onDocClick));
-onBeforeUnmount(() => document.removeEventListener("click", onDocClick));
-
-const showLang = false;
-
-onMounted(() => {
-  if (showLang) document.addEventListener("click", onDocClick);
-});
-onBeforeUnmount(() => {
-  if (showLang) document.removeEventListener("click", onDocClick);
-});
-
 const route = useRoute();
 const isExact = (path: string) => route.path === path;
 const isActive = (path: string) => route.path === path || route.path.startsWith(path + "/");
@@ -215,62 +179,7 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
   text-align: center;
 }
 
-.lang {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  user-select: none;
-}
-
-.lang__code {
-  font: 600 16px "Urbanist", sans-serif;
-  color: #f79f24;
-  line-height: 1;
-}
-
-.lang__caret {
-  width: 18px;
-  height: 18px;
-  color: #f79f24;
-  transition: transform 0.18s;
-}
-
-.lang.is-open .lang__caret {
-  transform: rotate(180deg);
-}
-
-.lang__menu {
-  list-style: none;
-  margin: 0;
-  padding: 6px 0;
-  position: absolute;
-  right: 0;
-  top: calc(100% + 6px);
-  background: #fff;
-  border: 1px solid #e5e5e5;
-  border-radius: 8px;
-  min-width: 90px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-  z-index: 50;
-  font-size: 14px;
-}
-
-.lang__item {
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-family: "Urbanist", sans-serif;
-  color: #f79f24;
-  text-align: left;
-}
-
-.lang__item:hover {
-  background: #fff3e3;
-}
-
 .hamburger {
-  display: none;
   border: none;
   background: transparent;
   cursor: pointer;
@@ -341,33 +250,85 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
 }
 
 .mm__link {
-  font: 400 16px "Urbanist", sans-serif;
+  font: 500 16px "Urbanist", sans-serif;
   color: #0a0a0a;
   text-decoration: none;
-  padding: 8px 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.mm__link:hover {
+  background: #f5ba62;
+  color: #fff;
+}
+
+.mm__link.router-link-exact-active {
+  background: #f79f24;
+  color: #fff;
 }
 
 .mm__cart {
-  margin-top: auto;
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: #f79f24;
-  color: #fff;
+  justify-content: space-between;
+  background: #fff;
+  color: #0a0a0a;
   border-radius: 12px;
   padding: 12px 16px;
   font-weight: 600;
   text-decoration: none;
+  transition: all 0.2s;
 }
 
-.mm__cart img {
+.mm__cart:hover,
+.mm__cart.router-link-exact-active {
+  background: #f5ba62;
+  color: #fff;
+}
+
+.mm__cart svg {
   width: 18px;
   height: 18px;
-  filter: brightness(0) invert(1);
+  flex-shrink: 0;
+  margin-right: 8px;
+}
+
+.mm__cart-text {
+  flex: 1;
+  text-align: left;
+  font: 600 16px "Urbanist", sans-serif;
 }
 
 .mm__badge {
-  margin-left: auto;
+  background: #ff4d4f;
+  color: #fff;
+  border-radius: 999px;
+  padding: 0 7px;
+  font-size: 12px;
+  line-height: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+}
+
+/* Hover state ikut putih */
+.mm__cart:hover svg path,
+.mm__cart.router-link-exact-active svg path {
+  fill: white;
+}
+
+
+
+.mm__cart:hover svg path,
+.mm__cart.router-link-exact-active svg path {
+  fill: white;
+}
+
+.mm__badge {
+  margin-left: 8px;
   background: #ff4d4f;
   color: #fff;
   border-radius: 999px;
@@ -406,8 +367,7 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
     display: none !important;
   }
 
-  .navbar__cart,
-  .lang {
+  .navbar__cart {
     display: inline-flex;
   }
 }
@@ -448,8 +408,7 @@ const isActive = (path: string) => route.path === path || route.path.startsWith(
   }
 
   .navbar__menu,
-  .navbar__cart,
-  .lang {
+  .navbar__cart {
     display: none !important;
   }
 

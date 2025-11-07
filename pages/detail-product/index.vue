@@ -12,13 +12,16 @@
 
     <div class="cols">
       <div class="col col--left">
-        <div v-if="loading" class="media skel"></div>
+        <div v-if="loading" class="media skel">
+          <div class="sk-hero-actions">
+            <span class="sk-sq skel"></span>
+            <span class="sk-sq skel"></span>
+          </div>
+        </div>
 
         <template v-else>
-          <figure class="media" @touchstart="ts = $event.touches[0].clientX" @touchend="
-            te = $event.changedTouches[0].clientX;
-          onSwipe();
-          ">
+          <figure class="media" @touchstart="ts = $event.touches[0].clientX"
+            @touchend="te = $event.changedTouches[0].clientX; onSwipe();">
             <img :src="product.images[current] || product.image" :alt="product.name" />
             <div class="badge">
               <svg class="badge__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
@@ -51,60 +54,59 @@
               {{ product.description || "—" }}
             </p>
             <button v-if="canToggle" class="desc__read" type="button" @click="toggleDesc"
-              :class="{ 'is-open': isExpanded }">
-              Baca semua
+              :class="{ 'is-open': isExpanded }" :aria-expanded="isExpanded">
+              {{ isExpanded ? 'Tutup' : 'Baca semua' }}
               <img class="caret" src="/img/icons/CaretDownOrange.svg" alt="" />
             </button>
+
           </section>
         </template>
       </div>
 
       <div class="col col--right">
         <template v-if="loading">
-          <div class="skline skline--lg skel"></div>
-          <div class="skline skline--sm skel"></div>
-          <div class="skline skel" style="width: 160px; height: 24px; border-radius: 8px"></div>
-          <div class="skline skline--sm skel"></div>
-          <div class="skblock">
-            <div class="skline skel" style="width: 140px"></div>
-            <div class="skgrid">
-              <div v-for="i in 6" :key="'sksize' + i" class="skopt skel"></div>
+          <div class="sk-wrap">
+            <div class="skline sk-title skel"></div>
+            <div class="skline sk-cat skel"></div>
+            <div class="skchip sk-pricechip skel"></div>
+            <div class="skline sk-tax skel"></div>
+            <div class="skblock">
+              <div class="skline sk-size-label skel"></div>
+              <div class="skgrid">
+                <div v-for="i in 6" :key="'sksize' + i" class="skopt skel"></div>
+              </div>
             </div>
+            <div class="skblock">
+              <div class="skline sk-color-label skel"></div>
+              <div class="skgrid">
+                <div v-for="i in 6" :key="'skcolor' + i" class="skopt skel"></div>
+              </div>
+            </div>
+            <div class="skline sk-qty-label skel"></div>
+            <div class="skbtn sk-input skel"></div>
+            <div class="skline skel" style="width: 100px; height: 16px; margin-top: 12px;"></div>
+            <div class="skbtn skel" style="height: 44px; border-radius: 10px; margin-top: 12px;"></div>
+            <section class="desc desc--mobile">
+              <div class="skline sk-desc-head skel"></div>
+              <div class="skline sk-desc-1 skel"></div>
+              <div class="skline sk-desc-2 skel"></div>
+            </section>
+            <section class="ship">
+              <div class="skline sk-ship-head skel"></div>
+              <div class="ship__row">
+                <div class="skbox skel"></div>
+                <div class="skline sk-ship-1 skel"></div>
+              </div>
+              <div class="ship__row">
+                <div class="skbox skel"></div>
+                <div class="skline sk-ship-2 skel"></div>
+              </div>
+              <div class="ship__row">
+                <div class="skbox skel"></div>
+                <div class="skline sk-ship-3 skel"></div>
+              </div>
+            </section>
           </div>
-          <div class="skblock">
-            <div class="skline skel" style="width: 120px"></div>
-            <div class="skgrid">
-              <div v-for="i in 6" :key="'skcolor' + i" class="skopt skel"></div>
-            </div>
-          </div>
-          <div class="skline skel" style="width: 100px"></div>
-          <div class="skbtn skel"></div>
-          <section class="desc desc--mobile">
-            <div class="skline skel" style="width: 100px"></div>
-            <div class="skline skel"></div>
-            <div class="skline skel" style="width: 80%"></div>
-          </section>
-          <section class="ship">
-            <div class="skline skel" style="width: 180px; margin-bottom: 4px;"></div>
-            <div class="ship__row">
-              <div class="skel" style="width:46px;height:46px;border-radius:8px;"></div>
-              <div style="flex:1;">
-                <div class="skline skel" style="width: 80%"></div>
-              </div>
-            </div>
-            <div class="ship__row">
-              <div class="skel" style="width:46px;height:46px;border-radius:8px;"></div>
-              <div style="flex:1;">
-                <div class="skline skel" style="width: 78%"></div>
-              </div>
-            </div>
-            <div class="ship__row">
-              <div class="skel" style="width:46px;height:46px;border-radius:8px;"></div>
-              <div style="flex:1;">
-                <div class="skline skel" style="width: 70%"></div>
-              </div>
-            </div>
-          </section>
         </template>
 
         <template v-else>
@@ -158,10 +160,11 @@
               {{ product.description || "—" }}
             </p>
             <button v-if="canToggle" class="desc__read" type="button" @click="toggleDesc"
-              :class="{ 'is-open': isExpanded }">
-              Baca semua
+              :class="{ 'is-open': isExpanded }" :aria-expanded="isExpanded">
+              {{ isExpanded ? 'Tutup' : 'Baca semua' }}
               <img class="caret" src="/img/icons/CaretDownOrange.svg" alt="" />
             </button>
+
           </section>
 
           <section class="ship">
@@ -187,6 +190,7 @@
       <Recommendations v-if="rec.length" class="product-recs" title="Rekomendasi Untuk di Beli" :items="rec" />
       <div v-else class="rec-empty"></div>
     </template>
+
     <div v-else class="rec-skeleton">
       <div class="rec-skeleton__head">
         <div class="skline skel" style="width: 200px; height: 24px;"></div>
@@ -216,8 +220,8 @@ import { useRoute, useRouter } from "vue-router";
 import ApiService from "@/core/services/ApiService";
 import { useCurrency } from "@/composables/useCurrency";
 import { useCart } from "@/composables/useCart";
-const { formatIDR } = useCurrency();
 
+const { formatIDR } = useCurrency();
 useHead({ title: "Detail Product" });
 
 type VariantOpt = { id: string; name: string };
@@ -236,8 +240,7 @@ const { addItem } = useCart();
 
 const apiKey = (config.public.xApiKey || config.public.apiKey || "") as string;
 const headers = apiKey ? { "x-api-key": apiKey } : undefined;
-const assetBase =
-  (config.public.assetBase as string) || (config.public.baseURL as string)?.replace(/\/api\/?$/, "") || "";
+const assetBase = (config.public.assetBase as string) || (config.public.baseURL as string)?.replace(/\/api\/?$/, "") || "";
 const asset = (p?: string) => (!p ? "" : p.startsWith("http") ? p : `${assetBase}/${p.replace(/^\/+/, "")}`);
 
 function ensureSession(): string {
@@ -384,8 +387,7 @@ function mapProduct(p: ProductApi) {
 async function fetchDetailById(slug: string) {
   const detail = await ApiService.query(`/product/${slug}`, {});
   if (!detail.error.value && detail.data.value) {
-    const raw =
-      (detail.data.value as any)?.data?.product || (detail.data.value as any)?.data || (detail.data.value as any);
+    const raw = (detail.data.value as any)?.data?.product || (detail.data.value as any)?.data || (detail.data.value as any);
     if (raw && raw.id) {
       const list = await ApiService.query("/product", { params: { page: 1 } });
       const arr: ProductApi[] = (list.data.value as any)?.data?.products?.data || [];
@@ -400,7 +402,6 @@ async function fetchDetailById(slug: string) {
           tags: (p.variants?.find((v) => v.name?.toLowerCase() === "warna")?.options || [])
             .map((o) => String(o.name ?? "").trim())
             .filter(Boolean),
-
           soldOut: Number(p.quantity ?? 0) <= 0,
         }));
       return raw as ProductApi;
@@ -488,8 +489,6 @@ async function onAddToCart() {
     return;
   }
   if (!canAdd.value) return;
-
-  // Cart is local-only now; skip POST /cart
   addItem({
     id: product.value.id as string,
     name: product.value.name,
@@ -518,14 +517,11 @@ onMounted(async () => {
   onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 });
 
-watch(
-  () => route.query.slug || route.query.id,
-  async () => {
-    await nextTick();
-    scrollTopForce();
-    fetchPage();
-  }
-);
+watch(() => route.query.slug || route.query.id, async () => {
+  await nextTick();
+  scrollTopForce();
+  fetchPage();
+});
 
 watch(loading, async (v) => {
   if (v === false) {
@@ -553,15 +549,15 @@ const currentClamp = computed(() => {
 });
 function readLineCount(el: HTMLElement | null) {
   if (!el) return 0;
-  const prevClamp = el.style.getPropertyValue('--clamp');
-  el.style.setProperty('--clamp', '999');
-  el.classList.remove('is-clamped');
+  const prevClamp = el.style.getPropertyValue("--clamp");
+  el.style.setProperty("--clamp", "999");
+  el.classList.remove("is-clamped");
   const cs = getComputedStyle(el);
   const lhStr = cs.lineHeight;
-  const lineHeight = lhStr === 'normal' ? 24 : parseFloat(lhStr);
+  const lineHeight = lhStr === "normal" ? 24 : parseFloat(lhStr);
   const lines = Math.round(el.scrollHeight / lineHeight);
-  el.style.setProperty('--clamp', prevClamp || String(currentClamp.value));
-  if (canToggle.value && !isExpanded.value) el.classList.add('is-clamped');
+  el.style.setProperty("--clamp", prevClamp || String(currentClamp.value));
+  if (canToggle.value && !isExpanded.value) el.classList.add("is-clamped");
   return lines;
 }
 function measureDesc() {
@@ -576,14 +572,14 @@ function toggleDesc() {
   requestAnimationFrame(() => {
     const el = descBodyEl.value || descBodyElMobile.value;
     if (!el) return;
-    el.style.setProperty('--clamp', String(currentClamp.value));
+    el.style.setProperty("--clamp", String(currentClamp.value));
   });
 }
 onMounted(() => {
   nextTick(measureDesc);
-  window.addEventListener('resize', measureDesc);
+  window.addEventListener("resize", measureDesc);
 });
-onBeforeUnmount(() => window.removeEventListener('resize', measureDesc));
+onBeforeUnmount(() => window.removeEventListener("resize", measureDesc));
 watch(() => product.value.description, () => {
   isExpanded.value = false;
   nextTick(measureDesc);
@@ -620,15 +616,20 @@ watch(() => product.value.description, () => {
 
 .cols {
   display: grid;
-  grid-template-columns: 440px 1fr;
   gap: 28px;
   align-items: start;
+  grid-template-columns: clamp(300px, 38vw, 480px) minmax(0, 1fr);
   margin-top: 40px;
+
+}
+
+.col {
+  min-width: 0;
 }
 
 @media (max-width: 1280px) {
   .cols {
-    grid-template-columns: 400px 1fr;
+    grid-template-columns: repeat(2, minmax(1, 1fr));
     gap: 24px;
   }
 }
@@ -700,7 +701,7 @@ watch(() => product.value.description, () => {
 .media.skel {
   background: linear-gradient(270deg, rgba(219, 219, 219, 0.05) 0%, #dbdbdb 50%, rgba(219, 219, 219, 0.05) 100%);
   background-size: 200% 100%;
-  animation: shimmer 1.2s infinite linear;
+  animation: shimmer 1.4s infinite linear;
   border-radius: 12px;
 }
 
@@ -717,6 +718,156 @@ watch(() => product.value.description, () => {
     width: 100%;
     height: auto;
     aspect-ratio: 1/1;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+}
+
+/* mobile strict like mockup */
+@media (max-width: 520px) {
+  .cols {
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .media,
+  .media img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1/1;
+  }
+
+  .media.skel {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1/1;
+    max-width: none;
+    border-radius: 12px;
+    margin: 0 0 12px 0;
+  }
+
+  .sk-title {
+    width: 68%;
+    height: 26px;
+  }
+
+  .sk-cat {
+    width: 34%;
+    height: 14px;
+  }
+
+  .sk-pricechip {
+    width: 160px;
+    height: 26px;
+  }
+
+  .sk-tax {
+    width: 44%;
+    height: 14px;
+    margin-top: 4px;
+  }
+
+  .skgrid {
+    grid-template-columns: repeat(3, 1fr);
+    column-gap: 8px;
+    row-gap: 10px;
+    margin-top: 8px;
+  }
+
+  .skopt {
+    height: 34px;
+    border-radius: 8px;
+  }
+
+  .sk-qty-label {
+    width: 64px;
+    height: 14px;
+  }
+
+  .sk-input {
+    height: 42px;
+    border-radius: 10px;
+  }
+
+  .sk-wrap>* {
+    margin-bottom: 10px;
+  }
+
+  .sk-desc-head {
+    width: 120px;
+    height: 16px;
+  }
+
+  .sk-desc-1 {
+    width: 100%;
+    height: 14px;
+  }
+
+  .sk-desc-2 {
+    width: 84%;
+    height: 14px;
+  }
+
+  .sk-ship-head {
+    width: 180px;
+    height: 18px;
+    margin-bottom: 6px;
+  }
+
+  .skbox {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+  }
+
+  .sk-ship-1 {
+    width: 85%;
+    height: 14px;
+    flex: 1;
+  }
+
+  .sk-ship-2 {
+    width: 80%;
+    height: 14px;
+    flex: 1;
+  }
+
+  .sk-ship-3 {
+    width: 72%;
+    height: 14px;
+    flex: 1;
+  }
+
+  .rec-skeleton__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .skthumb {
+    height: 140px;
+    border-radius: 12px;
+  }
+
+  .sk-name {
+    height: 14px;
+    width: 70%;
+    margin: 6px 0 8px;
+  }
+
+  .sktag {
+    width: 54px;
+    height: 20px;
+  }
+
+  .sk-price {
+    height: 16px;
+    width: 90px;
+  }
+}
+
+@media (max-width: 360px) {
+  .rec-skeleton__grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -788,6 +939,23 @@ watch(() => product.value.description, () => {
 .navbtn:hover {
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* hero skeleton additional squares */
+.sk-hero-actions {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 10px;
+  z-index: 2;
+}
+
+.sk-hero-actions .sk-sq {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .04);
 }
 
 .desc {
@@ -1006,7 +1174,7 @@ watch(() => product.value.description, () => {
 .skel {
   background: linear-gradient(270deg, rgba(219, 219, 219, 0.05) 0%, #dbdbdb 50%, rgba(219, 219, 219, 0.05) 100%);
   background-size: 200% 100%;
-  animation: shimmer 1.2s infinite linear;
+  animation: shimmer 1.4s infinite linear;
   border-radius: 8px;
 }
 
@@ -1020,23 +1188,37 @@ watch(() => product.value.description, () => {
   }
 }
 
+.sk-wrap>* {
+  margin-bottom: 10px;
+}
+
 .skline {
   height: 18px;
   width: 60%;
   border-radius: 6px;
-  margin: 8px 0 6px;
 }
 
-.skline--lg {
+.sk-title {
+  width: 72%;
   height: 28px;
-  width: 70%;
   border-radius: 8px;
 }
 
-.skline--sm {
-  height: 14px;
+.sk-cat {
   width: 140px;
-  border-radius: 6px;
+  height: 14px;
+}
+
+.sk-pricechip {
+  width: 150px;
+  height: 24px;
+  border-radius: 8px;
+}
+
+.sk-tax {
+  width: 120px;
+  height: 16px;
+  margin-top: 4px;
 }
 
 .skblock {
@@ -1046,7 +1228,8 @@ watch(() => product.value.description, () => {
 .skgrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px 8px;
+  column-gap: 8px;
+  row-gap: 12px;
   margin-top: 8px;
 }
 
@@ -1055,21 +1238,90 @@ watch(() => product.value.description, () => {
   border-radius: 4px;
 }
 
-.skbtn {
-  margin-top: 12px;
+.sk-qty-label {
+  width: 90px;
+  height: 16px;
+}
+
+.sk-input {
   height: 44px;
   border-radius: 10px;
+  width: 100%;
+}
+
+.sk-desc-head {
+  width: 110px;
+  height: 16px;
+}
+
+.sk-desc-1 {
+  width: 100%;
+  height: 16px;
+}
+
+.sk-desc-2 {
+  width: 80%;
+  height: 16px;
+}
+
+.sk-ship-head {
+  width: 180px;
+  height: 18px;
+  margin-bottom: 6px;
+}
+
+.skbox {
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
+  margin-right: 12px;
+}
+
+.ship .ship__row {
+  align-items: center;
+}
+
+.sk-ship-1 {
+  width: 80%;
+  height: 16px;
+  flex: 1;
+}
+
+.sk-ship-2 {
+  width: 78%;
+  height: 16px;
+  flex: 1;
+}
+
+.sk-ship-3 {
+  width: 70%;
+  height: 16px;
+  flex: 1;
 }
 
 .rec-skeleton {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  width: 100%;
   margin-top: 24px;
 }
 
-.rec-skeleton .card {
+.rec-skeleton__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.rec-skeleton__nav {
+  display: flex;
+  gap: 12px;
+}
+
+.rec-skeleton__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.card {
   border-radius: 16px;
   padding: 12px;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, .04);
@@ -1110,15 +1362,39 @@ watch(() => product.value.description, () => {
 }
 
 @media (max-width: 1024px) {
-  .rec-skeleton {
+  .rec-skeleton__grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
 }
 
 @media (max-width: 520px) {
-  .rec-skeleton {
-    grid-template-columns: 1fr;
+  .rec-skeleton__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .sk-title {
+    width: 68%;
+  }
+
+  .skline {
+    width: 58%;
+  }
+
+  .sk-pricechip {
+    width: 150px;
+    height: 24px;
+  }
+
+  .sk-tax {
+    width: 140px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 </style>
