@@ -28,15 +28,22 @@
 
                     <div class="field">
                         <label class="label">Nama Lengkap</label>
-                        <input class="input" v-model.trim="form.name" placeholder="John" @blur="touched.name = true" />
-                        <p v-if="!form.name && shouldShow('name')" class="error-text">Nama lengkap wajib diisi.</p>
+                        <input class="input" :class="{ 'input--error': shouldShowError('name') }"
+                            v-model.trim="form.name" placeholder="John" @blur="touched.name = true" />
+                        <p v-if="!form.name && shouldShow('name')" class="error-text">Harap masukkan nama lengkap Anda
+                        </p>
+                        <p v-else-if="form.name.length < 3 && shouldShow('name')" class="error-text">Nama harus minimal
+                            3 karakter</p>
+                        <p v-else-if="!nameValid(form.name) && shouldShow('name')" class="error-text">Hanya boleh
+                            menggunakan huruf</p>
                     </div>
 
                     <div class="field">
                         <label class="label">Alamat</label>
-                        <input class="input" v-model.trim="form.address" placeholder="Perumahan ..."
-                            @blur="touched.address = true" />
-                        <p v-if="!form.address && shouldShow('address')" class="error-text">Alamat wajib diisi.</p>
+                        <input class="input" :class="{ 'input--error': shouldShowError('address') }"
+                            v-model.trim="form.address" placeholder="Perumahan ..." @blur="touched.address = true" />
+                        <p v-if="!form.address && shouldShow('address')" class="error-text">Mohon masukkan alamat Anda
+                        </p>
                     </div>
 
                     <div class="field">
@@ -50,25 +57,29 @@
                         <div class="field">
                             <label class="label">Provinsi</label>
                             <CustomSelect v-model="selProvinsi" :options="provinsiOpts" placeholder="Pilih provinsi"
-                                :invalid="!selProvinsi && shouldShow('provinsi')"
-                                @update:modelValue="touched.provinsi = true" />
-                            <p v-if="!selProvinsi && shouldShow('provinsi')" class="error-text">Provinsi wajib dipilih.
-                            </p>
+                                :invalid="shouldShowError('provinsi')" @update:modelValue="touched.provinsi = true" />
+                            <p v-if="!selProvinsi && shouldShow('provinsi')" class="error-text">Pilih provinsi terlebih
+                                dahulu</p>
                         </div>
                         <div class="field">
                             <label class="label">Kota</label>
                             <CustomSelect v-model="selKota" :options="kotaOpts" placeholder="Pilih kota"
-                                :invalid="!selKota && shouldShow('kota')" @update:modelValue="touched.kota = true" />
-                            <p v-if="!selKota && shouldShow('kota')" class="error-text">Kota wajib dipilih.</p>
+                                :invalid="shouldShowError('kota')" @update:modelValue="touched.kota = true" />
+                            <p v-if="!selKota && shouldShow('kota')" class="error-text">Pilih kota sesuai provinsi</p>
                         </div>
                     </div>
 
                     <div class="field">
                         <label class="label">Kode Pos</label>
-                        <input class="input" v-model.trim="form.postalcode" placeholder="50268" inputmode="numeric"
-                            maxlength="5" @input="digitsOnly('postalcode')" @blur="touched.postalcode = true" />
-                        <p v-if="!postalOk(form.postalcode) && shouldShow('postalcode')" class="error-text">Kode pos
-                            wajib 5 digit angka.</p>
+                        <input class="input" :class="{ 'input--error': shouldShowError('postalcode') }"
+                            v-model.trim="form.postalcode" placeholder="50268" inputmode="numeric" maxlength="5"
+                            @input="digitsOnly('postalcode')" @blur="touched.postalcode = true" />
+                        <p v-if="!form.postalcode && shouldShow('postalcode')" class="error-text">Masukkan kode pos Anda
+                        </p>
+                        <p v-else-if="form.postalcode && !/^[0-9]+$/.test(form.postalcode) && shouldShow('postalcode')"
+                            class="error-text">Hanya boleh mengandung angka</p>
+                        <p v-else-if="form.postalcode && form.postalcode.length !== 5 && shouldShow('postalcode')"
+                            class="error-text">Kode pos harus 5 digit</p>
                     </div>
 
                     <header class="sec-head mt-20">
@@ -78,18 +89,25 @@
 
                     <div class="field">
                         <label class="label">Email</label>
-                        <input class="input" v-model.trim="form.email" placeholder="johndoe@gmail.com"
-                            @blur="touched.email = true" />
-                        <p v-if="!emailOk(form.email) && shouldShow('email')" class="error-text">Mohon masukkan email
-                            yang valid.</p>
+                        <input class="input" :class="{ 'input--error': shouldShowError('email') }"
+                            v-model.trim="form.email" placeholder="johndoe@gmail.com" @blur="touched.email = true" />
+                        <p v-if="!emailOk(form.email) && shouldShow('email')" class="error-text">Harap masukkan alamat
+                            email yang valid</p>
                     </div>
 
                     <div class="field">
                         <label class="label">Nomor Telepon</label>
-                        <input class="input" v-model.trim="form.phone" placeholder="082000000000" inputmode="tel"
+                        <input class="input" :class="{ 'input--error': shouldShowError('phone') }"
+                            v-model.trim="form.phone" placeholder="082000000000" inputmode="tel"
                             @input="digitsOnly('phone', 15)" @blur="touched.phone = true" />
-                        <p v-if="!phoneOk(form.phone) && shouldShow('phone')" class="error-text">Nomor telepon wajib
-                            diisi (angka 9–15 digit).</p>
+                        <p v-if="!form.phone && shouldShow('phone')" class="error-text">Harap masukkan nomor telepon
+                            yang aktif</p>
+                        <p v-else-if="form.phone && !/^[0-9]+$/.test(form.phone) && shouldShow('phone')"
+                            class="error-text">Hanya boleh mengandung angka</p>
+                        <p v-else-if="form.phone && normalizePhone(form.phone).length < 10 && shouldShow('phone')"
+                            class="error-text">Nomor terlalu pendek (minimal 10 digit)</p>
+                        <p v-else-if="form.phone && normalizePhone(form.phone).length > 13 && shouldShow('phone')"
+                            class="error-text">Nomor terlalu panjang (maksimal 13 digit)</p>
                     </div>
 
                     <label class="agree">
@@ -185,6 +203,7 @@ const kotaOpts = ref<Opt[]>([])
 const sending = ref(false)
 const serverErrors = ref<Record<string, string[]>>({})
 
+const nameValid = (v: string) => /^[a-zA-Z\s]*$/.test(v)
 const emailOk = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
 const postalOk = (v: string) => /^[0-9]{5}$/.test(v)
 const normalizePhone = (raw: string) => {
@@ -193,17 +212,52 @@ const normalizePhone = (raw: string) => {
     if (d.startsWith('0')) return '62' + d.slice(1)
     return d
 }
-const phoneOk = (v: string) => /^[0-9]{10,15}$/.test(normalizePhone(v))
+const phoneOk = (v: string) => /^[0-9]{10,13}$/.test(normalizePhone(v))
 
 const showErr = ref(false)
-const touched = ref({ name: false, address: false, provinsi: false, kota: false, postalcode: false, email: false, phone: false })
+const touched = ref({
+    name: false,
+    address: false,
+    provinsi: false,
+    kota: false,
+    postalcode: false,
+    email: false,
+    phone: false
+})
+
 const shouldShow = (k: keyof typeof touched.value) => showErr.value || touched.value[k]
+const shouldShowError = (field: keyof typeof touched.value) => {
+    if (!shouldShow(field)) return false
+
+    switch (field) {
+        case 'name':
+            return !form.value.name || form.value.name.length < 3 || !nameValid(form.value.name)
+        case 'address':
+            return !form.value.address
+        case 'provinsi':
+            return !selProvinsi.value
+        case 'kota':
+            return !selKota.value
+        case 'postalcode':
+            return !form.value.postalcode || !/^[0-9]+$/.test(form.value.postalcode) || form.value.postalcode.length !== 5
+        case 'email':
+            return !emailOk(form.value.email)
+        case 'phone':
+            const phone = form.value.phone
+            const normalized = normalizePhone(phone)
+            return !phone || !/^[0-9]+$/.test(phone) || normalized.length < 10 || normalized.length > 13
+        default:
+            return false
+    }
+}
 
 const isSelected = (opt: any) => (typeof opt === 'string' ? !!opt.trim() : !!opt?.value)
 const optValue = (opt: any): string => (typeof opt === 'string' ? opt : opt?.value)
 
 const valid = computed(() =>
     !!form.value.name &&
+    form.value.name.length >= 3 &&
+    nameValid(form.value.name) &&
     !!form.value.address &&
     isSelected(selProvinsi.value) &&
     isSelected(selKota.value) &&
@@ -211,6 +265,7 @@ const valid = computed(() =>
     emailOk(form.value.email) &&
     phoneOk(form.value.phone)
 )
+
 const canProceed = computed(() => agreed.value && valid.value && !dbg.value.loading && displayedItems.value.length > 0)
 
 function digitsOnly(field: 'postalcode' | 'phone', maxLen = 5) {
@@ -238,6 +293,7 @@ async function fetchProvinsi(search = '') {
         provinsiOpts.value = []
     }
 }
+
 async function fetchKota(provinceId: string, search = '') {
     try {
         const { data } = await ApiService.query('/regency', { params: { province_id: provinceId, search } })
@@ -247,6 +303,7 @@ async function fetchKota(provinceId: string, search = '') {
         kotaOpts.value = []
     }
 }
+
 watch(selProvinsi, val => {
     selKota.value = null
     kotaOpts.value = []
@@ -262,10 +319,12 @@ onMounted(() => {
 
 const paymentFee = ref(0)
 const grandTotalWithFee = computed(() => total.value + paymentFee.value)
+
 async function fetchCartFee() {
     // Cart API disabled; fee handled at order time
     paymentFee.value = 0
 }
+
 watch(items, () => { fetchCartFee() }, { deep: true })
 
 type ResolvedOpts = { optionIds: string[]; combinationId?: string | null }
@@ -334,6 +393,7 @@ async function buildCartPayload(session_id: string) {
     try { console.debug('[cart:snapshot]', JSON.stringify({ session_id, products })) } catch { }
     return { session_id, products }
 }
+
 async function pushCartSnapshot(session_id: string) {
     // No-op: cart is local-only and sent directly with order
     return
@@ -376,9 +436,8 @@ async function submit() {
         success.value.open = true
     } catch (e: any) {
         const msg = e?.message || 'Gagal membuat order'
-        const errs = e?.errors || e?.data?.errors || e?.response?.errors || (e?.data && typeof e.data === 'object' ? e.data.errors : undefined) || {}
-        serverErrors.value = errs
-        alert(`${msg}\n\n${JSON.stringify(errs, null, 2)}`)
+        // Tidak menampilkan server errors seperti di gambar kedua
+        alert(`${msg}`)
     } finally {
         sending.value = false
     }
@@ -456,11 +515,16 @@ async function submit() {
     padding: 0 12px;
     border: 1px solid #e5e5e5;
     border-radius: 8px;
-    outline: none
+    outline: none;
+    transition: border-color 0.2s ease;
 }
 
 .input:focus {
     border-color: #c4c4c4
+}
+
+.input--error {
+    border-color: #d92d20 !important;
 }
 
 .label-row {
