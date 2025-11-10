@@ -13,6 +13,7 @@
         <NuxtLink :class="['navbar__link', isActive('/about-us') && 'active']" to="/about-us">Tentang Kami</NuxtLink>
         <NuxtLink :class="['navbar__link', isActive('/contact') && 'active']" to="/contact">Kontak</NuxtLink>
         <NuxtLink :class="['navbar__link', isActive('/help') && 'active']" to="/help">Bantuan</NuxtLink>
+        <NuxtLink :class="['navbar__link', isActive('/privacy') && 'active']" to="/privacy">Privacy</NuxtLink>
       </nav>
 
       <div class="navbar__right">
@@ -43,6 +44,7 @@
           <NuxtLink class="mm__link" to="/about-us" @click="mobileOpen = false">Tentang Kami</NuxtLink>
           <NuxtLink class="mm__link" to="/contact" @click="mobileOpen = false">Kontak</NuxtLink>
           <NuxtLink class="mm__link" to="/help" @click="mobileOpen = false">Bantuan</NuxtLink>
+          <NuxtLink class="mm__link" to="/privacy" @click="mobileOpen = false">Privacy</NuxtLink>
 
           <NuxtLink to="/cart" class="mm__cart" @click="mobileOpen = false">
             <span class="mm__cart-icon">
