@@ -42,7 +42,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-
 useHead({ title: 'Privacy & Policy' })
 
 type Faq = { id?: string; question: string; answer: string }
@@ -51,6 +50,8 @@ type ApiOk = { code: number; message: string; data: Record<string, any> }
 const BASE = (import.meta.env.VITE_APP_BASE_URL as string || '').replace(/\/+$/, '')
 const KEY = import.meta.env.VITE_APP_API_KEY as string
 
+const LS_KEY = 'privacy:v1'
+
 const loading = ref(true)
 const errorMsg = ref<string | null>(null)
 const statement = ref('')
@@ -58,31 +59,40 @@ const faqs = ref<Faq[]>([])
 const opened = ref<number | null>(0)
 const toggle = (i: number) => { opened.value = opened.value === i ? null : i }
 
-const safeGet = <T = unknown>(key: string): T | null => {
-    try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) as T : null } catch { localStorage.removeItem(key); return null }
+// LS helpers
+const lsGet = <T = unknown>(k: string): T | null => {
+    try { const raw = localStorage.getItem(k); return raw ? JSON.parse(raw) as T : null } catch { localStorage.removeItem(k); return null }
 }
-const safeSet = (key: string, val: unknown) => { try { localStorage.setItem(key, JSON.stringify(val)) } catch { } }
+const lsSet = (k: string, v: unknown) => { try { localStorage.setItem(k, JSON.stringify(v)) } catch { } }
 
 const findStatement = (bag: Record<string, any>): string => {
-    for (const k of Object.keys(bag || {})) if (k.replace(/\s/g, '').toLowerCase().includes('privacy_statement')) return String(bag[k] ?? '')
+    for (const k of Object.keys(bag || {})) {
+        if (k.replace(/\s/g, '').toLowerCase().includes('privacy_statement')) {
+            return String(bag[k] ?? '')
+        }
+    }
     return ''
 }
+
 
 async function load() {
     loading.value = true
     errorMsg.value = null
-    const cache = safeGet<{ ts: number; data: { statement: string; faqs: Faq[] } }>('privacy:page')
-    if (cache && Date.now() - cache.ts < 6 * 60 * 60 * 1000) {
-        statement.value = cache.data.statement
-        faqs.value = cache.data.faqs
+
+
+    const cached = lsGet<{ statement: string; faqs: Faq[]; updatedAt: number }>(LS_KEY)
+    if (cached?.statement || (cached?.faqs?.length ?? 0) > 0) {
+        statement.value = cached.statement || ''
+        faqs.value = cached.faqs || []
         loading.value = false
-        getRemote().then(apply).catch(() => { })
         return
     }
+
+
     try {
         const fresh = await getRemote()
         apply(fresh)
-        safeSet('privacy:page', { ts: Date.now(), data: fresh })
+        lsSet(LS_KEY, { ...fresh, updatedAt: Date.now() })
     } catch (e: any) {
         errorMsg.value = e?.message || 'Gagal memuat data.'
     } finally {
@@ -105,12 +115,30 @@ async function getRemote(): Promise<{ statement: string; faqs: Faq[] }> {
     const json = await res.json() as ApiOk
     const data = json?.data || {}
     const stmt = findStatement(data).replace(/\r\n/g, '\n').trim()
-    const list = Array.isArray(data.faqs) ? data.faqs.map((r: any) => ({ id: r.id, question: String(r.question || ''), answer: String(r.answer || '') })) : []
+    const list = Array.isArray(data.faqs)
+        ? data.faqs.map((r: any) => ({ id: r.id, question: String(r.question || ''), answer: String(r.answer || '') }))
+        : []
     return { statement: stmt, faqs: list }
+}
+
+
+async function forceRefresh() {
+    loading.value = true
+    errorMsg.value = null
+    try {
+        const fresh = await getRemote()
+        apply(fresh)
+        lsSet(LS_KEY, { ...fresh, updatedAt: Date.now() })
+    } catch (e: any) {
+        errorMsg.value = e?.message || 'Gagal menyegarkan.'
+    } finally {
+        loading.value = false
+    }
 }
 
 onMounted(load)
 </script>
+
 
 <style scoped>
 :root {
@@ -142,20 +170,24 @@ onMounted(load)
 }
 
 .intro {
-    border: 1px solid #EDEDED;
-    border-radius: 12px;
-    background: #FAFAFA;
-    padding: 14px 16px;
-    margin: 0 18px 24px;
+    border-radius: var(--Border-Radius-border-radius-300, 12px);
+    background: var(--Bg-color-bg, #FFF);
+    box-shadow: 0 4px 15px 0 rgba(16, 24, 40, 0.12);
+    padding: 20px 24px;
+    margin: 0 0 24px;
+    margin-top: 62px;
 }
 
 .intro__text {
-    margin: 0;
-    white-space: pre-line;
-    color: #555;
-    font-size: 14px;
-    line-height: 1.7;
+    color: var(--Text-color-text-neutral-primary, #0A0A0A);
     text-align: justify;
+    font-family: var(--Font-Family-Text-Body, Urbanist), system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: var(--Font-Size-SM, 16px);
+    font-style: normal;
+    font-weight: var(--Weight-weight-400, 400);
+    line-height: var(--Font-Line-Height-SM, 24px);
+    white-space: pre-line;
+    letter-spacing: 0;
 }
 
 .faq {
@@ -244,6 +276,18 @@ onMounted(load)
     color: #757575;
 }
 
+.privacy {
+    padding-bottom: 340px;
+
+}
+
+@media (max-width: 768px) {
+    .privacy {
+        padding-bottom: 120px;
+
+    }
+}
+
 @media (max-width: 1200px) {
     .privacy {
         padding-left: 24px;
@@ -264,6 +308,11 @@ onMounted(load)
     .privacy {
         padding-top: 32px
     }
+
+    .intro {
+        padding: 16px 18px;
+    }
+
 
     .hero__title {
         font-size: 26px

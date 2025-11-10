@@ -75,21 +75,19 @@ const idr = (n: number) => new Intl.NumberFormat('id-ID', { maximumFractionDigit
 }
 
 .card__thumb {
-    position: relative;
+    aspect-ratio: 1 / 1;
     width: 100%;
-    height: 230px;
-    background: #fff;
     overflow: hidden;
-    flex: 0 0 auto;
+    border-bottom: 1px solid #eee;
 }
 
 .card__thumb img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    display: block;
-    background: #fff;
+    object-fit: cover;
+    object-position: center;
 }
+
 
 .soldout-badge {
     position: absolute;

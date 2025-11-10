@@ -35,105 +35,68 @@
             <p>{{ errorMsg }}</p>
         </section>
 
-        <section v-else class="faq">
-            <div class="faqGrid">
-                <div class="faq__intro">
-                    <h2 class="faq__heading">Informasi Pengiriman</h2>
-                    <p class="faq__desc">
-                        Informasi mengenai proses pengiriman produk PHRI Shop, termasuk estimasi waktu, jasa ekspedisi
-                        yang digunakan, serta status pelacakan pesanan.
-                    </p>
+        <template v-else>
+            <section v-for="t in topics" :key="t.id" class="faq">
+                <div class="faqGrid">
+                    <div class="faq__intro">
+                        <h2 class="faq__heading">{{ t.title }}</h2>
+                        <p class="faq__desc">{{ t.description }}</p>
+                    </div>
+
+                    <div class="faq__list">
+                        <ul class="accordion" role="list">
+                            <li v-for="(q, i) in t.faqs" :key="`${t.id}-${i}`" class="accordion__item">
+                                <button class="accordion__button" :aria-expanded="opened[t.id] === i"
+                                    @click="toggle(t.id, i)">
+                                    <span class="accordion__q">{{ q.q }}</span>
+                                    <svg class="accordion__chev" viewBox="0 0 24 24" aria-hidden>
+                                        <path d="M6 9l6 6 6-6" stroke="#0A0A0A" stroke-width="1.6" fill="none"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </button>
+                                <div class="accordion__panel" v-show="opened[t.id] === i">
+                                    <p class="accordion__a">{{ q.a }}</p>
+                                </div>
+                            </li>
+
+                            <li v-if="!t.faqs.length" class="accordion__item">
+                                <div class="accordion__panel">
+                                    <p class="accordion__a">Belum ada data untuk topik ini.</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
+            </section>
 
-                <div class="faq__list">
-                    <ul class="accordion" role="list">
-                        <li v-for="(q, i) in shippingFaqs" :key="`ship-${i}-${q.q}`" class="accordion__item">
-                            <button class="accordion__button" :aria-expanded="openedShipping === i"
-                                @click="toggleShipping(i)">
-                                <span class="accordion__q">{{ q.q }}</span>
-                                <svg class="accordion__chev" viewBox="0 0 24 24" aria-hidden>
-                                    <path d="M6 9l6 6 6-6" stroke="#0A0A0A" stroke-width="1.6" fill="none"
-                                        stroke-linecap="round" stroke-linejoin="round" />
-
-                                </svg>
-                            </button>
-                            <div class="accordion__panel" v-show="openedShipping === i">
-                                <p class="accordion__a">{{ q.a }}</p>
-                            </div>
-                        </li>
-                        <li v-if="!shippingFaqs.length" class="accordion__item">
-                            <div class="accordion__panel">
-                                <p class="accordion__a">Belum ada data pengiriman.</p>
-                            </div>
-                        </li>
-                    </ul>
+            <section class="cta" aria-labelledby="ctaTitle">
+                <div class="cta__inner">
+                    <div class="cta__copy">
+                        <h3 id="ctaTitle" class="cta__title">Masih ada pertanyaan lain?</h3>
+                        <p class="cta__text">Hubungi tim kami melalui live chat atau email, dan kami akan dengan senang
+                            hati
+                            membantu.</p>
+                    </div>
+                    <button type="button" class="btn btn--primary" @click="$router.push('/contact')">
+                        Hubungi Kami
+                    </button>
                 </div>
-            </div>
-        </section>
-
-        <section v-if="!loading && !errorMsg" class="faq">
-            <div class="faqGrid">
-                <div class="faq__intro">
-                    <h2 class="faq__heading">Privasi & Data</h2>
-                    <p class="faq__desc">
-                        Informasi terkait pengelolaan data pribadi Anda, siapa yang mengelola, dan praktik privasi di
-                        PHRI Shop.
-                    </p>
-                </div>
-
-                <div class="faq__list">
-                    <ul class="accordion" role="list">
-                        <li v-for="(q, i) in privacyFaqs" :key="`priv-${i}-${q.q}`" class="accordion__item">
-                            <button class="accordion__button" :aria-expanded="openedPrivacy === i"
-                                @click="togglePrivacy(i)">
-                                <span class="accordion__q">{{ q.q }}</span>
-                                <svg class="accordion__chev" viewBox="0 0 24 24" aria-hidden>
-                                    <path d="M6 9l6 6 6-6" stroke="#0A0A0A" stroke-width="1.6" fill="none"
-                                        stroke-linecap="round" stroke-linejoin="round" />
-
-                                </svg>
-                            </button>
-                            <div class="accordion__panel" v-show="openedPrivacy === i">
-                                <p class="accordion__a">{{ q.a }}</p>
-                            </div>
-                        </li>
-                        <li v-if="!privacyFaqs.length" class="accordion__item">
-                            <div class="accordion__panel">
-                                <p class="accordion__a">Belum ada data privasi.</p>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-
-        <section class="cta" aria-labelledby="ctaTitle">
-            <div class="cta__inner">
-                <div class="cta__copy">
-                    <h3 id="ctaTitle" class="cta__title">Masih ada pertanyaan lain?</h3>
-                    <p class="cta__text">Hubungi tim kami melalui live chat atau email, dan kami akan dengan senang hati
-                        membantu.</p>
-                </div>
-                <button type="button" class="btn btn--primary" @click="$router.push('/contact')">
-                    Hubungi Kami
-                </button>
-
-
-            </div>
-        </section>
+            </section>
+        </template>
     </section>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 
-useHead({
-    title: 'Help'
-})
+useHead({ title: 'Help' })
 
-type RawFaq = { id: string; type: string; question: string; answer: string }
-type FaqResponse = { code: number; message: string; data: { faqs: RawFaq[] } }
+type RawFaq = { id: string; question: string; answer: string }
+type RawTopic = { id: string; title: string; description: string; faqs: RawFaq[] }
+type FaqTopicsResponse = { code: number; message: string; data: { faq_topics: RawTopic[] } }
+
 type QA = { q: string; a: string }
+type Topic = { id: string; title: string; description: string; faqs: QA[] }
 type CachePayload<T> = { ts: number; data: T }
 
 const BASE = (import.meta.env.VITE_APP_BASE_URL as string || '').replace(/\/+$/, '')
@@ -141,13 +104,12 @@ const KEY = import.meta.env.VITE_APP_API_KEY as string
 
 const loading = ref(true)
 const errorMsg = ref<string | null>(null)
-const shippingFaqs = ref<QA[]>([])
-const privacyFaqs = ref<QA[]>([])
+const topics = ref<Topic[]>([])
 
-const openedShipping = ref<number | null>(0)
-const openedPrivacy = ref<number | null>(0)
-const toggleShipping = (i: number) => { openedShipping.value = openedShipping.value === i ? null : i }
-const togglePrivacy = (i: number) => { openedPrivacy.value = openedPrivacy.value === i ? null : i }
+const opened = reactive<Record<string, number | null>>({})
+const toggle = (topicId: string, i: number) => {
+    opened[topicId] = opened[topicId] === i ? null : i
+}
 
 const safeGet = <T = unknown>(key: string): T | null => {
     try {
@@ -168,8 +130,8 @@ const safeSet = (key: string, val: unknown) => {
 
 const isFresh = (ts: number, ttlMs: number) => (Date.now() - ts) < ttlMs
 
-async function getFaq(path: string): Promise<FaqResponse> {
-    const url = `${BASE}/${path.replace(/^\/+/, '')}`
+async function getFaqTopics(): Promise<FaqTopicsResponse> {
+    const url = `${BASE}/faq`
     const res = await fetch(url, {
         headers: {
             'x-api-key': KEY,
@@ -178,77 +140,55 @@ async function getFaq(path: string): Promise<FaqResponse> {
     })
     if (!res.ok) {
         const text = await res.text().catch(() => '')
-        throw new Error(`Gagal memuat ${path} (HTTP ${res.status})${text ? ` - ${text}` : ''}`)
+        throw new Error(`Gagal memuat FAQ (HTTP ${res.status})${text ? ` - ${text}` : ''}`)
     }
-    return res.json() as Promise<FaqResponse>
+    return res.json() as Promise<FaqTopicsResponse>
 }
 
-const mapFaqs = (rows: RawFaq[]): QA[] => (rows || []).map(r => ({ q: r.question, a: r.answer }))
+const mapTopics = (rows: RawTopic[]): Topic[] =>
+    (rows || []).map(t => ({
+        id: t.id,
+        title: t.title,
+        description: t.description,
+        faqs: (t.faqs || []).map(f => ({ q: f.question, a: f.answer })),
+    }))
 
 const DEFAULT_TTL = 6 * 60 * 60 * 1000
-async function fetchFaqCached(path: string, cacheKey: string, ttlMs = DEFAULT_TTL): Promise<QA[]> {
-    const cached = safeGet<CachePayload<QA[]>>(cacheKey)
-    let fromCache: QA[] | null = null
-    if (cached && Array.isArray(cached.data) && cached.ts) {
-        if (isFresh(cached.ts, ttlMs)) {
-            fromCache = cached.data
-        } else {
-            fromCache = cached.data
-        }
-    }
-    if (fromCache) {
-        const age = Date.now() - (cached!.ts)
-        const shouldRevalidate = age > ttlMs * 0.5
-        if (shouldRevalidate) {
-            getFaq(path)
-                .then(res => {
-                    const fresh = mapFaqs(res?.data?.faqs || [])
-                    safeSet(cacheKey, { ts: Date.now(), data: fresh } as CachePayload<QA[]>)
-                    if (cacheKey === 'faq:shipping') shippingFaqs.value = fresh
-                    if (cacheKey === 'faq:privacy') privacyFaqs.value = fresh
-                })
-                .catch(() => { })
-        }
-        return fromCache
-    }
-    const res = await getFaq(path)
-    const fresh = mapFaqs(res?.data?.faqs || [])
-    safeSet(cacheKey, { ts: Date.now(), data: fresh } as CachePayload<QA[]>)
-    return fresh
-}
 
-async function forceRefreshAll() {
-    loading.value = true
-    errorMsg.value = null
-    try {
-        const [ship, priv] = await Promise.all([
-            getFaq('faq-shipping').then(r => mapFaqs(r?.data?.faqs || [])),
-            getFaq('faq-privacy').then(r => mapFaqs(r?.data?.faqs || [])),
-        ])
-        shippingFaqs.value = ship
-        privacyFaqs.value = priv
-        safeSet('faq:shipping', { ts: Date.now(), data: ship } as CachePayload<QA[]>)
-        safeSet('faq:privacy', { ts: Date.now(), data: priv } as CachePayload<QA[]>)
-    } catch (e: any) {
-        errorMsg.value = e?.message || 'Gagal menyegarkan FAQ.'
-    } finally {
-        loading.value = false
+async function fetchTopicsCached(ttlMs = DEFAULT_TTL): Promise<Topic[]> {
+    const cached = safeGet<CachePayload<Topic[]>>('faq:topics')
+    let fromCache: Topic[] | null = null
+    if (cached && Array.isArray(cached.data) && cached.ts) {
+        fromCache = cached.data
+        if (isFresh(cached.ts, ttlMs)) {
+            const age = Date.now() - cached.ts
+            const shouldRevalidate = age > ttlMs * 0.5
+            if (shouldRevalidate) {
+                getFaqTopics()
+                    .then(r => {
+                        const fresh = mapTopics(r?.data?.faq_topics || [])
+                        safeSet('faq:topics', { ts: Date.now(), data: fresh } as CachePayload<Topic[]>)
+                    })
+                    .catch(() => { })
+            }
+            return fromCache
+        }
     }
+
+    const res = await getFaqTopics()
+    const fresh = mapTopics(res?.data?.faq_topics || [])
+    safeSet('faq:topics', { ts: Date.now(), data: fresh } as CachePayload<Topic[]>)
+    return fresh
 }
 
 async function loadAll() {
     loading.value = true
     errorMsg.value = null
     try {
-        const [ship, priv] = await Promise.all([
-            fetchFaqCached('faq-shipping', 'faq:shipping'),
-            fetchFaqCached('faq-privacy', 'faq:privacy'),
-        ])
-        shippingFaqs.value = ship
-        privacyFaqs.value = priv
-        if (!ship.length && !priv.length) {
-            errorMsg.value = 'Belum ada data FAQ.'
-        }
+        const data = await fetchTopicsCached()
+        topics.value = data
+        topics.value.forEach(t => { if (!(t.id in opened)) opened[t.id] = 0 })
+        if (!topics.value.length) errorMsg.value = 'Belum ada data FAQ.'
     } catch (e: any) {
         errorMsg.value = e?.message || 'Terjadi kesalahan saat memuat FAQ.'
     } finally {
@@ -271,7 +211,6 @@ onMounted(loadAll)
     --max: 1160px;
     --callout-w: clamp(320px, 88vw, 640px);
 }
-
 
 .help {
     max-width: var(--max);
@@ -358,7 +297,6 @@ onMounted(loadAll)
     hyphens: auto;
 }
 
-
 .faq {
     padding: 0 100px;
 }
@@ -389,7 +327,6 @@ onMounted(loadAll)
     margin: 0;
     max-width: unset;
 }
-
 
 .accordion {
     list-style: none;
@@ -433,7 +370,7 @@ onMounted(loadAll)
     font-size: 15px;
     font-weight: 600;
     line-height: 1.55;
-    transition: background 0.2s ease;
+    transition: background .2s ease;
 }
 
 .accordion__button:hover {
@@ -452,7 +389,7 @@ onMounted(loadAll)
 .accordion__chev {
     width: 18px;
     height: 18px;
-    transition: transform 0.25s ease;
+    transition: transform .25s ease;
 }
 
 [aria-expanded="true"] .accordion__chev {
@@ -474,8 +411,6 @@ onMounted(loadAll)
     color: #757575;
 }
 
-
-/* ===== CTA (Masih ada pertanyaan lain?) ===== */
 .cta {
     display: flex;
     justify-content: center;
@@ -535,7 +470,6 @@ onMounted(loadAll)
     filter: brightness(.98);
 }
 
-/* Responsive untuk CTA */
 @media (max-width: 768px) {
     .cta__inner {
         flex-direction: column;
@@ -548,8 +482,6 @@ onMounted(loadAll)
         align-self: flex-start;
     }
 }
-
-
 
 .backtop {
     position: fixed;
@@ -567,7 +499,6 @@ onMounted(loadAll)
 .backtop:hover {
     background: #FFF2DF;
 }
-
 
 @media (max-width: 1200px) {
     .help {
@@ -691,7 +622,6 @@ onMounted(loadAll)
     padding-top: 24px;
     border-top: 1px solid #F3F4F6;
 }
-
 
 @media (max-width: 768px) {
     .faq+.faq {

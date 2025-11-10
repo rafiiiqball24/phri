@@ -1,17 +1,34 @@
 <template>
     <section class="container">
-        <Breadcrumb :items="[
-            { label: 'Beranda', to: '/' },
-            { label: 'Detail Produk', to: '/detail-product' },
-            { label: 'Keranjang', to: '/cart' },
-            { label: 'Pemesanan' }
-        ]" />
+        <nav class="bc" aria-label="Breadcrumb">
+            <ol class="bc__list">
+                <li v-for="(it, i) in crumbsView" :key="i" class="bc__item"
+                    :class="{ current: i === crumbsView.length - 1 }">
+                    <span v-if="i > 0" class="bc__sep">›</span>
+
+                    <!-- kalau bukan titik -->
+                    <NuxtLink v-if="it.to && !it.isEllipsis && i !== crumbsView.length - 1" :to="it.to"
+                        class="bc__link">
+                        {{ it.label }}
+                    </NuxtLink>
+
+                    <!-- kalau titik -->
+                    <NuxtLink v-else-if="it.isEllipsis" to="/detail-product" class="bc__link bc__dots">
+                        …
+                    </NuxtLink>
+
+                    <!-- teks terakhir -->
+                    <span v-else class="bc__text" :aria-current="i === crumbsView.length - 1 ? 'page' : undefined">
+                        {{ it.label }}
+                    </span>
+                </li>
+            </ol>
+        </nav>
 
         <div class="cols">
             <section class="left">
-                <div v-if="showErr && !valid" class="error-banner">
-                    Mohon lengkapi data yang wajib diisi dan pastikan format sudah benar.
-                </div>
+                <div v-if="showErr && !valid" class="error-banner">Mohon lengkapi data yang wajib diisi dan pastikan
+                    format sudah benar.</div>
 
                 <template v-if="dbg.loading">
                     <div class="skel skel--title"></div>
@@ -140,16 +157,12 @@
             </aside>
 
             <aside v-else class="right">
-                <SummaryBox title="Ringkasan Pembelian" :count-label="`${displayedItems.length} Item`" :lines="[
-                    ...displayedItems.map(it => ({ name: `${it.qty}× ${it.name}`, price: it.price * it.qty })),
-                    ...(paymentFee > 0 ? [{ name: 'Payment Fee', price: paymentFee }] : [])
-                ]" total-label="Total Pembayaran" :total="grandTotalWithFee" :links="[
-            { label: 'Butuh Bantuan?', to: '/Help' },
-            { label: 'Hubungi Kami', to: '/contact', underline: true },
-            { label: 'Informasi Pengiriman', to: '/Help', underline: true }
-        ]">
+                <SummaryBox title="Ringkasan Pembelian" :count-label="`${displayedItems.length} Item`"
+                    :lines="[...displayedItems.map(it => ({ name: `${it.qty}× ${it.name}`, price: it.price * it.qty })), ...(paymentFee > 0 ? [{ name: 'Payment Fee', price: paymentFee }] : [])]"
+                    total-label="Total Pembayaran" :total="grandTotalWithFee"
+                    :links="[{ label: 'Butuh Bantuan?', to: '/Help' }, { label: 'Hubungi Kami', to: '/contact', underline: true }, { label: 'Informasi Pengiriman', to: '/Help', underline: true }]">
                     <template #extra>
-                        <div style="margin-top: 4px">
+                        <div style="margin-top:4px">
                             <MiniCartItem v-for="it in displayedItems" :key="it.id" :image="it.image" :name="it.name"
                                 :color="it.color" :size="it.size" :qty="it.qty" :price="it.price" />
                         </div>
@@ -163,11 +176,9 @@
             <div class="modal__card" role="dialog" aria-modal="true" aria-label="Order Berhasil">
                 <div class="modal__icon">✔</div>
                 <h3 class="modal__title">Order Berhasil</h3>
-                <p class="modal__desc">
-                    Terima kasih, pesananmu sudah kami terima<span v-if="success.orderCode"> (#{{ success.orderCode
-                        }})</span>.
-                    Silakan cek email untuk instruksi pembayaran dan detail pengiriman.
-                </p>
+                <p class="modal__desc">Terima kasih, pesananmu sudah kami terima<span v-if="success.orderCode"> (#{{
+                    success.orderCode }})</span>. Silakan cek email untuk instruksi pembayaran dan detail
+                    pengiriman.</p>
                 <button class="btn btn--primary btn--block modal__btn" @click="closeSuccess">Oke</button>
             </div>
         </div>
@@ -175,7 +186,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import ApiService from '@/core/services/ApiService'
 import { useRouter } from 'vue-router'
 import { useCart } from '@/composables/useCart'
@@ -185,6 +196,23 @@ useHead({ title: 'Checkout' })
 
 type Opt = { value: string; label: string }
 type ProvinceItem = { id: string; name: string; external_id?: number | null }
+type Crumb = { label: string; to?: string; isEllipsis?: boolean }
+
+const crumbs = ref<Crumb[]>([
+    { label: 'Beranda', to: '/' },
+    { label: 'Detail Produk', to: '/detail-product' },
+    { label: 'Keranjang', to: '/cart' },
+    { label: 'Pemesanan' }
+])
+const isMobile = ref(false)
+const setBp = () => (isMobile.value = window.matchMedia('(max-width: 480px)').matches)
+onMounted(() => { setBp(); window.addEventListener('resize', setBp) })
+onBeforeUnmount(() => window.removeEventListener('resize', setBp))
+const crumbsView = computed<Crumb[]>(() => {
+    const arr = crumbs.value || []
+    if (!isMobile.value || arr.length <= 3) return arr
+    return [arr[0], { label: '…', isEllipsis: true }, arr[arr.length - 2], arr[arr.length - 1]]
+})
 
 const router = useRouter()
 const { items, total, clearAll } = useCart()
@@ -256,16 +284,13 @@ const shouldShowError = (field: keyof typeof touched.value) => {
     }
 }
 
-const isSelected = (opt: any) => (typeof opt === 'string' ? !!opt.trim() : !!opt?.value)
-const optValue = (opt: any): string => (typeof opt === 'string' ? opt : opt?.value)
-
 const valid = computed(() =>
     !!form.value.name &&
     form.value.name.length >= 3 &&
     nameValid(form.value.name) &&
     !!form.value.address &&
-    isSelected(selProvinsi.value) &&
-    isSelected(selKota.value) &&
+    !!selProvinsi.value &&
+    !!selKota.value &&
     postalOk(form.value.postalcode) &&
     emailOk(form.value.email) &&
     phoneOk(form.value.phone)
@@ -315,7 +340,7 @@ async function fetchKota(provinceId: string, search = '') {
 watch(selProvinsi, val => {
     selKota.value = null
     kotaOpts.value = []
-    const pid = optValue(val)
+    const pid = val?.value || ''
     if (pid) fetchKota(pid)
 })
 
@@ -334,78 +359,10 @@ async function fetchCartFee() {
 
 watch(items, () => { fetchCartFee() }, { deep: true })
 
-type ResolvedOpts = { optionIds: string[]; combinationId?: string | null }
-async function resolveVariantOptionIds(productId: string, sizeName?: string, colorName?: string): Promise<ResolvedOpts> {
-    try {
-        const { data, error } = await ApiService.query(`/product/${productId}`, { headers })
-        if (error.value) return { optionIds: [] }
-        const raw = (data.value as any)?.data?.product || (data.value as any)?.data || (data.value as any)
-        const variants: any[] = raw?.variants || []
-        const combinations: any[] = raw?.combinations || []
-        const pickId = (labelLower: 'ukuran' | 'warna', name?: string) => {
-            if (!name) return null
-            const v = variants.find(v => String(v.name ?? '').trim().toLowerCase() === labelLower)
-            if (!v?.options?.length) return null
-            const opt = v.options.find((o: any) => String((o.name ?? o?.option?.name) ?? '').trim().toLowerCase() === String(name).trim().toLowerCase())
-            return opt?.id || opt?.option?.id || null
-        }
-        const sizeId = pickId('ukuran', sizeName)
-        const colorId = pickId('warna', colorName)
-        const ids = [sizeId, colorId].filter(Boolean) as string[]
-        if (ids.length) {
-            const set = new Set(ids)
-            const combo = (combinations || []).find((c: any) => {
-                const arr = (c?.product_variant_option_ids || []).filter(Boolean)
-                return arr.length === set.size && arr.every((x: string) => set.has(String(x)))
-            })
-            return { optionIds: ids, combinationId: combo?.id || null }
-        }
-        if (Array.isArray(combinations) && combinations.length === 1) {
-            const combo = combinations[0] as any
-            const comboIds = combo?.product_variant_option_ids || []
-            return { optionIds: (Array.isArray(comboIds) ? comboIds.filter(Boolean) : []) as string[], combinationId: combo?.id || null }
-        }
-        const singleVariantIds = variants
-            .map(v => (Array.isArray(v.options) && v.options.length === 1 ? (v.options[0]?.id || v.options[0]?.option?.id || null) : null))
-            .filter(Boolean)
-        if (singleVariantIds.length && singleVariantIds.length === variants.length) {
-            const set = new Set(singleVariantIds as string[])
-            const combo = (combinations || []).find((c: any) => {
-                const arr = (c?.product_variant_option_ids || []).filter(Boolean)
-                return arr.length === set.size && arr.every((x: string) => set.has(String(x)))
-            })
-            return { optionIds: singleVariantIds as string[], combinationId: combo?.id || null }
-        }
-        return { optionIds: [] }
-    } catch {
-        return { optionIds: [] }
-    }
-}
-
-async function buildCartPayload(session_id: string) {
-    const products = await Promise.all(
-        displayedItems.value.map(async (it: any) => {
-            const preset = Array.isArray(it.optionIds) ? it.optionIds.filter(Boolean) : []
-            if (preset.length) {
-                return { id: String(it.id), quantity: Number(it.qty), product_variant_option_ids: preset, combination_id: it.combinationId || undefined }
-            }
-            const resolved = await resolveVariantOptionIds(String(it.id), it.size, it.color)
-            return { id: String(it.id), quantity: Number(it.qty), product_variant_option_ids: resolved.optionIds || [], combination_id: resolved.combinationId || undefined }
-        })
-    )
-    const invalid = products.filter(p => !Array.isArray((p as any).product_variant_option_ids) || (p as any).product_variant_option_ids.length === 0)
-    if (invalid.length) {
-        throw new Error('Beberapa item belum memiliki varian lengkap. Mohon pilih ukuran/warna untuk semua item.')
-    }
-    return { session_id, products }
-}
-
-async function pushCartSnapshot(session_id: string) { return }
-
 const success = ref<{ open: boolean; orderCode?: string | null }>({ open: false, orderCode: null })
 function closeSuccess() { success.value.open = false; router.push('/') }
 
-const kotaDisabled = computed(() => !isSelected(selProvinsi.value))
+const kotaDisabled = computed(() => !selProvinsi.value)
 const showKotaHint = ref(false)
 let kotaHintTimer: any = null
 function onKotaGuardClick() {
@@ -422,7 +379,6 @@ async function submit() {
     const session_id = ensureSession()
     try {
         sending.value = true
-        const cartBody = await buildCartPayload(session_id)
         const payload = {
             session_id,
             name: form.value.name,
@@ -430,10 +386,9 @@ async function submit() {
             phone: normalizePhone(form.value.phone),
             address: form.value.address,
             address_detail: form.value.detail || '',
-            province_id: optValue(selProvinsi.value)!,
-            regency_id: optValue(selKota.value)!,
-            postalcode: form.value.postalcode,
-            products: cartBody.products
+            province_id: selProvinsi.value?.value,
+            regency_id: selKota.value?.value,
+            postalcode: form.value.postalcode
         }
         const { data, error } = await ApiService.post('/order', payload, { ...headers, 'Content-Type': 'application/json' })
         if (error.value) throw error.value
@@ -452,12 +407,58 @@ async function submit() {
 </script>
 
 <style scoped>
+.bc {
+    display: flex;
+    align-items: center;
+    min-height: 36px;
+    margin-top: 20px;
+}
+
+.bc__list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px;
+    padding: 0;
+    list-style: none;
+    color: #6b7280
+}
+
+.bc__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font: 400 14px/20px var(--ff, ui-sans-serif)
+}
+
+.bc__sep {
+    color: #bdbdbd
+}
+
+.bc__link {
+    color: #6b7280;
+    text-decoration: none
+}
+
+.bc__link:hover {
+    text-decoration: underline
+}
+
+.bc__text {
+    color: #6b7280
+}
+
+.bc__item.current .bc__text {
+    font-weight: 600;
+    color: #111827
+}
+
 .cols {
     display: grid;
     grid-template-columns: 1fr 392px;
     gap: 28px;
     align-items: start;
-    margin-top: 20px
+    margin-top: 8px
 }
 
 .left {
@@ -506,6 +507,10 @@ async function submit() {
     font: 400 16px/24px var(--ff)
 }
 
+.mt-20 {
+    margin-top: 20px
+}
+
 .label {
     font: 500 14px/22px var(--ff);
     color: #0a0a0a;
@@ -523,7 +528,7 @@ async function submit() {
     border: 1px solid #e5e5e5;
     border-radius: 8px;
     outline: none;
-    transition: border-color 0.2s ease
+    transition: border-color .2s ease
 }
 
 .input:focus {
@@ -574,13 +579,19 @@ async function submit() {
 }
 
 .skel {
-    background: #F5F5F5;
+    background: #f5f5f5;
     border-radius: 12px
 }
 
 .skel--title {
     width: 220px;
     height: 20px;
+    border-radius: 8px
+}
+
+.skel--input {
+    width: 100%;
+    height: 40px;
     border-radius: 8px
 }
 
@@ -659,14 +670,14 @@ async function submit() {
     margin-top: 6px
 }
 
-@media (max-width:1024px) {
+@media(max-width:1024px) {
     .cols {
         grid-template-columns: 1fr;
         gap: 16px
     }
 }
 
-@media (max-width:768px) {
+@media(max-width:768px) {
     .cols {
         display: flex;
         flex-direction: column;
@@ -693,7 +704,17 @@ async function submit() {
     }
 }
 
-@media (max-width:420px) {
+@media(max-width:480px) {
+    .bc {
+        padding: 0 4px
+    }
+
+    .bc__item {
+        font-size: 13px
+    }
+}
+
+@media(max-width:420px) {
     .container {
         padding-left: 10px;
         padding-right: 10px

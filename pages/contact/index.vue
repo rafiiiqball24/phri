@@ -25,11 +25,13 @@
         </span>
         <p class="miniinfo__title">Kontak Kami</p>
         <p class="miniinfo__desc">
-          <a href="tel:+6221684118" class="link link--phone">
-            <img src="/img/icons/Phone.svg" alt="" class="link-icon" /> +62 21684118
+          <a :href="phoneHref" class="link link--phone">
+            <img src="/img/icons/Phone.svg" alt="" class="link-icon" />
+            {{ phoneDisplay }}
           </a><br />
-          <a href="mailto:bppphri@phri.or.id" class="link link--mail">
-            <img src="/img/icons/Envelope.svg" alt="" class="link-icon" /> bppphri@phri.or.id
+          <a :href="'mailto:' + emailDisplay" class="link link--mail">
+            <img src="/img/icons/Envelope.svg" alt="" class="link-icon" />
+            {{ emailDisplay }}
           </a>
         </p>
       </div>
@@ -101,14 +103,61 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { reactive, ref, computed, onMounted, onBeforeUnmount } from "vue";
 
 const form = reactive({ name: "", email: "", phone: "", message: "" });
 const errors = reactive<Record<string, string>>({});
 const submitting = ref(false);
 const alert = reactive<{ type: "" | "success" | "error"; text: string }>({ type: "", text: "" });
 
+let alertTimer: ReturnType<typeof setTimeout> | null = null;
+
+function clearAlert() {
+  if (alertTimer) {
+    clearTimeout(alertTimer);
+    alertTimer = null;
+  }
+  alert.type = "";
+  alert.text = "";
+}
+
+function showAlert(type: "success" | "error", text: string, duration = 2500) {
+  clearAlert();
+  alert.type = type;
+  alert.text = text;
+  alertTimer = setTimeout(() => {
+    clearAlert();
+  }, duration);
+}
+
+const contact = reactive<{ email: string; phone: string }>({ email: "", phone: "" });
+
 useHead({ title: "Contact" });
+
+const phoneDisplay = computed(() => contact.phone || "+62 21684118");
+const emailDisplay = computed(() => contact.email || "bppphri@phri.or.id");
+const phoneHref = computed(() => {
+  const raw = contact.phone || "+62 21684118";
+  const tel = raw.replace(/[^+\d]/g, "");
+  return `tel:${tel}`;
+});
+
+async function fetchContact() {
+  try {
+    const res: any = await $fetch(`${import.meta.env.VITE_APP_BASE_URL}contact`, {
+      method: "GET",
+      headers: {
+        "x-api-key": import.meta.env.VITE_APP_API_KEY as string,
+        Accept: "application/json",
+      },
+    });
+    contact.email = res?.data?.contact?.email || "";
+    contact.phone = res?.data?.contact?.phone || "";
+  } catch (_) { }
+}
+
+onMounted(fetchContact);
+onBeforeUnmount(clearAlert);
 
 function clearErrors() {
   Object.keys(errors).forEach((k) => delete errors[k]);
@@ -128,10 +177,12 @@ function digitsOnly(field: "phone") {
 }
 
 async function onSubmit() {
-  if (!validate()) return;
+  if (!validate()) {
+    showAlert("error", "Mohon periksa kembali field yang wajib diisi.");
+    return;
+  }
   submitting.value = true;
-  alert.type = "";
-  alert.text = "";
+  clearAlert();
   try {
     await $fetch(`${import.meta.env.VITE_APP_BASE_URL}contact-us`, {
       method: "POST",
@@ -146,8 +197,7 @@ async function onSubmit() {
         message: form.message,
       },
     });
-    alert.type = "success";
-    alert.text = "Pesan berhasil dikirim.";
+    showAlert("success", "Pesan berhasil dikirim.");
     form.name = "";
     form.email = "";
     form.phone = "";
@@ -157,17 +207,16 @@ async function onSubmit() {
       Object.keys(e.data.errors).forEach((k) => {
         errors[k] = e.data.errors[k][0];
       });
-      alert.type = "error";
-      alert.text = e?.data?.message || "Validasi gagal.";
+      showAlert("error", e?.data?.message || "Validasi gagal.");
     } else {
-      alert.type = "error";
-      alert.text = "Gagal mengirim. Coba lagi.";
+      showAlert("error", "Gagal mengirim. Coba lagi.");
     }
   } finally {
     submitting.value = false;
   }
 }
 </script>
+
 
 <style scoped>
 .container {

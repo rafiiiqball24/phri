@@ -12,11 +12,8 @@
 
     <div class="cols">
       <div class="col col--left">
-        <div v-if="loading" class="media skel">
-          <div class="sk-hero-actions">
-            <span class="sk-sq skel"></span>
-            <span class="sk-sq skel"></span>
-          </div>
+        <div v-if="loading" class="sk-media-wrap">
+          <div class="sk-media skel"></div>
         </div>
 
         <template v-else>
@@ -58,7 +55,6 @@
               {{ isExpanded ? 'Tutup' : 'Baca semua' }}
               <img class="caret" src="/img/icons/CaretDownOrange.svg" alt="" />
             </button>
-
           </section>
         </template>
       </div>
@@ -66,46 +62,47 @@
       <div class="col col--right">
         <template v-if="loading">
           <div class="sk-wrap">
-            <div class="skline sk-title skel"></div>
-            <div class="skline sk-cat skel"></div>
-            <div class="skchip sk-pricechip skel"></div>
-            <div class="skline sk-tax skel"></div>
-            <div class="skblock">
-              <div class="skline sk-size-label skel"></div>
-              <div class="skgrid">
-                <div v-for="i in 6" :key="'sksize' + i" class="skopt skel"></div>
+            <div class="sk-title skel"></div>
+            <div class="sk-cat skel"></div>
+            <div class="sk-price skel"></div>
+            <div class="sk-tax skel"></div>
+
+            <div class="sk-block">
+              <div class="sk-block-label skel"></div>
+              <div class="sk-opt-grid">
+                <div v-for="i in 5" :key="'skcolor' + i" class="sk-opt skel"></div>
               </div>
             </div>
-            <div class="skblock">
-              <div class="skline sk-color-label skel"></div>
-              <div class="skgrid">
-                <div v-for="i in 6" :key="'skcolor' + i" class="skopt skel"></div>
+
+            <div class="sk-block">
+              <div class="sk-block-label skel"></div>
+              <div class="sk-input-box skel"></div>
+            </div>
+
+            <div class="sk-stock skel"></div>
+            <div class="sk-cta skel"></div>
+
+            <div class="sk-desc-mobile">
+              <div class="sk-desc-title skel"></div>
+              <div class="sk-desc-line skel"></div>
+              <div class="sk-desc-line skel" style="width: 85%;"></div>
+            </div>
+
+            <div class="sk-ship-section">
+              <div class="sk-ship-title skel"></div>
+              <div class="sk-ship-row">
+                <div class="sk-ship-icon skel"></div>
+                <div class="sk-ship-text skel"></div>
+              </div>
+              <div class="sk-ship-row">
+                <div class="sk-ship-icon skel"></div>
+                <div class="sk-ship-text skel" style="width: 82%;"></div>
+              </div>
+              <div class="sk-ship-row">
+                <div class="sk-ship-icon skel"></div>
+                <div class="sk-ship-text skel" style="width: 75%;"></div>
               </div>
             </div>
-            <div class="skline sk-qty-label skel"></div>
-            <div class="skbtn sk-input skel"></div>
-            <div class="skline skel" style="width: 100px; height: 16px; margin-top: 12px;"></div>
-            <div class="skbtn skel" style="height: 44px; border-radius: 10px; margin-top: 12px;"></div>
-            <section class="desc desc--mobile">
-              <div class="skline sk-desc-head skel"></div>
-              <div class="skline sk-desc-1 skel"></div>
-              <div class="skline sk-desc-2 skel"></div>
-            </section>
-            <section class="ship">
-              <div class="skline sk-ship-head skel"></div>
-              <div class="ship__row">
-                <div class="skbox skel"></div>
-                <div class="skline sk-ship-1 skel"></div>
-              </div>
-              <div class="ship__row">
-                <div class="skbox skel"></div>
-                <div class="skline sk-ship-2 skel"></div>
-              </div>
-              <div class="ship__row">
-                <div class="skbox skel"></div>
-                <div class="skline sk-ship-3 skel"></div>
-              </div>
-            </section>
           </div>
         </template>
 
@@ -164,7 +161,6 @@
               {{ isExpanded ? 'Tutup' : 'Baca semua' }}
               <img class="caret" src="/img/icons/CaretDownOrange.svg" alt="" />
             </button>
-
           </section>
 
           <section class="ship">
@@ -620,7 +616,6 @@ watch(() => product.value.description, () => {
   align-items: start;
   grid-template-columns: clamp(300px, 38vw, 480px) minmax(0, 1fr);
   margin-top: 40px;
-
 }
 
 .col {
@@ -629,7 +624,7 @@ watch(() => product.value.description, () => {
 
 @media (max-width: 1280px) {
   .cols {
-    grid-template-columns: repeat(2, minmax(1, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 24px;
   }
 }
@@ -641,49 +636,12 @@ watch(() => product.value.description, () => {
   }
 }
 
-.recs--compact :deep(.recs-grid) {
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 14px;
-}
-
-@media (min-width: 1280px) {
-  .recs--compact :deep(.recs-grid) {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 12px;
-  }
-}
-
-.recs--compact :deep(.card) {
-  padding: 10px;
-  border-radius: 12px;
-}
-
-.recs--compact :deep(.card__thumb) {
-  height: 240px;
-}
-
-.recs--compact :deep(.card__name) {
-  font-size: 14px;
-  line-height: 20px;
-}
-
-.recs--compact :deep(.card__price) {
-  font-size: 14px;
-  line-height: 20px;
-}
-
-.recs--compact :deep(.card-link) {
-  display: block;
-}
-
-.recs--compact :deep(.card) {
-  max-width: 100%;
-}
-
+/* --- HERO IMAGE: seragam kotak 1:1 --- */
 .media {
   position: relative;
-  width: 440px;
-  height: 440px;
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 1 / 1;
   border-radius: 12px;
   overflow: hidden;
   margin: 0;
@@ -693,181 +651,203 @@ watch(() => product.value.description, () => {
 .media img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  background: #fff;
+  object-fit: cover;
+  object-position: center;
   display: block;
+  background: #fff;
 }
 
-.media.skel {
-  background: linear-gradient(270deg, rgba(219, 219, 219, 0.05) 0%, #dbdbdb 50%, rgba(219, 219, 219, 0.05) 100%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite linear;
+@media (max-width: 1024px) {
+  .media {
+    max-width: none;
+  }
+}
+
+/* --- SKELETON STYLES --- */
+.sk-media-wrap {
+  width: 100%;
+  max-width: 480px;
+}
+
+.sk-media {
+  width: 100%;
+  aspect-ratio: 1 / 1;
   border-radius: 12px;
 }
 
 @media (max-width: 1024px) {
-
-  .media,
-  .media img {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 1/1;
-  }
-
-  .media.skel {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 1/1;
-    max-width: 320px;
-    margin: 0 auto;
+  .sk-media-wrap {
+    max-width: none;
   }
 }
 
-/* mobile strict like mockup */
+.sk-wrap {
+  width: 100%;
+}
+
+.sk-title {
+  width: 68%;
+  height: 28px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.sk-cat {
+  width: 100px;
+  height: 20px;
+  border-radius: 6px;
+  margin-bottom: 18px;
+}
+
+.sk-price {
+  width: 150px;
+  height: 28px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.sk-tax {
+  width: 130px;
+  height: 20px;
+  border-radius: 6px;
+  margin-bottom: 18px;
+}
+
+.sk-block {
+  margin-bottom: 18px;
+}
+
+.sk-block-label {
+  width: 90px;
+  height: 20px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.sk-opt-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.sk-opt {
+  height: 36px;
+  border-radius: 4px;
+}
+
+.sk-input-box {
+  width: 100%;
+  height: 36px;
+  border-radius: 6px;
+}
+
+.sk-stock {
+  width: 120px;
+  height: 20px;
+  border-radius: 6px;
+  margin: 12px 0;
+}
+
+.sk-cta {
+  width: 100%;
+  height: 44px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.sk-desc-mobile {
+  display: none;
+  margin: 16px 0;
+}
+
+@media (max-width: 1024px) {
+  .sk-desc-mobile {
+    display: block;
+  }
+}
+
+.sk-desc-title {
+  width: 100px;
+  height: 22px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.sk-desc-line {
+  width: 100%;
+  height: 20px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+.sk-ship-section {
+  margin-top: 24px;
+}
+
+.sk-ship-title {
+  width: 180px;
+  height: 22px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.sk-ship-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.sk-ship-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.sk-ship-text {
+  width: 85%;
+  height: 20px;
+  border-radius: 6px;
+  flex: 1;
+}
+
+/* Mobile adjustments */
 @media (max-width: 520px) {
-  .cols {
-    gap: 16px;
-    margin-top: 16px;
-  }
-
-  .media,
-  .media img {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 1/1;
-  }
-
-  .media.skel {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 1/1;
-    max-width: none;
-    border-radius: 12px;
-    margin: 0 0 12px 0;
-  }
-
   .sk-title {
-    width: 68%;
     height: 26px;
   }
 
   .sk-cat {
-    width: 34%;
-    height: 14px;
+    width: 80px;
+    height: 18px;
+    margin-bottom: 16px;
   }
 
-  .sk-pricechip {
-    width: 160px;
+  .sk-price {
+    width: 140px;
     height: 26px;
   }
 
   .sk-tax {
-    width: 44%;
-    height: 14px;
-    margin-top: 4px;
-  }
-
-  .skgrid {
-    grid-template-columns: repeat(3, 1fr);
-    column-gap: 8px;
-    row-gap: 10px;
-    margin-top: 8px;
-  }
-
-  .skopt {
-    height: 34px;
-    border-radius: 8px;
-  }
-
-  .sk-qty-label {
-    width: 64px;
-    height: 14px;
-  }
-
-  .sk-input {
-    height: 42px;
-    border-radius: 10px;
-  }
-
-  .sk-wrap>* {
-    margin-bottom: 10px;
-  }
-
-  .sk-desc-head {
-    width: 120px;
-    height: 16px;
-  }
-
-  .sk-desc-1 {
-    width: 100%;
-    height: 14px;
-  }
-
-  .sk-desc-2 {
-    width: 84%;
-    height: 14px;
-  }
-
-  .sk-ship-head {
-    width: 180px;
+    width: 110px;
     height: 18px;
-    margin-bottom: 6px;
   }
 
-  .skbox {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
+  .sk-opt-grid {
+    gap: 10px;
   }
 
-  .sk-ship-1 {
-    width: 85%;
-    height: 14px;
-    flex: 1;
+  .sk-opt {
+    height: 34px;
   }
 
-  .sk-ship-2 {
-    width: 80%;
-    height: 14px;
-    flex: 1;
+  .sk-input-box {
+    height: 36px;
   }
 
-  .sk-ship-3 {
-    width: 72%;
-    height: 14px;
-    flex: 1;
-  }
-
-  .rec-skeleton__grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-
-  .skthumb {
-    height: 140px;
-    border-radius: 12px;
-  }
-
-  .sk-name {
-    height: 14px;
-    width: 70%;
-    margin: 6px 0 8px;
-  }
-
-  .sktag {
-    width: 54px;
-    height: 20px;
-  }
-
-  .sk-price {
-    height: 16px;
-    width: 90px;
-  }
-}
-
-@media (max-width: 360px) {
-  .rec-skeleton__grid {
-    grid-template-columns: 1fr;
+  .sk-cta {
+    height: 42px;
   }
 }
 
@@ -922,6 +902,7 @@ watch(() => product.value.description, () => {
   box-shadow: 0 0 0 1px rgba(0, 0, 0, .06);
   color: #111;
   transition: all .2s ease;
+  cursor: pointer;
 }
 
 .navico {
@@ -939,23 +920,6 @@ watch(() => product.value.description, () => {
 .navbtn:hover {
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* hero skeleton additional squares */
-.sk-hero-actions {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  display: flex;
-  gap: 10px;
-  z-index: 2;
-}
-
-.sk-hero-actions .sk-sq {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, .04);
 }
 
 .desc {
@@ -1188,117 +1152,6 @@ watch(() => product.value.description, () => {
   }
 }
 
-.sk-wrap>* {
-  margin-bottom: 10px;
-}
-
-.skline {
-  height: 18px;
-  width: 60%;
-  border-radius: 6px;
-}
-
-.sk-title {
-  width: 72%;
-  height: 28px;
-  border-radius: 8px;
-}
-
-.sk-cat {
-  width: 140px;
-  height: 14px;
-}
-
-.sk-pricechip {
-  width: 150px;
-  height: 24px;
-  border-radius: 8px;
-}
-
-.sk-tax {
-  width: 120px;
-  height: 16px;
-  margin-top: 4px;
-}
-
-.skblock {
-  margin-top: 14px;
-}
-
-.skgrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  column-gap: 8px;
-  row-gap: 12px;
-  margin-top: 8px;
-}
-
-.skopt {
-  height: 36px;
-  border-radius: 4px;
-}
-
-.sk-qty-label {
-  width: 90px;
-  height: 16px;
-}
-
-.sk-input {
-  height: 44px;
-  border-radius: 10px;
-  width: 100%;
-}
-
-.sk-desc-head {
-  width: 110px;
-  height: 16px;
-}
-
-.sk-desc-1 {
-  width: 100%;
-  height: 16px;
-}
-
-.sk-desc-2 {
-  width: 80%;
-  height: 16px;
-}
-
-.sk-ship-head {
-  width: 180px;
-  height: 18px;
-  margin-bottom: 6px;
-}
-
-.skbox {
-  width: 46px;
-  height: 46px;
-  border-radius: 8px;
-  margin-right: 12px;
-}
-
-.ship .ship__row {
-  align-items: center;
-}
-
-.sk-ship-1 {
-  width: 80%;
-  height: 16px;
-  flex: 1;
-}
-
-.sk-ship-2 {
-  width: 78%;
-  height: 16px;
-  flex: 1;
-}
-
-.sk-ship-3 {
-  width: 70%;
-  height: 16px;
-  flex: 1;
-}
-
 .rec-skeleton {
   margin-top: 24px;
 }
@@ -1355,9 +1208,7 @@ watch(() => product.value.description, () => {
   display: inline-block;
 }
 
-.sk-price {
-  height: 18px;
-  width: 80px;
+.skline {
   border-radius: 6px;
 }
 
@@ -1372,23 +1223,6 @@ watch(() => product.value.description, () => {
   .rec-skeleton__grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
-  }
-
-  .sk-title {
-    width: 68%;
-  }
-
-  .skline {
-    width: 58%;
-  }
-
-  .sk-pricechip {
-    width: 150px;
-    height: 24px;
-  }
-
-  .sk-tax {
-    width: 140px;
   }
 }
 

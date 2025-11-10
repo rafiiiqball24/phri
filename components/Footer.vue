@@ -5,20 +5,24 @@
         <div class="footer-hero__left">
           <p class="footer-hero__title">Temukan Kami di:</p>
           <nav class="footer-hero__socials" aria-label="Sosial Media">
-            <a href="https://facebook.com" target="_blank" rel="noopener" class="soc" aria-label="Facebook">
-              <img src="/img/icons/Facebook.svg" alt="https://www.facebook.com/PHRIOnline/" />
+            <a href="https://www.facebook.com/PHRIOnline/" target="_blank" rel="noopener" class="soc"
+              aria-label="Facebook">
+              <img src="/img/icons/Facebook.svg" alt="Facebook" />
             </a>
-            <a href="https://x.com" target="_blank" rel="noopener" class="soc" aria-label="X">
-              <img src="/img/icons/X.svg" alt="https://x.com/phrionline" />
+            <a href="https://x.com/phrionline" target="_blank" rel="noopener" class="soc" aria-label="X (Twitter)">
+              <img src="/img/icons/X.svg" alt="X (Twitter)" />
             </a>
-            <a href="https://instagram.com" target="_blank" rel="noopener" class="soc" aria-label="Instagram">
-              <img src="/img/icons/Instagram.svg" alt="https://www.instagram.com/phrionline/" />
+            <a href="https://www.instagram.com/phrionline/" target="_blank" rel="noopener" class="soc"
+              aria-label="Instagram">
+              <img src="/img/icons/Instagram.svg" alt="Instagram" />
             </a>
-            <a href="https://youtube.com" target="_blank" rel="noopener" class="soc" aria-label="YouTube">
-              <img src="/img/icons/Youtube.svg" alt="https://www.youtube.com/@phriofficial/videos" />
+            <a href="https://www.youtube.com/@phriofficial/videos" target="_blank" rel="noopener" class="soc"
+              aria-label="YouTube">
+              <img src="/img/icons/Youtube.svg" alt="YouTube" />
             </a>
           </nav>
         </div>
+
 
         <!-- kanan: tombol -->
         <button type="button" class="backtop" @click="scrollTop" aria-label="Kembali ke atas">
