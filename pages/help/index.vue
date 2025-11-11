@@ -98,6 +98,7 @@ type Topic = { id: string; title: string; description: string; faqs: QA[] }
 
 const BASE = (import.meta.env.VITE_APP_BASE_URL as string || '').replace(/\/+$/, '')
 const KEY = import.meta.env.VITE_APP_API_KEY as string
+const LS_KEY = 'help:faq:auto'
 
 const loading = ref(true)
 const errorMsg = ref<string | null>(null)
@@ -108,14 +109,14 @@ const toggle = (topicId: string, i: number) => {
     opened[topicId] = opened[topicId] === i ? null : i
 }
 
+const lsGet = <T = unknown>(k: string): T | null => {
+    try { const raw = localStorage.getItem(k); return raw ? JSON.parse(raw) as T : null } catch { localStorage.removeItem(k); return null }
+}
+const lsSet = (k: string, v: unknown) => { try { localStorage.setItem(k, JSON.stringify(v)) } catch { } }
+
 async function getFaqTopics(): Promise<FaqTopicsResponse> {
     const url = `${BASE}/faq`
-    const res = await fetch(url, {
-        headers: {
-            'x-api-key': KEY,
-            'Accept': 'application/json',
-        },
-    })
+    const res = await fetch(url, { headers: { 'x-api-key': KEY, 'Accept': 'application/json' } })
     if (!res.ok) throw new Error(`Gagal memuat FAQ (${res.status})`)
     return res.json() as Promise<FaqTopicsResponse>
 }
@@ -128,15 +129,35 @@ const mapTopics = (rows: RawTopic[]): Topic[] =>
         faqs: (t.faqs || []).map(f => ({ q: f.question, a: f.answer })),
     }))
 
+function apply(data: Topic[]) {
+    topics.value = data
+    topics.value.forEach(t => { if (!(t.id in opened)) opened[t.id] = 0 })
+    if (!topics.value.length) errorMsg.value = 'Belum ada data FAQ.'
+}
+
 async function loadAll() {
     loading.value = true
     errorMsg.value = null
+
+    const cached = lsGet<{ topics: Topic[]; updatedAt: number }>(LS_KEY)
+    if (cached?.topics?.length) {
+        apply(cached.topics)
+        loading.value = false
+        getFaqTopics()
+            .then(r => {
+                const fresh = mapTopics(r?.data?.faq_topics || [])
+                apply(fresh)
+                lsSet(LS_KEY, { topics: fresh, updatedAt: Date.now() })
+            })
+            .catch(() => { })
+        return
+    }
+
     try {
         const res = await getFaqTopics()
-        const data = mapTopics(res?.data?.faq_topics || [])
-        topics.value = data
-        topics.value.forEach(t => { if (!(t.id in opened)) opened[t.id] = 0 })
-        if (!topics.value.length) errorMsg.value = 'Belum ada data FAQ.'
+        const fresh = mapTopics(res?.data?.faq_topics || [])
+        apply(fresh)
+        lsSet(LS_KEY, { topics: fresh, updatedAt: Date.now() })
     } catch (e: any) {
         errorMsg.value = e?.message || 'Terjadi kesalahan saat memuat FAQ.'
     } finally {
@@ -146,6 +167,7 @@ async function loadAll() {
 
 onMounted(loadAll)
 </script>
+
 
 <style scoped>
 :root {

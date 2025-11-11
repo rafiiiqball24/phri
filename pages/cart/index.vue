@@ -383,20 +383,21 @@ onMounted(() => {
 }
 
 .row__thumb {
-  width: 186px;
-  height: 134px;
+  width: 160px;
+  aspect-ratio: 4 / 3;
   border-radius: 8px;
   overflow: hidden;
   background: #f2f2f2;
-  margin: 0
+  margin: 0;
+  display: block;
 }
 
 .row__thumb img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   background: #fff;
-  display: block
+  display: block;
 }
 
 .row__main {
@@ -575,6 +576,11 @@ input[type="checkbox"]:hover {
   .product-recs :deep(.rec__carousel) {
     margin: 0 -16px;
     padding: 0 16px
+  }
+
+  .row__thumb {
+    width: 200px;
+    aspect-ratio: 16 / 10;
   }
 }
 

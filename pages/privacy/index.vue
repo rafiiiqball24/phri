@@ -50,12 +50,29 @@ type ApiOk = { code: number; message: string; data: Record<string, any> }
 const BASE = (import.meta.env.VITE_APP_BASE_URL as string || '').replace(/\/+$/, '')
 const KEY = import.meta.env.VITE_APP_API_KEY as string
 
+const LS_KEY = 'privacy:auto'
+
 const loading = ref(true)
 const errorMsg = ref<string | null>(null)
 const statement = ref('')
 const faqs = ref<Faq[]>([])
 const opened = ref<number | null>(0)
 const toggle = (i: number) => { opened.value = opened.value === i ? null : i }
+
+const lsGet = <T = unknown>(k: string): T | null => {
+    try {
+        const raw = localStorage.getItem(k)
+        return raw ? JSON.parse(raw) as T : null
+    } catch {
+        localStorage.removeItem(k)
+        return null
+    }
+}
+const lsSet = (k: string, v: unknown) => {
+    try {
+        localStorage.setItem(k, JSON.stringify(v))
+    } catch { }
+}
 
 const findStatement = (bag: Record<string, any>): string => {
     for (const k of Object.keys(bag || {})) {
@@ -76,18 +93,36 @@ async function getRemote(): Promise<{ statement: string; faqs: Faq[] }> {
     const json = await res.json() as ApiOk
     const data = json?.data || {}
     const stmt = findStatement(data).replace(/\r\n/g, '\n').trim()
-    const list = Array.isArray(data.faqs) ? data.faqs.map((r: any) => ({ id: r.id, question: String(r.question || ''), answer: String(r.answer || '') })) : []
+    const list = Array.isArray(data.faqs)
+        ? data.faqs.map((r: any) => ({ id: r.id, question: String(r.question || ''), answer: String(r.answer || '') }))
+        : []
     return { statement: stmt, faqs: list }
 }
 
 async function load() {
     loading.value = true
     errorMsg.value = null
+
+    const cached = lsGet<{ statement: string; faqs: Faq[]; updatedAt: number }>(LS_KEY)
+    if (cached) {
+        statement.value = cached.statement
+        faqs.value = cached.faqs
+        loading.value = false
+        getRemote()
+            .then(fresh => {
+                statement.value = fresh.statement
+                faqs.value = fresh.faqs
+                lsSet(LS_KEY, { ...fresh, updatedAt: Date.now() })
+            })
+            .catch(() => { })
+        return
+    }
+
     try {
         const fresh = await getRemote()
         statement.value = fresh.statement
         faqs.value = fresh.faqs
-        if (!faqs.value.length && !statement.value) errorMsg.value = 'Belum ada data.'
+        lsSet(LS_KEY, { ...fresh, updatedAt: Date.now() })
     } catch (e: any) {
         errorMsg.value = e?.message || 'Gagal memuat data.'
     } finally {
@@ -97,6 +132,7 @@ async function load() {
 
 onMounted(load)
 </script>
+
 
 
 

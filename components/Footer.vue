@@ -39,7 +39,7 @@
           <span class="footer-legal__year">© 2021 — Copyright</span>
           <span class="footer-legal__rights">All Rights reserved</span>
         </div>
-        <NuxtLink to="/Help" class="footer-legal__link">Kebijakan Privasi</NuxtLink>
+        <NuxtLink to="/privacy" class="footer-legal__link">Kebijakan Privasi</NuxtLink>
       </div>
     </div>
   </footer>
