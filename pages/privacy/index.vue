@@ -50,20 +50,12 @@ type ApiOk = { code: number; message: string; data: Record<string, any> }
 const BASE = (import.meta.env.VITE_APP_BASE_URL as string || '').replace(/\/+$/, '')
 const KEY = import.meta.env.VITE_APP_API_KEY as string
 
-const LS_KEY = 'privacy:v1'
-
 const loading = ref(true)
 const errorMsg = ref<string | null>(null)
 const statement = ref('')
 const faqs = ref<Faq[]>([])
 const opened = ref<number | null>(0)
 const toggle = (i: number) => { opened.value = opened.value === i ? null : i }
-
-// LS helpers
-const lsGet = <T = unknown>(k: string): T | null => {
-    try { const raw = localStorage.getItem(k); return raw ? JSON.parse(raw) as T : null } catch { localStorage.removeItem(k); return null }
-}
-const lsSet = (k: string, v: unknown) => { try { localStorage.setItem(k, JSON.stringify(v)) } catch { } }
 
 const findStatement = (bag: Record<string, any>): string => {
     for (const k of Object.keys(bag || {})) {
@@ -72,37 +64,6 @@ const findStatement = (bag: Record<string, any>): string => {
         }
     }
     return ''
-}
-
-
-async function load() {
-    loading.value = true
-    errorMsg.value = null
-
-
-    const cached = lsGet<{ statement: string; faqs: Faq[]; updatedAt: number }>(LS_KEY)
-    if (cached?.statement || (cached?.faqs?.length ?? 0) > 0) {
-        statement.value = cached.statement || ''
-        faqs.value = cached.faqs || []
-        loading.value = false
-        return
-    }
-
-
-    try {
-        const fresh = await getRemote()
-        apply(fresh)
-        lsSet(LS_KEY, { ...fresh, updatedAt: Date.now() })
-    } catch (e: any) {
-        errorMsg.value = e?.message || 'Gagal memuat data.'
-    } finally {
-        loading.value = false
-    }
-}
-
-function apply(payload: { statement: string; faqs: Faq[] }) {
-    statement.value = payload.statement
-    faqs.value = payload.faqs
 }
 
 async function getRemote(): Promise<{ statement: string; faqs: Faq[] }> {
@@ -115,22 +76,20 @@ async function getRemote(): Promise<{ statement: string; faqs: Faq[] }> {
     const json = await res.json() as ApiOk
     const data = json?.data || {}
     const stmt = findStatement(data).replace(/\r\n/g, '\n').trim()
-    const list = Array.isArray(data.faqs)
-        ? data.faqs.map((r: any) => ({ id: r.id, question: String(r.question || ''), answer: String(r.answer || '') }))
-        : []
+    const list = Array.isArray(data.faqs) ? data.faqs.map((r: any) => ({ id: r.id, question: String(r.question || ''), answer: String(r.answer || '') })) : []
     return { statement: stmt, faqs: list }
 }
 
-
-async function forceRefresh() {
+async function load() {
     loading.value = true
     errorMsg.value = null
     try {
         const fresh = await getRemote()
-        apply(fresh)
-        lsSet(LS_KEY, { ...fresh, updatedAt: Date.now() })
+        statement.value = fresh.statement
+        faqs.value = fresh.faqs
+        if (!faqs.value.length && !statement.value) errorMsg.value = 'Belum ada data.'
     } catch (e: any) {
-        errorMsg.value = e?.message || 'Gagal menyegarkan.'
+        errorMsg.value = e?.message || 'Gagal memuat data.'
     } finally {
         loading.value = false
     }
@@ -138,6 +97,7 @@ async function forceRefresh() {
 
 onMounted(load)
 </script>
+
 
 
 <style scoped>

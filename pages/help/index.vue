@@ -88,16 +88,13 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-
 useHead({ title: 'Help' })
 
 type RawFaq = { id: string; question: string; answer: string }
 type RawTopic = { id: string; title: string; description: string; faqs: RawFaq[] }
 type FaqTopicsResponse = { code: number; message: string; data: { faq_topics: RawTopic[] } }
-
 type QA = { q: string; a: string }
 type Topic = { id: string; title: string; description: string; faqs: QA[] }
-type CachePayload<T> = { ts: number; data: T }
 
 const BASE = (import.meta.env.VITE_APP_BASE_URL as string || '').replace(/\/+$/, '')
 const KEY = import.meta.env.VITE_APP_API_KEY as string
@@ -105,30 +102,11 @@ const KEY = import.meta.env.VITE_APP_API_KEY as string
 const loading = ref(true)
 const errorMsg = ref<string | null>(null)
 const topics = ref<Topic[]>([])
-
 const opened = reactive<Record<string, number | null>>({})
+
 const toggle = (topicId: string, i: number) => {
     opened[topicId] = opened[topicId] === i ? null : i
 }
-
-const safeGet = <T = unknown>(key: string): T | null => {
-    try {
-        const raw = localStorage.getItem(key)
-        if (!raw) return null
-        return JSON.parse(raw) as T
-    } catch {
-        localStorage.removeItem(key)
-        return null
-    }
-}
-
-const safeSet = (key: string, val: unknown) => {
-    try {
-        localStorage.setItem(key, JSON.stringify(val))
-    } catch { }
-}
-
-const isFresh = (ts: number, ttlMs: number) => (Date.now() - ts) < ttlMs
 
 async function getFaqTopics(): Promise<FaqTopicsResponse> {
     const url = `${BASE}/faq`
@@ -138,10 +116,7 @@ async function getFaqTopics(): Promise<FaqTopicsResponse> {
             'Accept': 'application/json',
         },
     })
-    if (!res.ok) {
-        const text = await res.text().catch(() => '')
-        throw new Error(`Gagal memuat FAQ (HTTP ${res.status})${text ? ` - ${text}` : ''}`)
-    }
+    if (!res.ok) throw new Error(`Gagal memuat FAQ (${res.status})`)
     return res.json() as Promise<FaqTopicsResponse>
 }
 
@@ -153,39 +128,12 @@ const mapTopics = (rows: RawTopic[]): Topic[] =>
         faqs: (t.faqs || []).map(f => ({ q: f.question, a: f.answer })),
     }))
 
-const DEFAULT_TTL = 6 * 60 * 60 * 1000
-
-async function fetchTopicsCached(ttlMs = DEFAULT_TTL): Promise<Topic[]> {
-    const cached = safeGet<CachePayload<Topic[]>>('faq:topics')
-    let fromCache: Topic[] | null = null
-    if (cached && Array.isArray(cached.data) && cached.ts) {
-        fromCache = cached.data
-        if (isFresh(cached.ts, ttlMs)) {
-            const age = Date.now() - cached.ts
-            const shouldRevalidate = age > ttlMs * 0.5
-            if (shouldRevalidate) {
-                getFaqTopics()
-                    .then(r => {
-                        const fresh = mapTopics(r?.data?.faq_topics || [])
-                        safeSet('faq:topics', { ts: Date.now(), data: fresh } as CachePayload<Topic[]>)
-                    })
-                    .catch(() => { })
-            }
-            return fromCache
-        }
-    }
-
-    const res = await getFaqTopics()
-    const fresh = mapTopics(res?.data?.faq_topics || [])
-    safeSet('faq:topics', { ts: Date.now(), data: fresh } as CachePayload<Topic[]>)
-    return fresh
-}
-
 async function loadAll() {
     loading.value = true
     errorMsg.value = null
     try {
-        const data = await fetchTopicsCached()
+        const res = await getFaqTopics()
+        const data = mapTopics(res?.data?.faq_topics || [])
         topics.value = data
         topics.value.forEach(t => { if (!(t.id in opened)) opened[t.id] = 0 })
         if (!topics.value.length) errorMsg.value = 'Belum ada data FAQ.'
