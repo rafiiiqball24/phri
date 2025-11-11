@@ -91,7 +91,7 @@
       </section>
 
       <aside class="mapwrap" aria-label="Peta lokasi PHRI">
-        <iframe class="map" src="https://www.google.com/maps?q=-6.2108424,106.8186673&z=18&output=embed" allowfullscreen
+        <iframe class="map" src="https://www.google.com/maps?q=-6.2108424,106.8186673&z=14&output=embed" allowfullscreen
           loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Lokasi PHRI"></iframe>
       </aside>
     </div>
