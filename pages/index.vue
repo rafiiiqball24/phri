@@ -264,6 +264,119 @@ function scrollToProduk() {
     height: 40px;
 }
 
+/* Pastikan grid nggak overflow di layar kecil */
+.products-grid {
+    width: 100%;
+    box-sizing: border-box;
+    /* padding ikut dihitung lebar */
+}
+
+.products-grid>* {
+    min-width: 0;
+    /* biar isi kartu boleh mengecil */
+}
+
+/* Mobile: kolom pakai minmax(0,1fr) supaya tidak melebar & kepotong */
+@media (max-width: 600px) {
+    .products-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        padding: 0 12px;
+        overflow: visible;
+        /* just in case */
+    }
+}
+
+/* Tablet: sama, amankan lebar kolom */
+@media (max-width: 900px) {
+    .products-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        padding: 0 16px;
+    }
+}
+
+/* Skeleton jangan fixed height biar nggak “kepotong” */
+.card-skel {
+    height: auto;
+    aspect-ratio: 3 / 4;
+    /* atau 1/1 kalau mau kotak */
+    border-radius: 16px;
+    background: #eee;
+}
+
+/* Bonus: kalau CardProduct punya gambar, ini amanin supaya tidak melebar */
+.card__img,
+.card img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    object-fit: cover;
+    border-top-left-radius: inherit;
+    border-top-right-radius: inherit;
+}
+
+/* Skeleton grid card */
+.card-skel {
+    display: flex;
+    flex-direction: column;
+    border-radius: 16px;
+    background: #f5f5f5;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    animation: pulse 1.2s ease-in-out infinite;
+}
+
+/* Bagian atas = gambar */
+.card-skel::before {
+    content: "";
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    /* kotak, seperti gambar produk */
+    background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+    background-size: 400% 100%;
+    animation: shimmer 1.5s infinite linear;
+}
+
+/* Bagian bawah = teks */
+.card-skel::after {
+    content: "";
+    display: block;
+    height: 64px;
+    margin: 12px 10px 14px;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+    background-size: 400% 100%;
+    animation: shimmer 1.5s infinite linear;
+}
+
+/* Efek shimmer */
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Efek halus keseluruhan */
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 0.95;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+
 /* ========================================= */
 /* RESPONSIVE */
 /* ========================================= */

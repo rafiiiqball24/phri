@@ -5,22 +5,11 @@
                 <li v-for="(it, i) in crumbsView" :key="i" class="bc__item"
                     :class="{ current: i === crumbsView.length - 1 }">
                     <span v-if="i > 0" class="bc__sep">›</span>
-
-                    <!-- kalau bukan titik -->
                     <NuxtLink v-if="it.to && !it.isEllipsis && i !== crumbsView.length - 1" :to="it.to"
-                        class="bc__link">
-                        {{ it.label }}
-                    </NuxtLink>
-
-                    <!-- kalau titik -->
-                    <NuxtLink v-else-if="it.isEllipsis" to="/detail-product" class="bc__link bc__dots">
-                        …
-                    </NuxtLink>
-
-                    <!-- teks terakhir -->
-                    <span v-else class="bc__text" :aria-current="i === crumbsView.length - 1 ? 'page' : undefined">
-                        {{ it.label }}
-                    </span>
+                        class="bc__link">{{ it.label }}</NuxtLink>
+                    <NuxtLink v-else-if="it.isEllipsis" to="/detail-product" class="bc__link bc__dots">…</NuxtLink>
+                    <span v-else class="bc__text" :aria-current="i === crumbsView.length - 1 ? 'page' : undefined">{{
+                        it.label }}</span>
                 </li>
             </ol>
         </nav>
@@ -73,8 +62,14 @@
                     <div class="grid-2">
                         <div class="field">
                             <label class="label">Provinsi</label>
-                            <CustomSelect v-model="selProvinsi" :options="provinsiOpts" placeholder="Pilih provinsi"
-                                :invalid="shouldShowError('provinsi')" @update:modelValue="touched.provinsi = true" />
+                            <template v-if="provLoading">
+                                <div class="skel skel--input"></div>
+                            </template>
+                            <template v-else>
+                                <CustomSelect :key="provKey" v-model="selProvinsi" :options="provinsiOpts"
+                                    placeholder="Pilih provinsi" :invalid="shouldShowError('provinsi')"
+                                    @update:modelValue="touched.provinsi = true" />
+                            </template>
                             <p v-if="!selProvinsi && shouldShow('provinsi')" class="error-text">Pilih provinsi terlebih
                                 dahulu</p>
                         </div>
@@ -100,9 +95,11 @@
                         <p v-if="!form.postalcode && shouldShow('postalcode')" class="error-text">Masukkan kode pos Anda
                         </p>
                         <p v-else-if="form.postalcode && !/^[0-9]+$/.test(form.postalcode) && shouldShow('postalcode')"
-                            class="error-text">Hanya boleh mengandung angka</p>
+                            class="error-text">
+                            Hanya boleh mengandung angka</p>
                         <p v-else-if="form.postalcode && form.postalcode.length !== 5 && shouldShow('postalcode')"
-                            class="error-text">Kode pos harus 5 digit</p>
+                            class="error-text">Kode
+                            pos harus 5 digit</p>
                     </div>
 
                     <header class="sec-head mt-20">
@@ -126,11 +123,14 @@
                         <p v-if="!form.phone && shouldShow('phone')" class="error-text">Harap masukkan nomor telepon
                             yang aktif</p>
                         <p v-else-if="form.phone && !/^[0-9]+$/.test(form.phone) && shouldShow('phone')"
-                            class="error-text">Hanya boleh mengandung angka</p>
+                            class="error-text">Hanya boleh
+                            mengandung angka</p>
                         <p v-else-if="form.phone && normalizePhone(form.phone).length < 10 && shouldShow('phone')"
-                            class="error-text">Nomor terlalu pendek (minimal 10 digit)</p>
+                            class="error-text">Nomor
+                            terlalu pendek (minimal 10 digit)</p>
                         <p v-else-if="form.phone && normalizePhone(form.phone).length > 13 && shouldShow('phone')"
-                            class="error-text">Nomor terlalu panjang (maksimal 13 digit)</p>
+                            class="error-text">Nomor
+                            terlalu panjang (maksimal 13 digit)</p>
                     </div>
 
                     <label class="agree">
@@ -192,10 +192,10 @@ import { useRouter } from 'vue-router'
 import { useCart } from '@/composables/useCart'
 import { ensureSession } from '@/composables/useSession'
 
+definePageMeta({ ssr: false })
 useHead({ title: 'Checkout' })
 
 type Opt = { value: string; label: string }
-type ProvinceItem = { id: string; name: string; external_id?: number | null }
 type Crumb = { label: string; to?: string; isEllipsis?: boolean }
 
 const crumbs = ref<Crumb[]>([
@@ -204,6 +204,7 @@ const crumbs = ref<Crumb[]>([
     { label: 'Keranjang', to: '/cart' },
     { label: 'Pemesanan' }
 ])
+
 const isMobile = ref(false)
 const setBp = () => (isMobile.value = window.matchMedia('(max-width: 480px)').matches)
 onMounted(() => { setBp(); window.addEventListener('resize', setBp) })
@@ -232,9 +233,10 @@ const selProvinsi = ref<Opt | null>(null)
 const selKota = ref<Opt | null>(null)
 const provinsiOpts = ref<Opt[]>([])
 const kotaOpts = ref<Opt[]>([])
+const provLoading = ref(true)
+const provKey = computed(() => provinsiOpts.value.length + '-' + (provinsiOpts.value[0]?.value || ''))
 
 const sending = ref(false)
-const serverErrors = ref<Record<string, string[]>>({})
 
 const nameValid = (v: string) => /^[a-zA-Z\s]*$/.test(v)
 const emailOk = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
@@ -248,39 +250,24 @@ const normalizePhone = (raw: string) => {
 const phoneOk = (v: string) => /^[0-9]{10,13}$/.test(normalizePhone(v))
 
 const showErr = ref(false)
-const touched = ref({
-    name: false,
-    address: false,
-    provinsi: false,
-    kota: false,
-    postalcode: false,
-    email: false,
-    phone: false
-})
+const touched = ref({ name: false, address: false, provinsi: false, kota: false, postalcode: false, email: false, phone: false })
 
 const shouldShow = (k: keyof typeof touched.value) => showErr.value || touched.value[k]
 const shouldShowError = (field: keyof typeof touched.value) => {
     if (!shouldShow(field)) return false
     switch (field) {
-        case 'name':
-            return !form.value.name || form.value.name.length < 3 || !nameValid(form.value.name)
-        case 'address':
-            return !form.value.address
-        case 'provinsi':
-            return !selProvinsi.value
-        case 'kota':
-            return !selKota.value
-        case 'postalcode':
-            return !form.value.postalcode || !/^[0-9]+$/.test(form.value.postalcode) || form.value.postalcode.length !== 5
-        case 'email':
-            return !emailOk(form.value.email)
+        case 'name': return !form.value.name || form.value.name.length < 3 || !nameValid(form.value.name)
+        case 'address': return !form.value.address
+        case 'provinsi': return !selProvinsi.value
+        case 'kota': return !selKota.value
+        case 'postalcode': return !form.value.postalcode || !/^[0-9]+$/.test(form.value.postalcode) || form.value.postalcode.length !== 5
+        case 'email': return !emailOk(form.value.email)
         case 'phone': {
             const phone = form.value.phone
-            const normalized = normalizePhone(phone)
-            return !phone || !/^[0-9]+$/.test(phone) || normalized.length < 10 || normalized.length > 13
+            const n = normalizePhone(phone)
+            return !phone || !/^[0-9]+$/.test(phone) || n.length < 10 || n.length > 13
         }
-        default:
-            return false
+        default: return false
     }
 }
 
@@ -302,39 +289,111 @@ function digitsOnly(field: 'postalcode' | 'phone', maxLen = 5) {
     form.value[field] = String(form.value[field] ?? '').replace(/\D+/g, '').slice(0, maxLen) as any
 }
 
-async function fetchProvinsi(search = '') {
+const LS_PROV = 'phri_provinsi_boot'
+const LS_REG_MAP = 'phri_reg_map'
+const LS_NAME_INDEX = 'phri_prov_name_index'
+const LS_KOTA_PREFIX = 'phri_kota_'
+
+const norm = (s: string) => String(s || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toUpperCase()
+
+const regByProvId = ref<Record<string, Opt[]>>({})
+const provNameToValidId = ref<Record<string, string>>({})
+
+async function bootstrapRegions() {
+    const cacheProv = localStorage.getItem(LS_PROV)
+    const cacheMap = localStorage.getItem(LS_REG_MAP)
+    const cacheIndex = localStorage.getItem(LS_NAME_INDEX)
+    if (cacheProv && cacheMap && cacheIndex) {
+        provinsiOpts.value = JSON.parse(cacheProv)
+        regByProvId.value = JSON.parse(cacheMap)
+        provNameToValidId.value = JSON.parse(cacheIndex)
+        provLoading.value = false
+        return
+    }
     try {
         const [{ data: pData }, { data: rData }] = await Promise.all([
-            ApiService.query('/province', { params: { search } }),
-            ApiService.query('/regency', { params: {} })
+            ApiService.query('/province', { params: { search: '' }, headers }),
+            ApiService.query('/regency', { params: {}, headers })
         ])
-        const provinces: ProvinceItem[] = ((pData.value as any)?.data?.provinces ?? []).map((p: any) => ({
-            id: String(p.id), name: String(p.name ?? '').trim(), external_id: p.external_id ?? null
-        }))
-        const regencies = (rData.value as any)?.data?.regencies ?? []
-        const whitelist = new Set<string>(regencies.map((r: any) => String(r.province_id)))
-        const buckets = new Map<string, ProvinceItem[]>()
-        for (const p of provinces) {
-            const k = p.external_id != null ? `ext:${p.external_id}` : `name:${p.name.toUpperCase()}`
-                ; (buckets.get(k) ?? buckets.set(k, []).get(k))!.push(p)
+        const provinces: Array<{ id: string; name: string; external_id?: any }> =
+            ((pData.value as any)?.data?.provinces ?? []).map((p: any) => ({
+                id: String(p.id),
+                name: String(p.name ?? '').trim(),
+                external_id: p.external_id
+            }))
+        const regencies: Array<{ id: string; name: string; province_id: string | number }> =
+            ((rData.value as any)?.data?.regencies ?? []).map((r: any) => ({
+                id: String(r.id),
+                name: String(r.name ?? '').trim(),
+                province_id: String(r.province_id)
+            }))
+
+        const map: Record<string, Opt[]> = {}
+        for (const r of regencies) {
+            ; (map[r.province_id] ??= []).push({ value: r.id, label: r.name })
         }
-        provinsiOpts.value = Array.from(buckets.values())
-            .map(dupes => dupes[0])
-            .filter(p => whitelist.has(p.id))
-            .map(p => ({ value: p.id, label: p.name }))
-    } catch {
-        provinsiOpts.value = []
+        for (const k of Object.keys(map)) map[k].sort((a, b) => a.label.localeCompare(b.label))
+
+        const groups = new Map<string, Array<{ id: string; name: string }>>()
+        for (const p of provinces) {
+            const key = p.external_id != null ? `EXT:${p.external_id}` : `NM:${norm(p.name)}`
+                ; (groups.get(key) ?? groups.set(key, []).get(key))!.push({ id: p.id, name: p.name })
+        }
+
+        const opts: Opt[] = []
+        const nameIndex: Record<string, string> = {}
+        for (const g of groups.values()) {
+            const withReg = g.find(x => map[x.id]?.length)
+            const chosen = withReg ?? g[0]
+            opts.push({ value: chosen.id, label: chosen.name })
+            nameIndex[norm(chosen.name)] = chosen.id
+        }
+        opts.sort((a, b) => a.label.localeCompare(b.label))
+
+        provinsiOpts.value = opts
+        regByProvId.value = map
+        provNameToValidId.value = nameIndex
+
+        localStorage.setItem(LS_PROV, JSON.stringify(opts))
+        localStorage.setItem(LS_REG_MAP, JSON.stringify(map))
+        localStorage.setItem(LS_NAME_INDEX, JSON.stringify(nameIndex))
+    } finally {
+        provLoading.value = false
     }
 }
 
-async function fetchKota(provinceId: string, search = '') {
-    try {
-        const { data } = await ApiService.query('/regency', { params: { province_id: provinceId, search } })
-        const raw = (data.value as any)?.data?.regencies ?? []
-        kotaOpts.value = raw.map((k: any) => ({ value: String(k.id), label: String(k.name ?? '').trim() }))
-    } catch {
-        kotaOpts.value = []
+function resolveProvinceId(opt: Opt | null): string {
+    if (!opt) return ''
+    const pid = String(opt.value)
+    if (regByProvId.value[pid]?.length) return pid
+    const alt = provNameToValidId.value[norm(opt.label)] || ''
+    return alt || pid
+}
+
+async function fetchProvinsi() {
+    await bootstrapRegions()
+}
+
+async function fetchKota(provinceId: string) {
+    const pid = resolveProvinceId({ value: provinceId, label: selProvinsi.value?.label || '' })
+    const key = `${LS_KOTA_PREFIX}${pid}`
+    const cached = localStorage.getItem(key)
+    if (cached) {
+        kotaOpts.value = JSON.parse(cached)
+        return
     }
+    let list = regByProvId.value[pid] || []
+    if (!list.length) {
+        const alt = provNameToValidId.value[norm(selProvinsi.value?.label || '')]
+        if (alt && regByProvId.value[alt]?.length) {
+            list = regByProvId.value[alt]
+            const opt = provinsiOpts.value.find(o => o.value === provinceId)
+            if (opt) opt.value = alt
+            selProvinsi.value = opt ? { value: opt.value, label: opt.label } : selProvinsi.value
+        }
+    }
+    kotaOpts.value = list
+    localStorage.setItem(key, JSON.stringify(list))
 }
 
 watch(selProvinsi, val => {
@@ -344,19 +403,16 @@ watch(selProvinsi, val => {
     if (pid) fetchKota(pid)
 })
 
-onMounted(() => {
+onMounted(async () => {
     ensureSession()
-    fetchProvinsi()
+    provLoading.value = true
+    await fetchProvinsi()
     fetchCartFee()
 })
 
 const paymentFee = ref(0)
 const grandTotalWithFee = computed(() => total.value + paymentFee.value)
-
-async function fetchCartFee() {
-    paymentFee.value = 0
-}
-
+async function fetchCartFee() { paymentFee.value = 0 }
 watch(items, () => { fetchCartFee() }, { deep: true })
 
 const success = ref<{ open: boolean; orderCode?: string | null }>({ open: false, orderCode: null })
@@ -374,7 +430,6 @@ function onKotaGuardClick() {
 
 async function submit() {
     showErr.value = true
-    serverErrors.value = {}
     if (!valid.value || !agreed.value) return
     const session_id = ensureSession()
     try {
@@ -406,12 +461,16 @@ async function submit() {
 }
 </script>
 
+
+
+
+
 <style scoped>
 .bc {
     display: flex;
     align-items: center;
     min-height: 36px;
-    margin-top: 20px;
+    margin-top: 20px
 }
 
 .bc__list {
