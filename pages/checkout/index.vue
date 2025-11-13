@@ -186,7 +186,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import ApiService from '@/core/services/ApiService'
 import { useRouter } from 'vue-router'
 import { useCart } from '@/composables/useCart'
@@ -196,6 +196,14 @@ definePageMeta({ ssr: false })
 useHead({ title: 'Checkout' })
 
 type Opt = { value: string; label: string }
+
+const kotaDisabled = computed(() => !selProvinsi.value)
+const showKotaHint = ref(false)
+
+function onKotaGuardClick() {
+    showKotaHint.value = true
+    setTimeout(() => showKotaHint.value = false, 1500)
+}
 
 const router = useRouter()
 const { items, total, clearAll } = useCart()
@@ -274,34 +282,60 @@ const provNameToValidId = ref<Record<string, string>>({})
 const provinsiOpts = ref<Opt[]>([])
 const kotaOpts = ref<Opt[]>([])
 const provLoading = ref(true)
+const provLoadError = ref<string | null>(null)
 const selProvinsi = ref<Opt | null>(null)
 const selKota = ref<Opt | null>(null)
 const provKey = computed(() => provinsiOpts.value.length + '-' + (provinsiOpts.value[0]?.value || ''))
 
+function safeParse(s: string | null) {
+    if (!s) return null
+    try { return JSON.parse(s) } catch (e) { console.warn('safeParse failed', e); return null }
+}
+
+function isNonEmptyArray(a: any): a is any[] { return Array.isArray(a) && a.length > 0 }
+function isNonEmptyObj(o: any): o is Record<string, any> { return o && typeof o === 'object' && Object.keys(o).length > 0 }
+
 async function bootstrapRegions() {
-    const cacheProv = localStorage.getItem(LS_PROV)
-    const cacheMap = localStorage.getItem(LS_REG_MAP)
-    const cacheIndex = localStorage.getItem(LS_NAME_INDEX)
-    if (cacheProv && cacheMap && cacheIndex) {
-        provinsiOpts.value = JSON.parse(cacheProv)
-        regByProvId.value = JSON.parse(cacheMap)
-        provNameToValidId.value = JSON.parse(cacheIndex)
-        provLoading.value = false
-        return
-    }
+    provLoading.value = true
+    provLoadError.value = null
     try {
+        const cacheProv = safeParse(localStorage.getItem(LS_PROV))
+        const cacheMap = safeParse(localStorage.getItem(LS_REG_MAP))
+        const cacheIndex = safeParse(localStorage.getItem(LS_NAME_INDEX))
+        if (isNonEmptyArray(cacheProv) && isNonEmptyObj(cacheMap) && isNonEmptyObj(cacheIndex)) {
+            provinsiOpts.value = cacheProv as Opt[]
+            regByProvId.value = cacheMap as Record<string, Opt[]>
+            provNameToValidId.value = cacheIndex as Record<string, string>
+            return
+        }
+        try {
+            localStorage.removeItem(LS_PROV)
+            localStorage.removeItem(LS_REG_MAP)
+            localStorage.removeItem(LS_NAME_INDEX)
+        } catch (e) { console.warn('failed clearing stale cache', e) }
+
         const [{ data: pData }, { data: rData }] = await Promise.all([
             ApiService.query('/province', { params: { search: '' }, headers: headersBase }),
             ApiService.query('/regency', { params: {}, headers: headersBase })
         ])
+
+        const unwrap = (x: any) => (x && typeof x === 'object' && 'value' in x) ? x.value : x
+
+        const pRaw = unwrap(pData)
+        const rRaw = unwrap(rData)
+
+        const provPayload = (pRaw && ((pRaw.data && pRaw.data.provinces) || pRaw.provinces || pRaw.data || pRaw)) || []
+        const regPayload = (rRaw && ((rRaw.data && rRaw.data.regencies) || rRaw.regencies || rRaw.data || rRaw)) || []
+
         const provinces: Array<{ id: string; name: string; external_id?: any }> =
-            ((pData.value as any)?.data?.provinces ?? []).map((p: any) => ({
+            (Array.isArray(provPayload) ? provPayload : (Array.isArray(provPayload.provinces) ? provPayload.provinces : [])).map((p: any) => ({
                 id: String(p.id),
                 name: String(p.name ?? '').trim(),
                 external_id: p.external_id
             }))
+
         const regencies: Array<{ id: string; name: string; province_id: string | number }> =
-            ((rData.value as any)?.data?.regencies ?? []).map((r: any) => ({
+            (Array.isArray(regPayload) ? regPayload : (Array.isArray(regPayload.regencies) ? regPayload.regencies : [])).map((r: any) => ({
                 id: String(r.id),
                 name: String(r.name ?? '').trim(),
                 province_id: String(r.province_id)
@@ -316,24 +350,31 @@ async function bootstrapRegions() {
             const key = p.external_id != null ? `EXT:${p.external_id}` : `NM:${norm(p.name)}`
                 ; (groups.get(key) ?? groups.set(key, []).get(key))!.push({ id: p.id, name: p.name })
         }
-
         const opts: Opt[] = []
         const nameIndex: Record<string, string> = {}
         for (const g of groups.values()) {
             const withReg = g.find(x => map[x.id]?.length)
             const chosen = withReg ?? g[0]
+            if (!chosen) continue
             opts.push({ value: chosen.id, label: chosen.name })
             nameIndex[norm(chosen.name)] = chosen.id
         }
         opts.sort((a, b) => a.label.localeCompare(b.label))
-
         provinsiOpts.value = opts
         regByProvId.value = map
         provNameToValidId.value = nameIndex
-
-        localStorage.setItem(LS_PROV, JSON.stringify(opts))
-        localStorage.setItem(LS_REG_MAP, JSON.stringify(map))
-        localStorage.setItem(LS_NAME_INDEX, JSON.stringify(nameIndex))
+        try {
+            if (isNonEmptyArray(opts)) localStorage.setItem(LS_PROV, JSON.stringify(opts))
+            if (isNonEmptyObj(map)) localStorage.setItem(LS_REG_MAP, JSON.stringify(map))
+            if (isNonEmptyObj(nameIndex)) localStorage.setItem(LS_NAME_INDEX, JSON.stringify(nameIndex))
+        } catch (e) { console.warn('unable to set localStorage', e) }
+        if (!opts.length) provLoadError.value = 'Data provinsi kosong dari server'
+    } catch (err) {
+        console.warn('Failed to fetch provinces/regencies', err)
+        provinsiOpts.value = []
+        regByProvId.value = {}
+        provNameToValidId.value = {}
+        provLoadError.value = typeof err === 'string' ? err : (err?.message || 'Gagal memuat data wilayah')
     } finally {
         provLoading.value = false
     }
@@ -352,8 +393,10 @@ async function fetchProvinsi() { await bootstrapRegions() }
 async function fetchKota(provinceId: string) {
     const pid = resolveProvinceId({ value: provinceId, label: selProvinsi.value?.label || '' })
     const key = `${LS_KOTA_PREFIX}${pid}`
-    const cached = localStorage.getItem(key)
-    if (cached) { kotaOpts.value = JSON.parse(cached); return }
+    try {
+        const cached = safeParse(localStorage.getItem(key))
+        if (isNonEmptyArray(cached)) { kotaOpts.value = cached as Opt[]; return }
+    } catch (e) { console.warn('kota cache parse failed', e) }
     let list = regByProvId.value[pid] || []
     if (!list.length) {
         const alt = provNameToValidId.value[norm(selProvinsi.value?.label || '')]
@@ -365,7 +408,7 @@ async function fetchKota(provinceId: string) {
         }
     }
     kotaOpts.value = list
-    localStorage.setItem(key, JSON.stringify(list))
+    try { if (isNonEmptyArray(list)) localStorage.setItem(key, JSON.stringify(list)) } catch (e) { console.warn('save kota failed', e) }
 }
 
 watch(selProvinsi, val => {
@@ -407,7 +450,7 @@ function buildOrderProductsFromItems(arr: any[]) {
 }
 
 onMounted(async () => {
-    try { ensureSession() } catch { }
+    try { ensureSession() } catch (e) { console.warn(e) }
     provLoading.value = true
     await fetchProvinsi()
     fetchCartFee()
@@ -419,30 +462,23 @@ async function submit() {
         alert('Cek kembali form dan pastikan Anda menyetujui syarat.')
         return
     }
-
     let checkoutKeys: string[] = []
     try {
         const raw = localStorage.getItem('phri_checkout_selection')
         if (raw) checkoutKeys = JSON.parse(raw) as string[]
-    } catch { checkoutKeys = [] }
-
+    } catch (e) { console.warn('checkout selection parse failed', e); checkoutKeys = [] }
     const itemsToSend = (displayedItems.value || []).filter(it => {
         return Array.isArray(checkoutKeys) && checkoutKeys.length > 0 ? checkoutKeys.includes(it.key) : true
     })
-
     if (!itemsToSend.length) {
         alert('Tidak ada item dipilih untuk dipesan.')
         return
     }
-
     const productsPayload = buildOrderProductsFromItems(itemsToSend)
-
     if (!productsPayload.length) {
-        console.error('buildOrderProductsFromItems returned empty. itemsToSend:', itemsToSend)
         alert('Gagal: produk tidak valid (mungkin semua qty 0). Periksa kembali keranjang.')
         return
     }
-
     const session_id = ensureSession()
     const payload: Record<string, any> = {
         session_id,
@@ -456,9 +492,6 @@ async function submit() {
         postalcode: form.value.postalcode,
         products: productsPayload
     }
-
-    console.log('ORDER PAYLOAD ->', JSON.stringify(payload, null, 2))
-
     try {
         sending.value = true
         const reqHeaders = { ...headersBase, 'Content-Type': 'application/json' }
@@ -468,15 +501,29 @@ async function submit() {
         const code = root?.order?.code || root?.order_code || root?.code || null
         success.value.orderCode = code ? String(code) : null
         await clearAll()
-        try { localStorage.removeItem('phri_checkout_selection') } catch { }
+        try { localStorage.removeItem('phri_checkout_selection') } catch (e) { console.warn(e) }
         success.value.open = true
     } catch (err: any) {
-        console.error('Order error:', err)
+        console.warn('Order error:', err)
         const serverMsg = err?.response?.data?.message || err?.message || JSON.stringify(err)
         alert('Gagal membuat order: ' + serverMsg)
     } finally {
         sending.value = false
     }
+}
+
+function clearRegionCacheAndReload() {
+    try {
+        localStorage.removeItem(LS_PROV)
+        localStorage.removeItem(LS_REG_MAP)
+        localStorage.removeItem(LS_NAME_INDEX)
+    } catch (e) { console.warn(e) }
+    provinsiOpts.value = []
+    regByProvId.value = {}
+    provNameToValidId.value = {}
+    selProvinsi.value = null
+    selKota.value = null
+    bootstrapRegions()
 }
 </script>
 
