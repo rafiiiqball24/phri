@@ -186,7 +186,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import ApiService from '@/core/services/ApiService'
 import { useRouter } from 'vue-router'
 import { useCart } from '@/composables/useCart'
@@ -196,46 +196,21 @@ definePageMeta({ ssr: false })
 useHead({ title: 'Checkout' })
 
 type Opt = { value: string; label: string }
-type Crumb = { label: string; to?: string; isEllipsis?: boolean }
-
-const crumbs = ref<Crumb[]>([
-    { label: 'Beranda', to: '/' },
-    { label: 'Detail Produk', to: '/detail-product' },
-    { label: 'Keranjang', to: '/cart' },
-    { label: 'Pemesanan' }
-])
-
-const isMobile = ref(false)
-const setBp = () => (isMobile.value = window.matchMedia('(max-width: 480px)').matches)
-onMounted(() => { setBp(); window.addEventListener('resize', setBp) })
-onBeforeUnmount(() => window.removeEventListener('resize', setBp))
-const crumbsView = computed<Crumb[]>(() => {
-    const arr = crumbs.value || []
-    if (!isMobile.value || arr.length <= 3) return arr
-    return [arr[0], { label: '…', isEllipsis: true }, arr[arr.length - 2], arr[arr.length - 1]]
-})
 
 const router = useRouter()
 const { items, total, clearAll } = useCart()
-const displayedItems = computed(() => items.value)
-
-const dbg = ref({ loading: false })
+const displayedItems = computed(() => items.value || [])
 
 const config = useRuntimeConfig()
 const apiKey = (config.public.xApiKey || config.public.apiKey || '') as string
-const headers: Record<string, string> = { Accept: 'application/json', 'Content-Type': 'application/json' }
-if (apiKey) headers['x-api-key'] = apiKey
+const headersBase: Record<string, string> = { Accept: 'application/json' }
+if (apiKey) headersBase['x-api-key'] = apiKey
+
+const dbg = ref({ loading: false })
+const showDebug = ref(false)
 
 const form = ref({ name: '', address: '', detail: '', email: '', phone: '', postalcode: '' })
 const agreed = ref(false)
-
-const selProvinsi = ref<Opt | null>(null)
-const selKota = ref<Opt | null>(null)
-const provinsiOpts = ref<Opt[]>([])
-const kotaOpts = ref<Opt[]>([])
-const provLoading = ref(true)
-const provKey = computed(() => provinsiOpts.value.length + '-' + (provinsiOpts.value[0]?.value || ''))
-
 const sending = ref(false)
 
 const nameValid = (v: string) => /^[a-zA-Z\s]*$/.test(v)
@@ -251,11 +226,10 @@ const phoneOk = (v: string) => /^[0-9]{10,13}$/.test(normalizePhone(v))
 
 const showErr = ref(false)
 const touched = ref({ name: false, address: false, provinsi: false, kota: false, postalcode: false, email: false, phone: false })
-
 const shouldShow = (k: keyof typeof touched.value) => showErr.value || touched.value[k]
-const shouldShowError = (field: keyof typeof touched.value) => {
-    if (!shouldShow(field)) return false
-    switch (field) {
+const shouldShowError = (f: keyof typeof touched.value) => {
+    if (!shouldShow(f)) return false
+    switch (f) {
         case 'name': return !form.value.name || form.value.name.length < 3 || !nameValid(form.value.name)
         case 'address': return !form.value.address
         case 'provinsi': return !selProvinsi.value
@@ -263,9 +237,8 @@ const shouldShowError = (field: keyof typeof touched.value) => {
         case 'postalcode': return !form.value.postalcode || !/^[0-9]+$/.test(form.value.postalcode) || form.value.postalcode.length !== 5
         case 'email': return !emailOk(form.value.email)
         case 'phone': {
-            const phone = form.value.phone
-            const n = normalizePhone(phone)
-            return !phone || !/^[0-9]+$/.test(phone) || n.length < 10 || n.length > 13
+            const n = normalizePhone(form.value.phone)
+            return !form.value.phone || !/^[0-9]+$/.test(form.value.phone) || n.length < 10 || n.length > 13
         }
         default: return false
     }
@@ -298,6 +271,12 @@ const norm = (s: string) => String(s || '').normalize('NFKD').replace(/[\u0300-\
 
 const regByProvId = ref<Record<string, Opt[]>>({})
 const provNameToValidId = ref<Record<string, string>>({})
+const provinsiOpts = ref<Opt[]>([])
+const kotaOpts = ref<Opt[]>([])
+const provLoading = ref(true)
+const selProvinsi = ref<Opt | null>(null)
+const selKota = ref<Opt | null>(null)
+const provKey = computed(() => provinsiOpts.value.length + '-' + (provinsiOpts.value[0]?.value || ''))
 
 async function bootstrapRegions() {
     const cacheProv = localStorage.getItem(LS_PROV)
@@ -312,8 +291,8 @@ async function bootstrapRegions() {
     }
     try {
         const [{ data: pData }, { data: rData }] = await Promise.all([
-            ApiService.query('/province', { params: { search: '' }, headers }),
-            ApiService.query('/regency', { params: {}, headers })
+            ApiService.query('/province', { params: { search: '' }, headers: headersBase }),
+            ApiService.query('/regency', { params: {}, headers: headersBase })
         ])
         const provinces: Array<{ id: string; name: string; external_id?: any }> =
             ((pData.value as any)?.data?.provinces ?? []).map((p: any) => ({
@@ -329,9 +308,7 @@ async function bootstrapRegions() {
             }))
 
         const map: Record<string, Opt[]> = {}
-        for (const r of regencies) {
-            ; (map[r.province_id] ??= []).push({ value: r.id, label: r.name })
-        }
+        for (const r of regencies) { (map[r.province_id] ??= []).push({ value: r.id, label: r.name }) }
         for (const k of Object.keys(map)) map[k].sort((a, b) => a.label.localeCompare(b.label))
 
         const groups = new Map<string, Array<{ id: string; name: string }>>()
@@ -370,18 +347,13 @@ function resolveProvinceId(opt: Opt | null): string {
     return alt || pid
 }
 
-async function fetchProvinsi() {
-    await bootstrapRegions()
-}
+async function fetchProvinsi() { await bootstrapRegions() }
 
 async function fetchKota(provinceId: string) {
     const pid = resolveProvinceId({ value: provinceId, label: selProvinsi.value?.label || '' })
     const key = `${LS_KOTA_PREFIX}${pid}`
     const cached = localStorage.getItem(key)
-    if (cached) {
-        kotaOpts.value = JSON.parse(cached)
-        return
-    }
+    if (cached) { kotaOpts.value = JSON.parse(cached); return }
     let list = regByProvId.value[pid] || []
     if (!list.length) {
         const alt = provNameToValidId.value[norm(selProvinsi.value?.label || '')]
@@ -403,13 +375,6 @@ watch(selProvinsi, val => {
     if (pid) fetchKota(pid)
 })
 
-onMounted(async () => {
-    ensureSession()
-    provLoading.value = true
-    await fetchProvinsi()
-    fetchCartFee()
-})
-
 const paymentFee = ref(0)
 const grandTotalWithFee = computed(() => total.value + paymentFee.value)
 async function fetchCartFee() { paymentFee.value = 0 }
@@ -418,48 +383,103 @@ watch(items, () => { fetchCartFee() }, { deep: true })
 const success = ref<{ open: boolean; orderCode?: string | null }>({ open: false, orderCode: null })
 function closeSuccess() { success.value.open = false; router.push('/') }
 
-const kotaDisabled = computed(() => !selProvinsi.value)
-const showKotaHint = ref(false)
-let kotaHintTimer: any = null
-function onKotaGuardClick() {
-    touched.value.kota = true
-    showKotaHint.value = true
-    clearTimeout(kotaHintTimer)
-    kotaHintTimer = setTimeout(() => (showKotaHint.value = false), 2500)
+function findProductIdFromItem(it: any): string | null {
+    if (!it) return null
+    if (it.id) return String(it.id)
+    if (it.product_id) return String(it.product_id)
+    if (it.product && (it.product.id || it.product.product_id)) return String(it.product.id || it.product.product_id)
+    return null
 }
+
+function buildOrderProductsFromItems(arr: any[]) {
+    return arr.map(it => {
+        const pid = findProductIdFromItem(it)
+        const obj: Record<string, any> = {
+            id: pid ?? null,
+            quantity: Number(it.qty ?? it.quantity ?? 0)
+        }
+        if ((it as any).combinationId) obj.combination_id = (it as any).combinationId
+        if ((it as any).combination_id) obj.combination_id = (it as any).combination_id
+        const opts = (it as any).optionIds || (it as any).product_variant_option_ids || (it as any).variant_option_ids || []
+        if (Array.isArray(opts) && opts.length) obj.product_variant_option_ids = opts.filter(Boolean)
+        return obj
+    }).filter(p => Number(p.quantity) > 0)
+}
+
+onMounted(async () => {
+    try { ensureSession() } catch { }
+    provLoading.value = true
+    await fetchProvinsi()
+    fetchCartFee()
+})
 
 async function submit() {
     showErr.value = true
-    if (!valid.value || !agreed.value) return
+    if (!valid.value || !agreed.value) {
+        alert('Cek kembali form dan pastikan Anda menyetujui syarat.')
+        return
+    }
+
+    let checkoutKeys: string[] = []
+    try {
+        const raw = localStorage.getItem('phri_checkout_selection')
+        if (raw) checkoutKeys = JSON.parse(raw) as string[]
+    } catch { checkoutKeys = [] }
+
+    const itemsToSend = (displayedItems.value || []).filter(it => {
+        return Array.isArray(checkoutKeys) && checkoutKeys.length > 0 ? checkoutKeys.includes(it.key) : true
+    })
+
+    if (!itemsToSend.length) {
+        alert('Tidak ada item dipilih untuk dipesan.')
+        return
+    }
+
+    const productsPayload = buildOrderProductsFromItems(itemsToSend)
+
+    if (!productsPayload.length) {
+        console.error('buildOrderProductsFromItems returned empty. itemsToSend:', itemsToSend)
+        alert('Gagal: produk tidak valid (mungkin semua qty 0). Periksa kembali keranjang.')
+        return
+    }
+
     const session_id = ensureSession()
+    const payload: Record<string, any> = {
+        session_id,
+        name: form.value.name,
+        email: form.value.email,
+        phone: normalizePhone(form.value.phone),
+        address: form.value.address,
+        address_detail: form.value.detail || '',
+        province_id: selProvinsi.value?.value,
+        regency_id: selKota.value?.value,
+        postalcode: form.value.postalcode,
+        products: productsPayload
+    }
+
+    console.log('ORDER PAYLOAD ->', JSON.stringify(payload, null, 2))
+
     try {
         sending.value = true
-        const payload = {
-            session_id,
-            name: form.value.name,
-            email: form.value.email,
-            phone: normalizePhone(form.value.phone),
-            address: form.value.address,
-            address_detail: form.value.detail || '',
-            province_id: selProvinsi.value?.value,
-            regency_id: selKota.value?.value,
-            postalcode: form.value.postalcode
-        }
-        const { data, error } = await ApiService.post('/order', payload, { ...headers, 'Content-Type': 'application/json' })
-        if (error.value) throw error.value
+        const reqHeaders = { ...headersBase, 'Content-Type': 'application/json' }
+        const { data, error } = await ApiService.post('/order', payload, { headers: reqHeaders })
+        if (error?.value) throw error.value
         const root = (data.value as any)?.data || data.value
         const code = root?.order?.code || root?.order_code || root?.code || null
         success.value.orderCode = code ? String(code) : null
         await clearAll()
+        try { localStorage.removeItem('phri_checkout_selection') } catch { }
         success.value.open = true
-    } catch (e: any) {
-        const msg = e?.message || 'Gagal membuat order'
-        alert(`${msg}`)
+    } catch (err: any) {
+        console.error('Order error:', err)
+        const serverMsg = err?.response?.data?.message || err?.message || JSON.stringify(err)
+        alert('Gagal membuat order: ' + serverMsg)
     } finally {
         sending.value = false
     }
 }
 </script>
+
 
 
 
