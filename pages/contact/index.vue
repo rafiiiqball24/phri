@@ -327,6 +327,7 @@ async function onSubmit() {
   grid-template-columns: 1.7fr 600px;
   gap: 24px;
   align-items: start;
+  grid-template-areas: "form map";
 }
 
 @media (max-width: 1024px) {
@@ -340,6 +341,7 @@ async function onSubmit() {
   border: 1px solid #ececec;
   border-radius: 16px;
   padding: 22px;
+  grid-area: form;
 }
 
 .float-left-up {
@@ -352,6 +354,7 @@ async function onSubmit() {
   border: 1px solid #e6e6e6;
   border-radius: 12px;
   overflow: hidden;
+  grid-area: map;
 }
 
 @media (max-width: 1024px) {
@@ -545,5 +548,19 @@ async function onSubmit() {
   background: #fef2f2;
   color: #991b1b;
   border: 1px solid #fecaca;
+}
+
+@media (max-width: 1024px) {
+  .layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "map"
+      "form";
+  }
+
+  .mapwrap {
+    width: 100%;
+    height: 360px;
+  }
 }
 </style>
