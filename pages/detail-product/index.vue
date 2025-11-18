@@ -497,7 +497,7 @@ async function onAddToCart() {
     optionIds: [selectedSizeId.value, selectedColorId.value].filter(Boolean) as string[],
     combinationId: matchedCombo.value?.id || null,
   });
-  router.push("/cart");
+  router.push({ path: "/cart", query: { from: "detail-product" } });
 }
 
 onServerPrefetch(fetchPage);

@@ -1,11 +1,7 @@
 <template>
   <ClientOnly>
     <section class="page container">
-      <Breadcrumb :items="[
-        { label: 'Beranda', to: '/' },
-        { label: 'Detail Produk', to: '/detail-product' },
-        { label: 'Keranjang' },
-      ]" />
+      <Breadcrumb :items="breadcrumbItems" />
 
       <div v-if="showDebug" class="dbg">
         <span class="dbg__title">Debug:</span>
@@ -101,7 +97,7 @@
 definePageMeta({ ssr: false })
 
 import { computed, ref, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useCurrency } from '@/composables/useCurrency'
 import { useCart } from '@/composables/useCart'
 
@@ -137,6 +133,15 @@ type ProductApi = {
 useHead({ title: 'Cart' })
 const { formatIDR } = useCurrency()
 const router = useRouter()
+const route = useRoute()
+const breadcrumbItems = computed(() => {
+  const base = [{ label: 'Beranda', to: '/' }]
+  if (route.query.from === 'detail-product') {
+    base.push({ label: 'Detail Produk', to: '/detail-product' })
+  }
+  base.push({ label: 'Keranjang' })
+  return base
+})
 const config = useRuntimeConfig()
 const baseURL = (config.public.baseURL as string) || ''
 const apiKey = (config.public.xApiKey || config.public.apiKey || '') as string
