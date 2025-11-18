@@ -264,7 +264,7 @@ const ts = ref(0);
 const te = ref(0);
 
 const product = ref<{
-  id?: string; name: string; price: number; stock: number; image: string; images: string[];
+  id?: string; slug?: string; name: string; price: number; stock: number; image: string; images: string[];
   description?: string; category?: string;
   sizes: { id: string; name: string; available: boolean }[];
   colors: { id: string; name: string; available: boolean }[];
@@ -363,6 +363,7 @@ function mapProduct(p: ProductApi) {
 
   product.value = {
     id: p.id,
+    slug: p.slug,
     name: p.name,
     price: Number(p.price ?? 0),
     stock: Number(p.quantity ?? 0),
@@ -497,7 +498,11 @@ async function onAddToCart() {
     optionIds: [selectedSizeId.value, selectedColorId.value].filter(Boolean) as string[],
     combinationId: matchedCombo.value?.id || null,
   });
-  router.push({ path: "/cart", query: { from: "detail-product" } });
+  const detailQuery: Record<string, string> = { from: "detail-product" };
+  const slugParam = (route.query.slug as string | undefined) || product.value.slug;
+  if (slugParam) detailQuery.slug = slugParam;
+  else if (typeof route.query.id === "string") detailQuery.id = route.query.id;
+  router.push({ path: "/cart", query: detailQuery });
 }
 
 onServerPrefetch(fetchPage);

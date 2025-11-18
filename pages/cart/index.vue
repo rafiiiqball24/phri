@@ -135,9 +135,18 @@ const { formatIDR } = useCurrency()
 const router = useRouter()
 const route = useRoute()
 const breadcrumbItems = computed(() => {
-  const base = [{ label: 'Beranda', to: '/' }]
+  const base: Array<{ label: string; to?: any }> = [{ label: 'Beranda', to: '/' }]
   if (route.query.from === 'detail-product') {
-    base.push({ label: 'Detail Produk', to: '/detail-product' })
+    const detailQuery: Record<string, string> = {}
+    if (typeof route.query.slug === 'string') detailQuery.slug = route.query.slug
+    else if (typeof route.query.id === 'string') detailQuery.id = route.query.id
+    const detailItem: { label: string; to?: any } = { label: 'Detail Produk' }
+    if (Object.keys(detailQuery).length) {
+      detailItem.to = { path: '/detail-product', query: detailQuery }
+    } else {
+      detailItem.to = '/detail-product'
+    }
+    base.push(detailItem)
   }
   base.push({ label: 'Keranjang' })
   return base
